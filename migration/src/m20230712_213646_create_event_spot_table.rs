@@ -16,7 +16,7 @@ impl Migration {
             .col(ColumnDef::new(EventsSpots::SpotId).char_len(26).not_null().unique_key())
             .col(ColumnDef::new(EventsSpots::Name).string_len(32).not_null())
             .col(ColumnDef::new(EventsSpots::IsPick).boolean().not_null().default(false))
-            .col(ColumnDef::new(EventsSpots::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(EventsSpots::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventsSpots::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventsSpots::EventID to Events::Id Cascade))
             .to_owned();
@@ -96,7 +96,7 @@ mod tests {
                 r#""spot_id" char(26) NOT NULL UNIQUE,"#,
                 r#""name" varchar(32) NOT NULL,"#,
                 r#""is_pick" bool NOT NULL DEFAULT FALSE,"#,
-                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#

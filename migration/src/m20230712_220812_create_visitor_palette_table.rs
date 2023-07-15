@@ -14,7 +14,7 @@ impl Migration {
             .col(ColumnDef::new(VisitorsPalettes::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(VisitorsPalettes::VisitorId).integer().not_null())
             .col(ColumnDef::new(VisitorsPalettes::PaletteIdList).array(ColumnType::Integer).not_null())
-            .col(ColumnDef::new(VisitorsPalettes::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(VisitorsPalettes::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
             .col(ColumnDef::new(VisitorsPalettes::UpdatedAt).date_time())
             .foreign_key(foreign_key!(VisitorsPalettes::VisitorId to Visitors::Id Cascade))
             .to_owned();
@@ -90,7 +90,7 @@ mod tests {
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""palette_id_list" integer[] NOT NULL,"#,
-                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#

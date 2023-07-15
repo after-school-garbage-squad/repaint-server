@@ -18,7 +18,7 @@ impl Migration {
             .col(ColumnDef::new(EventsBeacons::BeaconUuid).char_len(16).not_null())
             .col(ColumnDef::new(EventsBeacons::HwId).string_len(10).not_null())
             .col(ColumnDef::new(EventsBeacons::ServiceUuid).char_len(16))
-            .col(ColumnDef::new(EventsBeacons::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(EventsBeacons::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventsBeacons::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventsBeacons::SpotId to EventsSpots::Id Cascade))
             .to_owned();
@@ -102,7 +102,7 @@ mod tests {
                 r#""beacon_uuid" char(16) NOT NULL,"#,
                 r#""hw_id" varchar(10) NOT NULL,"#,
                 r#""service_uuid" char(16),"#,
-                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("spot_id") REFERENCES "events_spots" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#

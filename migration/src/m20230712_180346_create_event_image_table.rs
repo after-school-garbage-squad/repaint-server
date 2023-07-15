@@ -15,7 +15,7 @@ impl Migration {
             .col(ColumnDef::new(EventsImages::EventId).integer().not_null())
             .col(ColumnDef::new(EventsImages::ImageID).char_len(16).not_null())
             .col(ColumnDef::new(EventsImages::CompressedImageID).char_len(16).not_null())
-            .col(ColumnDef::new(EventsImages::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(EventsImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventsImages::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventsImages::EventId to Events::Id Cascade))
             .to_owned();
@@ -93,7 +93,7 @@ mod tests {
                 r#""event_id" integer NOT NULL,"#,
                 r#""image_id" char(16) NOT NULL,"#,
                 r#""compressed_image_id" char(16) NOT NULL,"#,
-                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
