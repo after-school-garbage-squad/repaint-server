@@ -13,8 +13,8 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(EventsImages::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(EventsImages::EventId).integer().not_null())
-            .col(ColumnDef::new(EventsImages::ImageID).char_len(16).not_null())
-            .col(ColumnDef::new(EventsImages::CompressedImageID).char_len(16).not_null())
+            .col(ColumnDef::new(EventsImages::ImageID).char_len(16).unique_key().not_null())
+            .col(ColumnDef::new(EventsImages::CompressedImageID).char_len(16).unique_key().not_null())
             .col(ColumnDef::new(EventsImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventsImages::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventsImages::EventId to Events::Id Cascade))
@@ -91,8 +91,8 @@ mod tests {
                 r#"CREATE TABLE IF NOT EXISTS "events_images" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
-                r#""image_id" char(16) NOT NULL,"#,
-                r#""compressed_image_id" char(16) NOT NULL,"#,
+                r#""image_id" char(16) UNIQUE NOT NULL,"#,
+                r#""compressed_image_id" char(16) UNIQUE NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
