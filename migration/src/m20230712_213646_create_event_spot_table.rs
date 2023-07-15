@@ -13,7 +13,7 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(EventsSpots::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(EventsSpots::EventID).integer().not_null())
-            .col(ColumnDef::new(EventsSpots::SpotId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(EventsSpots::SpotId).uuid().not_null().unique_key())
             .col(ColumnDef::new(EventsSpots::Name).string_len(32).not_null())
             .col(ColumnDef::new(EventsSpots::IsPick).boolean().not_null().default(false))
             .col(ColumnDef::new(EventsSpots::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
@@ -93,7 +93,7 @@ mod tests {
                 r#"CREATE TABLE IF NOT EXISTS "events_spots" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
-                r#""spot_id" char(26) NOT NULL UNIQUE,"#,
+                r#""spot_id" uuid NOT NULL UNIQUE,"#,
                 r#""name" varchar(32) NOT NULL,"#,
                 r#""is_pick" bool NOT NULL DEFAULT FALSE,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
