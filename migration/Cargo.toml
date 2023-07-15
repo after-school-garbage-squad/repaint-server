@@ -17,3 +17,6 @@ features = [
   "runtime-tokio-rustls",
   "sqlx-postgres",
 ]
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"

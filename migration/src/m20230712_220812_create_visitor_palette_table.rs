@@ -63,3 +63,41 @@ macro_rules! foreign_key {
 }
 
 use foreign_key;
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+    use sea_orm_migration::prelude::*;
+
+    use super::Visitor;
+    use super::VisitorPalette;
+
+    #[test]
+    fn test_visitor_palette_table() {
+        #[rustfmt::skip]
+        let visitor_palette= Table::create()
+            .table(VisitorPalette::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(VisitorPalette::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(VisitorPalette::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorPalette::PaletteIdList).array(ColumnType::Integer).not_null())
+            .col(ColumnDef::new(VisitorPalette::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(VisitorPalette::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(VisitorPalette::VisitorId to Visitor::Id Cascade))
+            .to_owned();
+
+        assert_eq!(
+            visitor_palette.to_string(PostgresQueryBuilder),
+            [
+                r#"CREATE TABLE IF NOT EXISTS "visitor_palette" ("#,
+                r#""id" serial NOT NULL PRIMARY KEY,"#,
+                r#""visitor_id" integer NOT NULL,"#,
+                r#""palette_id_list" integer[] NOT NULL,"#,
+                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""updated_at" timestamp without time zone,"#,
+                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitor" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#")"#
+            ].join(" ")
+        )
+    }
+}

@@ -67,3 +67,45 @@ macro_rules! foreign_key {
 }
 
 use foreign_key;
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+    use sea_orm_migration::prelude::*;
+
+    use super::Visitor;
+    use super::VisitorImage;
+
+    #[test]
+    fn test_visitor_image_tanle() {
+        #[rustfmt::skip]
+        let visitor_image = Table::create()
+            .table(VisitorImage::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(VisitorImage::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(VisitorImage::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorImage::ImageId).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorImage::CompressedImageID).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorImage::CurrentImageID).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorImage::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(VisitorImage::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(VisitorImage::VisitorId to Visitor::Id Cascade))
+            .to_owned();
+
+        assert_eq!(
+            visitor_image.to_string(PostgresQueryBuilder),
+            [
+                r#"CREATE TABLE IF NOT EXISTS "visitor_image" ("#,
+                r#""id" serial NOT NULL PRIMARY KEY,"#,
+                r#""visitor_id" integer NOT NULL,"#,
+                r#""image_id" char(16) NOT NULL,"#,
+                r#""compressed_image_id" char(16) NOT NULL,"#,
+                r#""current_image_id" char(16) NOT NULL,"#,
+                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""updated_at" timestamp without time zone,"#,
+                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitor" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#")"#
+            ].join(" ")
+        );
+    }
+}

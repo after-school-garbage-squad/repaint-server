@@ -59,3 +59,38 @@ macro_rules! foreign_key {
 }
 
 use foreign_key;
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+    use sea_orm_migration::prelude::*;
+
+    use super::Admin;
+    use super::Event;
+    use super::EventAdmin;
+
+    #[test]
+    fn test_event_admin_table() {
+        #[rustfmt::skip]
+        let event_admin = Table::create()
+            .table(EventAdmin::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(EventAdmin::AdminId).integer().not_null())
+            .col(ColumnDef::new(EventAdmin::EventId).integer().not_null())
+            .foreign_key(foreign_key!(EventAdmin::AdminId to Admin::Id Restrict))
+            .foreign_key(foreign_key!(EventAdmin::EventId to Event::Id Restrict))
+            .to_owned();
+
+        assert_eq!(
+            event_admin.to_string(PostgresQueryBuilder),
+            [
+                r#"CREATE TABLE IF NOT EXISTS "event_admin" ("#,
+                r#""admin_id" integer NOT NULL,"#,
+                r#""event_id" integer NOT NULL,"#,
+                r#"FOREIGN KEY ("admin_id") REFERENCES "admin" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,"#,
+                r#"FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT"#,
+                r#")"#
+            ].join(" ")
+        )
+    }
+}

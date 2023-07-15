@@ -65,3 +65,43 @@ macro_rules! foreign_key {
 }
 
 use foreign_key;
+
+#[cfg(test)]
+mod tests {
+    use pretty_assertions::assert_eq;
+    use sea_orm_migration::prelude::*;
+
+    use super::Event;
+    use super::Visitor;
+
+    #[test]
+    fn test_visitor_table() {
+        #[rustfmt::skip]
+        let visitor = Table::create()
+            .table(Visitor::Table)
+            .if_not_exists()
+            .col(ColumnDef::new(Visitor::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(Visitor::EventId).integer().not_null())
+            .col(ColumnDef::new(Visitor::VisitorId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(Visitor::RegistrationId).char_len(16).not_null())
+            .col(ColumnDef::new(Visitor::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(Visitor::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(Visitor::EventId to Event::Id Cascade))
+            .to_owned();
+
+        assert_eq!(
+            visitor.to_string(PostgresQueryBuilder),
+            [
+                r#"CREATE TABLE IF NOT EXISTS "visitor" ("#,
+                r#""id" serial NOT NULL PRIMARY KEY,"#,
+                r#""event_id" integer NOT NULL,"#,
+                r#""visitor_id" char(26) NOT NULL UNIQUE,"#,
+                r#""registration_id" char(16) NOT NULL,"#,
+                r#""created_at" timestamp without time zone NOT NULL,"#,
+                r#""updated_at" timestamp without time zone,"#,
+                r#"FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#")"#
+            ].join(" ")
+        );
+    }
+}
