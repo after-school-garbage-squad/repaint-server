@@ -11,8 +11,8 @@ impl MigrationTrait for Migration {
             .table(Admin::Table)
             .if_not_exists()
             .col(ColumnDef::new(Admin::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Admin::AdminId).string().not_null().unique_key())
-            .col(ColumnDef::new(Admin::Email).string().not_null().unique_key())
+            .col(ColumnDef::new(Admin::AdminId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(Admin::Email).string_len(80).not_null().unique_key())
             .col(ColumnDef::new(Admin::CreatedAt).date_time().not_null())
             .col(ColumnDef::new(Admin::UpdatedAt).date_time())
             .to_owned();
