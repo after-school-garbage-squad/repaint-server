@@ -7,13 +7,13 @@ impl Migration {
     fn up_admin() -> TableCreateStatement {
         #[rustfmt::skip]
         let admin = Table::create()
-            .table(Admin::Table)
+            .table(Admins::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Admin::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Admin::AdminId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(Admin::Email).string_len(80).not_null().unique_key())
-            .col(ColumnDef::new(Admin::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(Admin::UpdatedAt).date_time())
+            .col(ColumnDef::new(Admins::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(Admins::AdminId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(Admins::Email).string_len(80).not_null().unique_key())
+            .col(ColumnDef::new(Admins::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(Admins::UpdatedAt).date_time())
             .to_owned();
 
         admin
@@ -40,7 +40,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            Admin,
+            Admins,
         }
 
         Ok(())
@@ -48,7 +48,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-pub enum Admin {
+pub enum Admins {
     Table,
     Id,
     AdminId,
@@ -72,7 +72,7 @@ mod tests {
         assert_eq!(
             admin.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "admin" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "admins" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""admin_id" char(26) NOT NULL UNIQUE,"#,
                 r#""email" varchar(80) NOT NULL UNIQUE,"#,

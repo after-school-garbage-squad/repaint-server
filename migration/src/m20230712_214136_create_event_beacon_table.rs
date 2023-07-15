@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_213646_create_event_spot_table::EventSpot;
+use crate::m20230712_213646_create_event_spot_table::EventsSpots;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -9,18 +9,18 @@ impl Migration {
     fn up_event_beacon() -> TableCreateStatement {
         #[rustfmt::skip]
         let event_beacon = Table::create()
-            .table(EventBeacon::Table)
+            .table(EventsBeacons::Table)
             .if_not_exists()
-            .col(ColumnDef::new(EventBeacon::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventBeacon::SpotId).integer().not_null())
-            .col(ColumnDef::new(EventBeacon::Major).small_integer().not_null())
-            .col(ColumnDef::new(EventBeacon::Minor).small_integer().not_null())
-            .col(ColumnDef::new(EventBeacon::BeaconUuid).char_len(16).not_null())
-            .col(ColumnDef::new(EventBeacon::HwId).string_len(10).not_null())
-            .col(ColumnDef::new(EventBeacon::ServiceUuid).char_len(16))
-            .col(ColumnDef::new(EventBeacon::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(EventBeacon::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventBeacon::SpotId to EventSpot::Id Cascade))
+            .col(ColumnDef::new(EventsBeacons::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(EventsBeacons::SpotId).integer().not_null())
+            .col(ColumnDef::new(EventsBeacons::Major).small_integer().not_null())
+            .col(ColumnDef::new(EventsBeacons::Minor).small_integer().not_null())
+            .col(ColumnDef::new(EventsBeacons::BeaconUuid).char_len(16).not_null())
+            .col(ColumnDef::new(EventsBeacons::HwId).string_len(10).not_null())
+            .col(ColumnDef::new(EventsBeacons::ServiceUuid).char_len(16))
+            .col(ColumnDef::new(EventsBeacons::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(EventsBeacons::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(EventsBeacons::SpotId to EventsSpots::Id Cascade))
             .to_owned();
 
         event_beacon
@@ -47,7 +47,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            EventBeacon,
+            EventsBeacons,
         }
 
         Ok(())
@@ -55,7 +55,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum EventBeacon {
+enum EventsBeacons {
     Table,
     Id,
     SpotId,
@@ -94,7 +94,7 @@ mod tests {
         assert_eq!(
             event_spot.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "event_beacon" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "events_beacons" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""spot_id" integer NOT NULL,"#,
                 r#""major" smallint NOT NULL,"#,
@@ -104,7 +104,7 @@ mod tests {
                 r#""service_uuid" char(16),"#,
                 r#""created_at" timestamp without time zone NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("spot_id") REFERENCES "event_spot" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("spot_id") REFERENCES "events_spots" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ].join(" ")
         )

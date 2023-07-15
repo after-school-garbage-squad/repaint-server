@@ -7,15 +7,15 @@ impl Migration {
     fn up_events() -> TableCreateStatement {
         #[rustfmt::skip]
         let events = Table::create()
-            .table(Event::Table)
+            .table(Events::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Event::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Event::EventId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(Event::Name).string_len(32).not_null())
-            .col(ColumnDef::new(Event::HpUrl).string_len(2083).not_null())
-            .col(ColumnDef::new(Event::Contact).string_len(126).not_null())
-            .col(ColumnDef::new(Event::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(Event::UpdatedAt).date_time())
+            .col(ColumnDef::new(Events::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(Events::EventId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(Events::Name).string_len(32).not_null())
+            .col(ColumnDef::new(Events::HpUrl).string_len(2083).not_null())
+            .col(ColumnDef::new(Events::Contact).string_len(126).not_null())
+            .col(ColumnDef::new(Events::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(Events::UpdatedAt).date_time())
             .to_owned();
 
         events
@@ -42,7 +42,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            Event,
+            Events,
         }
 
         Ok(())
@@ -50,7 +50,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-pub enum Event {
+pub enum Events {
     Table,
     Id,
     EventId,
@@ -76,7 +76,7 @@ mod tests {
         assert_eq!(
             events.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "event" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "events" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" char(26) NOT NULL UNIQUE,"#,
                 r#""name" varchar(32) NOT NULL,"#,

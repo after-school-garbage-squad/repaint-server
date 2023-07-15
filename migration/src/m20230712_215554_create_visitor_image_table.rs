@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_215023_create_visitor_table::Visitor;
+use crate::m20230712_215023_create_visitor_table::Visitors;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -9,16 +9,16 @@ impl Migration {
     fn up_visitor_image() -> TableCreateStatement {
         #[rustfmt::skip]
         let visitor_image = Table::create()
-            .table(VisitorImage::Table)
+            .table(VisitorsImages::Table)
             .if_not_exists()
-            .col(ColumnDef::new(VisitorImage::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(VisitorImage::VisitorId).integer().not_null())
-            .col(ColumnDef::new(VisitorImage::ImageId).char_len(16).not_null())
-            .col(ColumnDef::new(VisitorImage::CompressedImageID).char_len(16).not_null())
-            .col(ColumnDef::new(VisitorImage::CurrentImageID).char_len(16).not_null())
-            .col(ColumnDef::new(VisitorImage::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(VisitorImage::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(VisitorImage::VisitorId to Visitor::Id Cascade))
+            .col(ColumnDef::new(VisitorsImages::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(VisitorsImages::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorsImages::ImageId).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorsImages::CompressedImageID).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorsImages::CurrentImageID).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorsImages::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(VisitorsImages::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(VisitorsImages::VisitorId to Visitors::Id Cascade))
             .to_owned();
 
         visitor_image
@@ -45,7 +45,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            VisitorImage,
+            VisitorsImages,
         }
 
         Ok(())
@@ -53,7 +53,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum VisitorImage {
+enum VisitorsImages {
     Table,
     Id,
     VisitorId,
@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(
             visitor_image.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "visitor_image" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "visitors_images" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""image_id" char(16) NOT NULL,"#,
@@ -98,7 +98,7 @@ mod tests {
                 r#""current_image_id" char(16) NOT NULL,"#,
                 r#""created_at" timestamp without time zone NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitor" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ].join(" ")
         );

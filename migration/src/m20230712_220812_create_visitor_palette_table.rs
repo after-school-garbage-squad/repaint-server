@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_215023_create_visitor_table::Visitor;
+use crate::m20230712_215023_create_visitor_table::Visitors;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -9,14 +9,14 @@ impl Migration {
     fn up_visitor_palette() -> TableCreateStatement {
         #[rustfmt::skip]
         let visitor_palette= Table::create()
-            .table(VisitorPalette::Table)
+            .table(VisitorsPalettes::Table)
             .if_not_exists()
-            .col(ColumnDef::new(VisitorPalette::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(VisitorPalette::VisitorId).integer().not_null())
-            .col(ColumnDef::new(VisitorPalette::PaletteIdList).array(ColumnType::Integer).not_null())
-            .col(ColumnDef::new(VisitorPalette::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(VisitorPalette::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(VisitorPalette::VisitorId to Visitor::Id Cascade))
+            .col(ColumnDef::new(VisitorsPalettes::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(VisitorsPalettes::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorsPalettes::PaletteIdList).array(ColumnType::Integer).not_null())
+            .col(ColumnDef::new(VisitorsPalettes::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(VisitorsPalettes::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(VisitorsPalettes::VisitorId to Visitors::Id Cascade))
             .to_owned();
 
         visitor_palette
@@ -43,7 +43,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            VisitorPalette
+            VisitorsPalettes
         }
 
         Ok(())
@@ -51,7 +51,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum VisitorPalette {
+enum VisitorsPalettes {
     Table,
     Id,
     VisitorId,
@@ -86,13 +86,13 @@ mod tests {
         assert_eq!(
             visitor_palette.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "visitor_palette" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "visitors_palettes" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""palette_id_list" integer[] NOT NULL,"#,
                 r#""created_at" timestamp without time zone NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitor" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ].join(" ")
         )

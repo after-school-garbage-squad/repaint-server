@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_175819_create_event_table::Event;
+use crate::m20230712_175819_create_event_table::Events;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -9,16 +9,16 @@ impl Migration {
     fn up_event_spot() -> TableCreateStatement {
         #[rustfmt::skip]
         let event_spot = Table::create()
-            .table(EventSpot::Table)
+            .table(EventsSpots::Table)
             .if_not_exists()
-            .col(ColumnDef::new(EventSpot::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventSpot::EventID).integer().not_null())
-            .col(ColumnDef::new(EventSpot::SpotId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(EventSpot::Name).string_len(32).not_null())
-            .col(ColumnDef::new(EventSpot::IsPick).boolean().not_null().default(false))
-            .col(ColumnDef::new(EventSpot::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(EventSpot::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventSpot::EventID to Event::Id Cascade))
+            .col(ColumnDef::new(EventsSpots::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(EventsSpots::EventID).integer().not_null())
+            .col(ColumnDef::new(EventsSpots::SpotId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(EventsSpots::Name).string_len(32).not_null())
+            .col(ColumnDef::new(EventsSpots::IsPick).boolean().not_null().default(false))
+            .col(ColumnDef::new(EventsSpots::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(EventsSpots::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(EventsSpots::EventID to Events::Id Cascade))
             .to_owned();
 
         event_spot
@@ -45,7 +45,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            EventSpot,
+            EventsSpots,
         }
 
         Ok(())
@@ -53,7 +53,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-pub enum EventSpot {
+pub enum EventsSpots {
     Table,
     Id,
     EventID,
@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(
             event_spot.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "event_spot" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "events_spots" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
                 r#""spot_id" char(26) NOT NULL UNIQUE,"#,
@@ -98,7 +98,7 @@ mod tests {
                 r#""is_pick" bool NOT NULL DEFAULT FALSE,"#,
                 r#""created_at" timestamp without time zone NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ].join(" ")
         );

@@ -1,7 +1,7 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_175819_create_event_table::Event;
-use crate::m20230712_222322_create_admin_table::Admin;
+use crate::m20230712_175819_create_event_table::Events;
+use crate::m20230712_222322_create_admin_table::Admins;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -10,12 +10,12 @@ impl Migration {
     fn up_event_admin() -> TableCreateStatement {
         #[rustfmt::skip]
         let event_admin = Table::create()
-            .table(EventAdmin::Table)
+            .table(EventsAdmins::Table)
             .if_not_exists()
-            .col(ColumnDef::new(EventAdmin::AdminId).integer().not_null())
-            .col(ColumnDef::new(EventAdmin::EventId).integer().not_null())
-            .foreign_key(foreign_key!(EventAdmin::AdminId to Admin::Id Restrict))
-            .foreign_key(foreign_key!(EventAdmin::EventId to Event::Id Restrict))
+            .col(ColumnDef::new(EventsAdmins::AdminId).integer().not_null())
+            .col(ColumnDef::new(EventsAdmins::EventId).integer().not_null())
+            .foreign_key(foreign_key!(EventsAdmins::AdminId to Admins::Id Restrict))
+            .foreign_key(foreign_key!(EventsAdmins::EventId to Events::Id Restrict))
             .to_owned();
 
         event_admin
@@ -42,7 +42,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            EventAdmin,
+            EventsAdmins,
         }
 
         Ok(())
@@ -50,7 +50,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum EventAdmin {
+enum EventsAdmins {
     Table,
     AdminId,
     EventId,
@@ -82,11 +82,11 @@ mod tests {
         assert_eq!(
             event_admin.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "event_admin" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "events_admins" ("#,
                 r#""admin_id" integer NOT NULL,"#,
                 r#""event_id" integer NOT NULL,"#,
-                r#"FOREIGN KEY ("admin_id") REFERENCES "admin" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,"#,
-                r#"FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT"#,
+                r#"FOREIGN KEY ("admin_id") REFERENCES "admins" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT,"#,
+                r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE RESTRICT ON UPDATE RESTRICT"#,
                 r#")"#
             ].join(" ")
         )

@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_175819_create_event_table::Event;
+use crate::m20230712_175819_create_event_table::Events;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -9,15 +9,15 @@ impl Migration {
     fn up_event_image() -> TableCreateStatement {
         #[rustfmt::skip]
         let events_images = Table::create()
-            .table(EventImage::Table)
+            .table(EventsImages::Table)
             .if_not_exists()
-            .col(ColumnDef::new(EventImage::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventImage::EventId).integer().not_null())
-            .col(ColumnDef::new(EventImage::ImageID).char_len(16).not_null())
-            .col(ColumnDef::new(EventImage::CompressedImageID).char_len(16).not_null())
-            .col(ColumnDef::new(EventImage::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(EventImage::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventImage::EventId to Event::Id Cascade))
+            .col(ColumnDef::new(EventsImages::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(EventsImages::EventId).integer().not_null())
+            .col(ColumnDef::new(EventsImages::ImageID).char_len(16).not_null())
+            .col(ColumnDef::new(EventsImages::CompressedImageID).char_len(16).not_null())
+            .col(ColumnDef::new(EventsImages::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(EventsImages::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(EventsImages::EventId to Events::Id Cascade))
             .to_owned();
 
         events_images
@@ -44,7 +44,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            EventImage,
+            EventsImages,
         }
 
         Ok(())
@@ -52,7 +52,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum EventImage {
+enum EventsImages {
     Table,
     Id,
     EventId,
@@ -88,14 +88,14 @@ mod tests {
         assert_eq!(
             event_image.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "event_image" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "events_images" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
                 r#""image_id" char(16) NOT NULL,"#,
                 r#""compressed_image_id" char(16) NOT NULL,"#,
                 r#""created_at" timestamp without time zone NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ].join(" ")
         )

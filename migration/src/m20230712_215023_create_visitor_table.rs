@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20230712_175819_create_event_table::Event;
+use crate::m20230712_175819_create_event_table::Events;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -9,15 +9,15 @@ impl Migration {
     fn up_visitor() -> TableCreateStatement {
         #[rustfmt::skip]
         let visitor = Table::create()
-            .table(Visitor::Table)
+            .table(Visitors::Table)
             .if_not_exists()
-            .col(ColumnDef::new(Visitor::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Visitor::EventId).integer().not_null())
-            .col(ColumnDef::new(Visitor::VisitorId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(Visitor::RegistrationId).char_len(16).not_null())
-            .col(ColumnDef::new(Visitor::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(Visitor::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(Visitor::EventId to Event::Id Cascade))
+            .col(ColumnDef::new(Visitors::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(Visitors::EventId).integer().not_null())
+            .col(ColumnDef::new(Visitors::VisitorId).char_len(26).not_null().unique_key())
+            .col(ColumnDef::new(Visitors::RegistrationId).char_len(16).not_null())
+            .col(ColumnDef::new(Visitors::CreatedAt).date_time().not_null())
+            .col(ColumnDef::new(Visitors::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(Visitors::EventId to Events::Id Cascade))
             .to_owned();
 
         visitor
@@ -44,7 +44,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            Visitor,
+            Visitors,
         }
 
         Ok(())
@@ -52,7 +52,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-pub enum Visitor {
+pub enum Visitors {
     Table,
     Id,
     EventId,
@@ -88,14 +88,14 @@ mod tests {
         assert_eq!(
             visitor.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "visitor" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "visitors" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
                 r#""visitor_id" char(26) NOT NULL UNIQUE,"#,
                 r#""registration_id" char(16) NOT NULL,"#,
                 r#""created_at" timestamp without time zone NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("event_id") REFERENCES "event" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ].join(" ")
         );
