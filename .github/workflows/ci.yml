@@ -53,3 +53,19 @@ jobs:
         uses: Swatinem/rust-cache@v2.5.1
       - name: Build | Check
         run: cargo check --workspace --locked
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Setup | Checkout
+        uses: actions/checkout@v3.5.3
+      - name: Setup | Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Setup | Just
+        uses: taiki-e/install-action@v2.12.11
+        with:
+          tool: just@1.14.0
+      - name: Setup | Cache
+        uses: Swatinem/rust-cache@v2.5.1
+      - name: Build | Test
+        run: just test
