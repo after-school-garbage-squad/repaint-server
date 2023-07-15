@@ -13,9 +13,9 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(VisitorsImages::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(VisitorsImages::VisitorId).integer().not_null())
-            .col(ColumnDef::new(VisitorsImages::ImageId).char_len(16).not_null())
-            .col(ColumnDef::new(VisitorsImages::CompressedImageID).char_len(16).not_null())
-            .col(ColumnDef::new(VisitorsImages::CurrentImageID).char_len(16).not_null())
+            .col(ColumnDef::new(VisitorsImages::ImageId).uuid().not_null())
+            .col(ColumnDef::new(VisitorsImages::CompressedImageID).uuid().not_null())
+            .col(ColumnDef::new(VisitorsImages::CurrentImageID).uuid().not_null())
             .col(ColumnDef::new(VisitorsImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(VisitorsImages::UpdatedAt).date_time())
             .foreign_key(foreign_key!(VisitorsImages::VisitorId to Visitors::Id Cascade))
@@ -93,9 +93,9 @@ mod tests {
                 r#"CREATE TABLE IF NOT EXISTS "visitors_images" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
-                r#""image_id" char(16) NOT NULL,"#,
-                r#""compressed_image_id" char(16) NOT NULL,"#,
-                r#""current_image_id" char(16) NOT NULL,"#,
+                r#""image_id" uuid NOT NULL,"#,
+                r#""compressed_image_id" uuid NOT NULL,"#,
+                r#""current_image_id" uuid NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
