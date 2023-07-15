@@ -2,7 +2,7 @@
 name = "repaint-server"
 version = "1.0.0"
 edition = "2021"
-publish = false
+license = ""
 
 [workspace]
 members = [".", "migration"]
