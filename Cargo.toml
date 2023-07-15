@@ -2,7 +2,7 @@
 name = "repaint-server"
 version = "1.0.0"
 edition = "2021"
-license = "UNLICENSED"
+license = "AGPLv3"
 
 [workspace]
 members = [".", "migration"]
