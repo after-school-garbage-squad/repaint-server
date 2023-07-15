@@ -8,6 +8,7 @@ mod m20230712_215023_create_visitor_table;
 mod m20230712_215554_create_visitor_image_table;
 mod m20230712_220812_create_visitor_palette_table;
 mod m20230712_222322_create_admin_table;
+mod m20230713_141545_create_event_admin_table;
 
 pub struct Migrator;
 
@@ -23,6 +24,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20230712_215554_create_visitor_image_table::Migration),
             Box::new(m20230712_220812_create_visitor_palette_table::Migration),
             Box::new(m20230712_222322_create_admin_table::Migration),
+            Box::new(m20230713_141545_create_event_admin_table::Migration),
         ]
     }
 }

@@ -40,7 +40,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum Admin {
+pub enum Admin {
     Table,
     Id,
     AdminId,
