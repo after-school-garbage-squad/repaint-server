@@ -5,9 +5,8 @@ use crate::m20230712_175819_create_event_table::Event;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait::async_trait]
-impl MigrationTrait for Migration {
-    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+impl Migration {
+    fn up_event_spot() -> TableCreateStatement {
         #[rustfmt::skip]
         let event_spot = Table::create()
             .table(EventSpot::Table)
@@ -21,6 +20,15 @@ impl MigrationTrait for Migration {
             .col(ColumnDef::new(EventSpot::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventSpot::EventID to Event::Id Cascade))
             .to_owned();
+
+        event_spot
+    }
+}
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        let event_spot = Self::up_event_spot();
 
         manager.create_table(event_spot).await?;
 
@@ -73,24 +81,11 @@ mod tests {
     use pretty_assertions::assert_eq;
     use sea_orm_migration::prelude::*;
 
-    use super::Event;
-    use super::EventSpot;
+    use super::Migration;
 
     #[test]
     fn test_event_spot_table() {
-        #[rustfmt::skip]
-        let event_spot = Table::create()
-            .table(EventSpot::Table)
-            .if_not_exists()
-            .col(ColumnDef::new(EventSpot::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventSpot::EventID).integer().not_null())
-            .col(ColumnDef::new(EventSpot::SpotId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(EventSpot::Name).string_len(32).not_null())
-            .col(ColumnDef::new(EventSpot::IsPick).boolean().not_null().default(false))
-            .col(ColumnDef::new(EventSpot::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(EventSpot::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventSpot::EventID to Event::Id Cascade))
-            .to_owned();
+        let event_spot = Migration::up_event_spot();
 
         assert_eq!(
             event_spot.to_string(PostgresQueryBuilder),

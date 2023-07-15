@@ -6,9 +6,8 @@ use crate::m20230712_222322_create_admin_table::Admin;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait::async_trait]
-impl MigrationTrait for Migration {
-    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+impl Migration {
+    fn up_event_admin() -> TableCreateStatement {
         #[rustfmt::skip]
         let event_admin = Table::create()
             .table(EventAdmin::Table)
@@ -18,6 +17,15 @@ impl MigrationTrait for Migration {
             .foreign_key(foreign_key!(EventAdmin::AdminId to Admin::Id Restrict))
             .foreign_key(foreign_key!(EventAdmin::EventId to Event::Id Restrict))
             .to_owned();
+
+        event_admin
+    }
+}
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        let event_admin = Self::up_event_admin();
 
         manager.create_table(event_admin).await?;
 
@@ -65,21 +73,11 @@ mod tests {
     use pretty_assertions::assert_eq;
     use sea_orm_migration::prelude::*;
 
-    use super::Admin;
-    use super::Event;
-    use super::EventAdmin;
+    use super::Migration;
 
     #[test]
     fn test_event_admin_table() {
-        #[rustfmt::skip]
-        let event_admin = Table::create()
-            .table(EventAdmin::Table)
-            .if_not_exists()
-            .col(ColumnDef::new(EventAdmin::AdminId).integer().not_null())
-            .col(ColumnDef::new(EventAdmin::EventId).integer().not_null())
-            .foreign_key(foreign_key!(EventAdmin::AdminId to Admin::Id Restrict))
-            .foreign_key(foreign_key!(EventAdmin::EventId to Event::Id Restrict))
-            .to_owned();
+        let event_admin = Migration::up_event_admin();
 
         assert_eq!(
             event_admin.to_string(PostgresQueryBuilder),

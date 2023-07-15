@@ -3,11 +3,10 @@ use sea_orm_migration::prelude::*;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait::async_trait]
-impl MigrationTrait for Migration {
-    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+impl Migration {
+    fn up_events() -> TableCreateStatement {
         #[rustfmt::skip]
-        let event = Table::create()
+        let events = Table::create()
             .table(Event::Table)
             .if_not_exists()
             .col(ColumnDef::new(Event::Id).integer().not_null().auto_increment().primary_key())
@@ -18,6 +17,15 @@ impl MigrationTrait for Migration {
             .col(ColumnDef::new(Event::CreatedAt).date_time().not_null())
             .col(ColumnDef::new(Event::UpdatedAt).date_time())
             .to_owned();
+
+        events
+    }
+}
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        let event = Self::up_events();
 
         manager.create_table(event).await?;
 
@@ -58,25 +66,15 @@ mod tests {
     use pretty_assertions::assert_eq;
     use sea_orm_migration::prelude::*;
 
-    use super::Event;
+    use super::Migration;
 
     #[test]
     fn test_event_table() {
         #[rustfmt::skip]
-        let event = Table::create()
-            .table(Event::Table)
-            .if_not_exists()
-            .col(ColumnDef::new(Event::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Event::EventId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(Event::Name).string_len(32).not_null())
-            .col(ColumnDef::new(Event::HpUrl).string_len(2083).not_null())
-            .col(ColumnDef::new(Event::Contact).string_len(126).not_null())
-            .col(ColumnDef::new(Event::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(Event::UpdatedAt).date_time())
-            .to_owned();
+        let events = Migration::up_events();
 
         assert_eq!(
-            event.to_string(PostgresQueryBuilder),
+            events.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "event" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,

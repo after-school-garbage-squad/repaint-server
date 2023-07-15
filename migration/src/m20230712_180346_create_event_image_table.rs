@@ -5,11 +5,10 @@ use crate::m20230712_175819_create_event_table::Event;
 #[derive(DeriveMigrationName)]
 pub struct Migration;
 
-#[async_trait::async_trait]
-impl MigrationTrait for Migration {
-    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+impl Migration {
+    fn up_event_image() -> TableCreateStatement {
         #[rustfmt::skip]
-        let event_image = Table::create()
+        let events_images = Table::create()
             .table(EventImage::Table)
             .if_not_exists()
             .col(ColumnDef::new(EventImage::Id).integer().not_null().auto_increment().primary_key())
@@ -20,6 +19,15 @@ impl MigrationTrait for Migration {
             .col(ColumnDef::new(EventImage::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventImage::EventId to Event::Id Cascade))
             .to_owned();
+
+        events_images
+    }
+}
+
+#[async_trait::async_trait]
+impl MigrationTrait for Migration {
+    async fn up(&self, manager: &SchemaManager) -> Result<(), DbErr> {
+        let event_image = Self::up_event_image();
 
         manager.create_table(event_image).await?;
 
@@ -71,23 +79,11 @@ mod tests {
     use pretty_assertions::assert_eq;
     use sea_orm_migration::prelude::*;
 
-    use super::Event;
-    use super::EventImage;
+    use super::Migration;
 
     #[test]
     fn test_event_image_table() {
-        #[rustfmt::skip]
-        let event_image = Table::create()
-            .table(EventImage::Table)
-            .if_not_exists()
-            .col(ColumnDef::new(EventImage::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventImage::EventId).integer().not_null())
-            .col(ColumnDef::new(EventImage::ImageID).char_len(16).not_null())
-            .col(ColumnDef::new(EventImage::CompressedImageID).char_len(16).not_null())
-            .col(ColumnDef::new(EventImage::CreatedAt).date_time().not_null())
-            .col(ColumnDef::new(EventImage::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventImage::EventId to Event::Id Cascade))
-            .to_owned();
+        let event_image = Migration::up_event_image();
 
         assert_eq!(
             event_image.to_string(PostgresQueryBuilder),
