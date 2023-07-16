@@ -1,5 +1,6 @@
 #![warn(missing_debug_implementations)]
 
+pub mod admin;
 pub mod event;
 pub mod event_beacon;
 pub mod event_image;
