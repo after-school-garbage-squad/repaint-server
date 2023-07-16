@@ -1,3 +1,5 @@
+use email_address::EmailAddress;
+
 use crate::id::Id;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -11,6 +13,6 @@ pub struct Event {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Contact {
     pub name: String,
-    pub email: String,
+    pub email: EmailAddress,
     pub phone: String,
 }
