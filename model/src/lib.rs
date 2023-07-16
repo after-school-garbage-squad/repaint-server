@@ -1,14 +1,7 @@
-pub fn add(left: usize, right: usize) -> usize {
-    left + right
-}
+#![warn(missing_debug_implementations)]
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+pub trait StaticError: std::error::Error + Send + Sync + 'static {}
+impl<T: std::error::Error + Send + Sync + 'static> StaticError for T {}
 
-    #[test]
-    fn it_works() {
-        let result = add(2, 2);
-        assert_eq!(result, 4);
-    }
-}
+pub trait AsyncSafe: Send + Sync + 'static {}
+impl<T: Send + Sync + 'static> AsyncSafe for T {}
