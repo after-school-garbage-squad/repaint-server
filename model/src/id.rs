@@ -1,0 +1,105 @@
+use std::fmt::{self, Display, Formatter};
+use std::marker::PhantomData;
+use std::str::FromStr;
+
+use derivative::Derivative;
+use uuid::{Error, Uuid};
+
+#[derive(Derivative)]
+#[derivative(
+    Clone(bound = ""),
+    Copy(bound = ""),
+    Debug(bound = ""),
+    PartialEq(bound = ""),
+    Eq(bound = ""),
+    Hash(bound = "")
+)]
+pub struct Id<T> {
+    id: Uuid,
+
+    #[derivative(Debug = "ignore")]
+    _phantom: PhantomData<fn() -> T>,
+}
+
+impl<T> Default for Id<T> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl<T> Id<T> {
+    pub fn new() -> Self {
+        Self {
+            id: Uuid::new_v4(),
+            _phantom: PhantomData,
+        }
+    }
+}
+
+impl<T> Display for Id<T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> fmt::Result {
+        self.id.fmt(f)
+    }
+}
+
+impl<T> FromStr for Id<T> {
+    type Err = Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self {
+            id: s.parse()?,
+            _phantom: PhantomData,
+        })
+    }
+}
+
+impl<T> serde::ser::Serialize for Id<T> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.id.serialize(serializer)
+    }
+}
+
+impl<'de, T> serde::de::Deserialize<'de> for Id<T> {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        Ok(Id {
+            id: Uuid::deserialize(deserializer)?,
+            _phantom: PhantomData,
+        })
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_bounds() {
+        struct Hoge {}
+        fn test<T: Clone + std::fmt::Debug + Eq + Default>() {}
+        test::<Id<Hoge>>();
+    }
+
+    #[test]
+    fn test_serialize() {
+        let id: Id<()> = Id {
+            id: "9d42b8be-6bfe-4f38-8922-126fbcf2e7f4".parse().unwrap(),
+            _phantom: PhantomData,
+        };
+
+        assert_eq!(
+            serde_json::to_string(&id).unwrap(),
+            "\"9d42b8be-6bfe-4f38-8922-126fbcf2e7f4\""
+        );
+
+        assert_eq!(
+            serde_json::from_str::<Id<()>>("\"9d42b8be-6bfe-4f38-8922-126fbcf2e7f4\"").unwrap(),
+            id,
+        );
+    }
+}
