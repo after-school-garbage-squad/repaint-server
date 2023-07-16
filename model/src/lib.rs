@@ -5,6 +5,7 @@ pub mod event_beacon;
 pub mod event_image;
 pub mod event_spot;
 pub mod id;
+pub mod visitor;
 
 pub trait StaticError: std::error::Error + Send + Sync + 'static {}
 impl<T: std::error::Error + Send + Sync + 'static> StaticError for T {}
