@@ -9,16 +9,16 @@ impl Migration {
     fn up_event_spot() -> TableCreateStatement {
         #[rustfmt::skip]
         let event_spot = Table::create()
-            .table(EventsSpots::Table)
+            .table(EventSpots::Table)
             .if_not_exists()
-            .col(ColumnDef::new(EventsSpots::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventsSpots::EventID).integer().not_null())
-            .col(ColumnDef::new(EventsSpots::SpotId).uuid().not_null().unique_key())
-            .col(ColumnDef::new(EventsSpots::Name).string_len(32).not_null())
-            .col(ColumnDef::new(EventsSpots::IsPick).boolean().not_null().default(false))
-            .col(ColumnDef::new(EventsSpots::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
-            .col(ColumnDef::new(EventsSpots::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventsSpots::EventID to Events::Id Cascade))
+            .col(ColumnDef::new(EventSpots::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(EventSpots::EventID).integer().not_null())
+            .col(ColumnDef::new(EventSpots::SpotId).uuid().not_null().unique_key())
+            .col(ColumnDef::new(EventSpots::Name).string_len(32).not_null())
+            .col(ColumnDef::new(EventSpots::IsPick).boolean().not_null().default(false))
+            .col(ColumnDef::new(EventSpots::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
+            .col(ColumnDef::new(EventSpots::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(EventSpots::EventID to Events::Id Cascade))
             .to_owned();
 
         event_spot
@@ -45,7 +45,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            EventsSpots,
+            EventSpots,
         }
 
         Ok(())
@@ -53,7 +53,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-pub enum EventsSpots {
+pub enum EventSpots {
     Table,
     Id,
     EventID,
@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(
             event_spot.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "events_spots" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "event_spots" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
                 r#""spot_id" uuid NOT NULL UNIQUE,"#,

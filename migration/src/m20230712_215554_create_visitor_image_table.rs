@@ -9,16 +9,16 @@ impl Migration {
     fn up_visitor_image() -> TableCreateStatement {
         #[rustfmt::skip]
         let visitor_image = Table::create()
-            .table(VisitorsImages::Table)
+            .table(VisitorImages::Table)
             .if_not_exists()
-            .col(ColumnDef::new(VisitorsImages::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(VisitorsImages::VisitorId).integer().not_null())
-            .col(ColumnDef::new(VisitorsImages::ImageId).uuid().not_null())
-            .col(ColumnDef::new(VisitorsImages::CompressedImageID).uuid().not_null())
-            .col(ColumnDef::new(VisitorsImages::CurrentImageID).uuid().not_null())
-            .col(ColumnDef::new(VisitorsImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
-            .col(ColumnDef::new(VisitorsImages::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(VisitorsImages::VisitorId to Visitors::Id Cascade))
+            .col(ColumnDef::new(VisitorImages::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(VisitorImages::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorImages::ImageId).uuid().not_null())
+            .col(ColumnDef::new(VisitorImages::CompressedImageID).uuid().not_null())
+            .col(ColumnDef::new(VisitorImages::CurrentImageID).uuid().not_null())
+            .col(ColumnDef::new(VisitorImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
+            .col(ColumnDef::new(VisitorImages::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(VisitorImages::VisitorId to Visitors::Id Cascade))
             .to_owned();
 
         visitor_image
@@ -45,7 +45,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            VisitorsImages,
+            VisitorImages,
         }
 
         Ok(())
@@ -53,7 +53,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum VisitorsImages {
+enum VisitorImages {
     Table,
     Id,
     VisitorId,
@@ -90,7 +90,7 @@ mod tests {
         assert_eq!(
             visitor_image.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "visitors_images" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "visitor_images" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""image_id" uuid NOT NULL,"#,

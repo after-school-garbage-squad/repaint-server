@@ -8,19 +8,19 @@ pub struct Migration;
 impl Migration {
     fn up_event_image() -> TableCreateStatement {
         #[rustfmt::skip]
-        let events_images = Table::create()
-            .table(EventsImages::Table)
+        let event_image = Table::create()
+            .table(EventImages::Table)
             .if_not_exists()
-            .col(ColumnDef::new(EventsImages::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(EventsImages::EventId).integer().not_null())
-            .col(ColumnDef::new(EventsImages::ImageID).uuid().unique_key().not_null())
-            .col(ColumnDef::new(EventsImages::CompressedImageID).uuid().unique_key().not_null())
-            .col(ColumnDef::new(EventsImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
-            .col(ColumnDef::new(EventsImages::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(EventsImages::EventId to Events::Id Cascade))
+            .col(ColumnDef::new(EventImages::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(EventImages::EventId).integer().not_null())
+            .col(ColumnDef::new(EventImages::ImageID).uuid().unique_key().not_null())
+            .col(ColumnDef::new(EventImages::CompressedImageID).uuid().unique_key().not_null())
+            .col(ColumnDef::new(EventImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
+            .col(ColumnDef::new(EventImages::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(EventImages::EventId to Events::Id Cascade))
             .to_owned();
 
-        events_images
+        event_image
     }
 }
 
@@ -44,7 +44,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            EventsImages,
+            EventImages,
         }
 
         Ok(())
@@ -52,7 +52,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum EventsImages {
+enum EventImages {
     Table,
     Id,
     EventId,
@@ -88,7 +88,7 @@ mod tests {
         assert_eq!(
             event_image.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "events_images" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "event_images" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
                 r#""image_id" uuid UNIQUE NOT NULL,"#,

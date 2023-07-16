@@ -9,14 +9,14 @@ impl Migration {
     fn up_visitor_palette() -> TableCreateStatement {
         #[rustfmt::skip]
         let visitor_palette= Table::create()
-            .table(VisitorsPalettes::Table)
+            .table(VisitorPalettes::Table)
             .if_not_exists()
-            .col(ColumnDef::new(VisitorsPalettes::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(VisitorsPalettes::VisitorId).integer().not_null())
-            .col(ColumnDef::new(VisitorsPalettes::PaletteIdList).array(ColumnType::Integer).not_null())
-            .col(ColumnDef::new(VisitorsPalettes::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
-            .col(ColumnDef::new(VisitorsPalettes::UpdatedAt).date_time())
-            .foreign_key(foreign_key!(VisitorsPalettes::VisitorId to Visitors::Id Cascade))
+            .col(ColumnDef::new(VisitorPalettes::Id).integer().not_null().auto_increment().primary_key())
+            .col(ColumnDef::new(VisitorPalettes::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorPalettes::PaletteIdList).array(ColumnType::Integer).not_null())
+            .col(ColumnDef::new(VisitorPalettes::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
+            .col(ColumnDef::new(VisitorPalettes::UpdatedAt).date_time())
+            .foreign_key(foreign_key!(VisitorPalettes::VisitorId to Visitors::Id Cascade))
             .to_owned();
 
         visitor_palette
@@ -43,7 +43,7 @@ impl MigrationTrait for Migration {
         }
 
         down! {
-            VisitorsPalettes
+            VisitorPalettes
         }
 
         Ok(())
@@ -51,7 +51,7 @@ impl MigrationTrait for Migration {
 }
 
 #[derive(Iden)]
-enum VisitorsPalettes {
+enum VisitorPalettes {
     Table,
     Id,
     VisitorId,
@@ -86,7 +86,7 @@ mod tests {
         assert_eq!(
             visitor_palette.to_string(PostgresQueryBuilder),
             [
-                r#"CREATE TABLE IF NOT EXISTS "visitors_palettes" ("#,
+                r#"CREATE TABLE IF NOT EXISTS "visitor_palettes" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""palette_id_list" integer[] NOT NULL,"#,

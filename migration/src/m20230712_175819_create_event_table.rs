@@ -6,7 +6,7 @@ pub struct Migration;
 impl Migration {
     fn up_events() -> TableCreateStatement {
         #[rustfmt::skip]
-        let events = Table::create()
+        let event = Table::create()
             .table(Events::Table)
             .if_not_exists()
             .col(ColumnDef::new(Events::Id).integer().not_null().auto_increment().primary_key())
@@ -18,7 +18,7 @@ impl Migration {
             .col(ColumnDef::new(Events::UpdatedAt).date_time())
             .to_owned();
 
-        events
+        event
     }
 }
 
