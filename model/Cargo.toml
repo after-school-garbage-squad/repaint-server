@@ -5,9 +5,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
-chrono = { version = "0.4.26", features = ["serde"] }
 derivative = "2.2.0"
-serde = { version = "1.0.171", features = ["derive"] }
+serde = "1.0.171"
 
 [dependencies.uuid]
 version = "1.4.0"
