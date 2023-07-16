@@ -2,6 +2,7 @@
 
 pub mod event;
 pub mod event_image;
+pub mod event_spot;
 pub mod id;
 
 pub trait StaticError: std::error::Error + Send + Sync + 'static {}
