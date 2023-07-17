@@ -5,3 +5,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
+tracing = "0.1.37"
+
+[dependencies.sea-orm]
+version = "0.11.3"
+features = ["runtime-tokio-rustls", "sqlx-postgres"]
