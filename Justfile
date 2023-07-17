@@ -13,4 +13,5 @@ start:
 
 test: start
       cd migration && cargo test
+      cd model && cargo test
       docker compose down
