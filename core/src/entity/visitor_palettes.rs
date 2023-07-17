@@ -8,7 +8,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub visitor_id: i32,
-    pub palette_id_list: String,
+    pub palette_id_list: Vec<i32>,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }

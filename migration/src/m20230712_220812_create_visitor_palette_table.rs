@@ -13,7 +13,7 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(VisitorPalettes::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(VisitorPalettes::VisitorId).integer().not_null())
-            .col(ColumnDef::new(VisitorPalettes::PaletteIdList).string().not_null())
+            .col(ColumnDef::new(VisitorPalettes::PaletteIdList).array(ColumnType::Integer).not_null())
             .col(ColumnDef::new(VisitorPalettes::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
             .col(ColumnDef::new(VisitorPalettes::UpdatedAt).date_time())
             .foreign_key(foreign_key!(VisitorPalettes::VisitorId to Visitors::Id Cascade))
@@ -89,7 +89,7 @@ mod tests {
                 r#"CREATE TABLE IF NOT EXISTS "visitor_palettes" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
-                r#""palette_id_list" varchar NOT NULL,"#,
+                r#""palette_id_list" integer[] NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
