@@ -1424,6 +1424,8 @@ version = "1.0.0"
 name = "repaint-server-core"
 version = "1.0.0"
 dependencies = [
+ "email_address",
+ "repaint-server-model",
  "sea-orm",
  "tracing",
 ]

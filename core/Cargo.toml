@@ -5,6 +5,8 @@ edition = "2021"
 publish = false
 
 [dependencies]
+email_address = "0.2.4"
+repaint-server-model = { path = "../model" }
 tracing = "0.1.37"
 
 [dependencies.sea-orm]
