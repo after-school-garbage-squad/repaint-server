@@ -1250,6 +1250,10 @@ name = "repaint-server"
 version = "1.0.0"
 
 [[package]]
+name = "repaint-server-core"
+version = "1.0.0"
+
+[[package]]
 name = "repaint-server-migration"
 version = "1.0.0"
 dependencies = [
