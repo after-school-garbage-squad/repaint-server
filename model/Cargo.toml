@@ -10,7 +10,7 @@ email_address = "0.2.4"
 serde = "1.0.171"
 
 [dependencies.uuid]
-version = "1.4.0"
+version = "1.4.1"
 features = ["v4", "fast-rng", "macro-diagnostics", "serde"]
 
 [dev-dependencies]
