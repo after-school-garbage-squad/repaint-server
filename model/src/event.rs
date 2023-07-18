@@ -1,4 +1,5 @@
 use email_address::EmailAddress;
+use serde::{Deserialize, Serialize};
 
 use crate::id::Id;
 
@@ -10,7 +11,7 @@ pub struct Event {
     pub contact: Contact,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Contact {
     pub name: String,
     pub email: EmailAddress,
