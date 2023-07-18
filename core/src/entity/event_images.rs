@@ -9,9 +9,9 @@ pub struct Model {
     pub id: i32,
     pub event_id: i32,
     #[sea_orm(unique)]
-    pub image_id: Uuid,
+    pub image_id: String,
     #[sea_orm(unique)]
-    pub compressed_image_id: Uuid,
+    pub compressed_image_id: String,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }

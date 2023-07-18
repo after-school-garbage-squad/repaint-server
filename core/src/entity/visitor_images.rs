@@ -8,9 +8,9 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub visitor_id: i32,
-    pub image_id: Uuid,
-    pub compressed_image_id: Uuid,
-    pub current_image_id: Uuid,
+    pub image_id: String,
+    pub compressed_image_id: String,
+    pub current_image_id: String,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }

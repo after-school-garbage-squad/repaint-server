@@ -9,7 +9,7 @@ pub struct Model {
     pub id: i32,
     pub event_id: i32,
     #[sea_orm(unique)]
-    pub spot_id: Uuid,
+    pub spot_id: String,
     pub name: String,
     pub is_pick: bool,
     pub created_at: DateTime,
