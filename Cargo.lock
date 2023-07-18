@@ -1427,6 +1427,8 @@ dependencies = [
  "email_address",
  "repaint-server-model",
  "sea-orm",
+ "serde",
+ "serde_json",
  "tracing",
 ]
 
