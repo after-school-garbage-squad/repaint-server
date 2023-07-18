@@ -3,7 +3,8 @@ use std::marker::PhantomData;
 use std::str::FromStr;
 
 use derivative::Derivative;
-use uuid::{Error, Uuid};
+pub use ulid::DecodeError as Error;
+use ulid::Ulid;
 
 #[derive(Derivative)]
 #[derivative(
@@ -15,7 +16,7 @@ use uuid::{Error, Uuid};
     Hash(bound = "")
 )]
 pub struct Id<T> {
-    id: Uuid,
+    id: Ulid,
 
     #[derivative(Debug = "ignore")]
     _phantom: PhantomData<fn() -> T>,
@@ -30,7 +31,7 @@ impl<T> Default for Id<T> {
 impl<T> Id<T> {
     pub fn new() -> Self {
         Self {
-            id: Uuid::new_v4(),
+            id: Ulid::new(),
             _phantom: PhantomData,
         }
     }
@@ -68,7 +69,7 @@ impl<'de, T> serde::de::Deserialize<'de> for Id<T> {
         D: serde::Deserializer<'de>,
     {
         Ok(Id {
-            id: Uuid::deserialize(deserializer)?,
+            id: Ulid::deserialize(deserializer)?,
             _phantom: PhantomData,
         })
     }
@@ -88,17 +89,17 @@ mod test {
     #[test]
     fn test_serialize() {
         let id: Id<()> = Id {
-            id: "9d42b8be-6bfe-4f38-8922-126fbcf2e7f4".parse().unwrap(),
+            id: "01FVSHW3S537KKHBRMSA418ATB".parse().unwrap(),
             _phantom: PhantomData,
         };
 
         assert_eq!(
             serde_json::to_string(&id).unwrap(),
-            "\"9d42b8be-6bfe-4f38-8922-126fbcf2e7f4\""
+            "\"01FVSHW3S537KKHBRMSA418ATB\""
         );
 
         assert_eq!(
-            serde_json::from_str::<Id<()>>("\"9d42b8be-6bfe-4f38-8922-126fbcf2e7f4\"").unwrap(),
+            serde_json::from_str::<Id<()>>("\"01FVSHW3S537KKHBRMSA418ATB\"").unwrap(),
             id,
         );
     }
