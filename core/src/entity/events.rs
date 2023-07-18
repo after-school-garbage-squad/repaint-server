@@ -11,7 +11,7 @@ pub struct Model {
     pub event_id: String,
     pub name: String,
     pub hp_url: String,
-    pub contact: String,
+    pub contact: Json,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
