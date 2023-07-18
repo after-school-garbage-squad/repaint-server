@@ -10,10 +10,10 @@ impl Migration {
             .table(Events::Table)
             .if_not_exists()
             .col(ColumnDef::new(Events::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Events::EventId).uuid().unique_key().not_null())
+            .col(ColumnDef::new(Events::EventId).char_len(26).unique_key().not_null())
             .col(ColumnDef::new(Events::Name).string_len(32).not_null())
             .col(ColumnDef::new(Events::HpUrl).string_len(2083).not_null())
-            .col(ColumnDef::new(Events::Contact).string_len(126).not_null())
+            .col(ColumnDef::new(Events::Contact).json().not_null())
             .col(ColumnDef::new(Events::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(Events::UpdatedAt).date_time())
             .to_owned();
@@ -78,10 +78,10 @@ mod tests {
             [
                 r#"CREATE TABLE IF NOT EXISTS "events" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""event_id" uuid UNIQUE NOT NULL,"#,
+                r#""event_id" char(26) UNIQUE NOT NULL,"#,
                 r#""name" varchar(32) NOT NULL,"#,
                 r#""hp_url" varchar(2083) NOT NULL,"#,
-                r#""contact" varchar(126) NOT NULL,"#,
+                r#""contact" json NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone"#,
                 r#")"#,
