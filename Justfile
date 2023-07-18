@@ -14,6 +14,7 @@ start:
 gen: start
       mkdir -p core/src/entity && rm -rf core/src/entity/*.rs
       sea-orm-cli generate entity -o core/src/entity
+      patch -p1 --no-backup-if-mismatch < core/patch/entity.patch
       docker compose down
 
 test: start
