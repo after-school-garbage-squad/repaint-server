@@ -1,12 +1,13 @@
 services:
   db:
-    image: postgres:15.3
+    build: ./pg
     ports:
       - 5432:5432
     environment:
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: pass
-      POSTGRES_DB: local-db
+      POSTGRES_USER: "${POSTGRES_USER}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD}"
+      POSTGRES_DB: "${POSTGRES_DB}"
+    command: postgres -c log_destination=stderr -c log_statement=all -c log_destination=csvlog
     healthcheck:
       test:
         - "CMD-SHELL"
@@ -22,3 +23,33 @@ services:
     depends_on:
       db:
         condition: service_healthy
+  prometheus:
+    image: prom/prometheus
+    container_name: prometheus
+    hostname: prometheus
+    volumes:
+      - ./prometheus:/etc/prometheus
+      - metrics_data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - 9090:9090
+  prometheus_postgres:
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.13.1
+    ports:
+      - :9187:9187
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATA_SOURCE_NAME: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@host.docker.internal:5432/${POSTGRES_DB}?sslmode=disable
+  grafana:
+    build: ./grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  metrics_data:
+  grafana_data:
