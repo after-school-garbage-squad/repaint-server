@@ -8,6 +8,7 @@ datasources:
     jsonData:
       sslmode: disable
     database: local-db
-    user: user
+    user: user  
+    editable: true 
     secureJsonData:
       password: pass
