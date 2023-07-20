@@ -1,0 +1,14 @@
+apiVersion: 1
+
+datasources:
+  - name: postgres
+    type: postgres
+    access: proxy
+    url: host.docker.internal:5432
+    jsonData:
+      sslmode: disable
+    database: local-db
+    user: user  
+    editable: true 
+    secureJsonData:
+      password: pass
