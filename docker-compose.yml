@@ -16,6 +16,8 @@ services:
       timeout: "5s"
       retries: 3
       start_period: "5s"
+    volumes:
+      - db_data:/var/lib/postgresql/data
   wait_for_db:
     image: alpine:3.18.2
     entrypoint: /bin/sh
@@ -51,5 +53,6 @@ services:
       - grafana_data:/var/lib/grafana
 
 volumes:
+  db_data:
   metrics_data:
   grafana_data:
