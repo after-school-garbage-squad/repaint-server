@@ -8,7 +8,7 @@ publish = false
 email_address = "0.2.4"
 repaint-server-model = { path = "../model" }
 serde = "1.0.177"
-serde_json = "1.0.103"
+serde_json = "1.0.104"
 tracing = "0.1.37"
 
 [dependencies.sea-orm]
