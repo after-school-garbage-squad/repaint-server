@@ -7,8 +7,8 @@ datasources:
     url: host.docker.internal:5432
     jsonData:
       sslmode: disable
-    database: local-db
-    user: user  
+    database: {{POSTGRES_DB}}
+    user: {{POSTGRES_USER}} 
     editable: true 
     secureJsonData:
-      password: pass
+      password: {{POSTGRES_PASSWORD}}
