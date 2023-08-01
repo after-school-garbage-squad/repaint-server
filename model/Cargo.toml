@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 derivative = "2.2.0"
 email_address = "0.2.4"
-serde = "1.0.178"
+serde = "1.0.180"
 ulid = { version = "1.0.0", features = ["serde"] }
 
 [dev-dependencies]
