@@ -19,7 +19,7 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
   wait_for_db:
-    image: alpine:3.18.2
+    image: alpine:3.18.3
     entrypoint: /bin/sh
     command: -c "echo -n 'db started';echo"
     depends_on:

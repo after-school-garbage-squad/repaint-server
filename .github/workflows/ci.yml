@@ -38,7 +38,7 @@ jobs:
         with:
           components: clippy
       - name: Setup | Cache
-        uses: Swatinem/rust-cache@v2.5.1
+        uses: Swatinem/rust-cache@v2.6.0
       - name: Build | Lint
         uses: giraffate/clippy-action@871cc4173f2594435c7ea6b0bce499cf6c2164a1
   cargo_check:
@@ -50,7 +50,7 @@ jobs:
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Setup | Cache
-        uses: Swatinem/rust-cache@v2.5.1
+        uses: Swatinem/rust-cache@v2.6.0
       - name: Build | Check
         run: cargo check --workspace --locked
   test:
@@ -62,10 +62,10 @@ jobs:
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Setup | Just
-        uses: taiki-e/install-action@v2.12.19
+        uses: taiki-e/install-action@v2.14.3
         with:
           tool: just@1.14.0
       - name: Setup | Cache
-        uses: Swatinem/rust-cache@v2.5.1
+        uses: Swatinem/rust-cache@v2.6.0
       - name: Build | Test
         run: just test
