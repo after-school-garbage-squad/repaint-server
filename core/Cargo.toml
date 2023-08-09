@@ -12,5 +12,5 @@ serde_json = "1.0.104"
 tracing = "0.1.37"
 
 [dependencies.sea-orm]
-version = "0.12.1"
+version = "0.12.2"
 features = ["runtime-tokio-rustls", "sqlx-postgres", "postgres-array"]
