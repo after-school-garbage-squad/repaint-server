@@ -14,7 +14,6 @@ impl Migration {
             .col(ColumnDef::new(EventImages::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(EventImages::EventId).integer().not_null())
             .col(ColumnDef::new(EventImages::ImageID).char_len(26).unique_key().not_null())
-            .col(ColumnDef::new(EventImages::CompressedImageID).char_len(26).unique_key().not_null())
             .col(ColumnDef::new(EventImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventImages::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventImages::EventId to Events::Id Cascade))
@@ -57,7 +56,6 @@ enum EventImages {
     Id,
     EventId,
     ImageID,
-    CompressedImageID,
     CreatedAt,
     UpdatedAt,
 }
@@ -92,7 +90,6 @@ mod tests {
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""event_id" integer NOT NULL,"#,
                 r#""image_id" char(26) UNIQUE NOT NULL,"#,
-                r#""compressed_image_id" char(26) UNIQUE NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,

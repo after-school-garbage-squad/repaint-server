@@ -2,7 +2,7 @@
 
 use repaint_server_model::{
     id::Id,
-    visitor_image::{CompressedImage, CurrentImage, Image},
+    visitor_image::{CurrentImage, Image},
 };
 use sea_orm::entity::prelude::*;
 
@@ -15,7 +15,6 @@ pub struct Model {
     pub id: i32,
     pub visitor_id: i32,
     pub image_id: AsString<Id<Image>>,
-    pub compressed_image_id: AsString<Id<CompressedImage>>,
     pub current_image_id: AsString<Id<CurrentImage>>,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
