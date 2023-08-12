@@ -4,5 +4,7 @@ version = "1.0.0"
 edition = "2021"
 
 [dependencies]
+async-trait = "0.1.73"
+email_address = "0.2.4"
 repaint-server-model = { path = "../model" }
 serde = { version = "1.0.183", features = ["derive"] }

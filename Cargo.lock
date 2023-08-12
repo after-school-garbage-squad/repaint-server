@@ -1720,6 +1720,8 @@ dependencies = [
 name = "repaint-server-usecase"
 version = "1.0.0"
 dependencies = [
+ "async-trait",
+ "email_address",
  "repaint-server-model",
  "serde",
 ]
