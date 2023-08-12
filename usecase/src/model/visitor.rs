@@ -6,7 +6,7 @@ use serde::Serialize;
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct Visitor {
+pub struct VisitorResponse {
     pub visitor_identification: VisitorIdentification,
     pub registration_id: String,
     pub palettes: Vec<i32>,
@@ -23,14 +23,14 @@ pub struct VisitorIdentification {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RegisterVisitor {
+pub struct RegisterVisitorRequest {
     pub event_id: Id<Event>,
     pub registration_id: String,
 }
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct InitializeVisitor {
+pub struct InitializeVisitorRequest {
     pub visitor_identification: VisitorIdentification,
     pub registration_id: String,
 }
