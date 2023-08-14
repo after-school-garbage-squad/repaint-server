@@ -51,7 +51,7 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 enum VisitorImages {
     Table,
     Id,

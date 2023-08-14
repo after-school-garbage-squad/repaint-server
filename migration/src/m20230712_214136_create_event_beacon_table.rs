@@ -54,7 +54,7 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 enum EventBeacons {
     Table,
     Id,

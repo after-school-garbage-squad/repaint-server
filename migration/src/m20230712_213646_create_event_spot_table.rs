@@ -52,7 +52,7 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 pub enum EventSpots {
     Table,
     Id,
