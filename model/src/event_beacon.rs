@@ -4,7 +4,7 @@ use serde::Serialize;
 #[serde(rename_all = "camelCase")]
 pub struct EventBeacon {
     pub i_beacon: IBeacon,
-    pub hw_id: Option<String>,
+    pub hw_id: String,
     pub service_uuid: String,
 }
 

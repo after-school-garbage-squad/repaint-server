@@ -12,7 +12,7 @@ pub struct Model {
     pub minor: i16,
     pub beacon_uuid: String,
     #[sea_orm(unique)]
-    pub hw_id: Option<String>,
+    pub hw_id: String,
     pub service_uuid: String,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
