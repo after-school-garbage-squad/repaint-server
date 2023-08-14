@@ -62,7 +62,7 @@ jobs:
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@stable
       - name: Setup | Just
-        uses: taiki-e/install-action@v2.15.2
+        uses: taiki-e/install-action@v2.15.3
         with:
           tool: just@1.14.0
       - name: Setup | Cache
