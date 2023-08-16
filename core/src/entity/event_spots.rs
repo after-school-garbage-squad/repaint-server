@@ -16,6 +16,7 @@ pub struct Model {
     pub spot_id: AsString<Id<EventSpot>>,
     pub name: String,
     pub is_pick: bool,
+    pub bonus: bool,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
