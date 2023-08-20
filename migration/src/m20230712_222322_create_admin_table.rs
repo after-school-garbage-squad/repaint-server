@@ -11,7 +11,7 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(Admins::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(Admins::AdminId).char_len(26).not_null().unique_key())
-            .col(ColumnDef::new(Admins::Email).string_len(80).not_null().unique_key())
+            .col(ColumnDef::new(Admins::Subject).string_len(64).not_null().unique_key())
             .col(ColumnDef::new(Admins::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(Admins::UpdatedAt).date_time())
             .to_owned();
@@ -52,7 +52,7 @@ pub enum Admins {
     Table,
     Id,
     AdminId,
-    Email,
+    Subject,
     CreatedAt,
     UpdatedAt,
 }
@@ -75,7 +75,7 @@ mod tests {
                 r#"CREATE TABLE IF NOT EXISTS "admins" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""admin_id" char(26) NOT NULL UNIQUE,"#,
-                r#""email" varchar(80) NOT NULL UNIQUE,"#,
+                r#""subject" varchar(64) NOT NULL UNIQUE,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone"#,
                 r#")"#
