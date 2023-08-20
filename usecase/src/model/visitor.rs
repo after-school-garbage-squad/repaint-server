@@ -10,11 +10,11 @@ pub struct VisitorResponse {
     pub visitor_identification: VisitorIdentification,
     pub registration_id: String,
     pub palettes: Vec<i32>,
-    pub image_id: Id<Image>,
+    pub image_id: Option<Id<Image>>,
     pub current_image_id: Id<CurrentImage>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Clone, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct VisitorIdentification {
     pub event_id: Id<Event>,
@@ -23,14 +23,8 @@ pub struct VisitorIdentification {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct RegisterVisitorRequest {
-    pub event_id: Id<Event>,
-    pub registration_id: String,
-}
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct InitializeVisitorRequest {
+pub struct RegisterVisitorResponse {
     pub visitor_identification: VisitorIdentification,
     pub registration_id: String,
+    pub palettes: Vec<i32>,
 }
