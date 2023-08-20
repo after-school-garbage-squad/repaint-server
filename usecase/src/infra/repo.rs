@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use email_address::EmailAddress;
-use repaint_server_model::admin::Admin;
+use repaint_server_model::admin::{Admin, Subject};
 use repaint_server_model::event::{Contact, Event};
-use repaint_server_model::event_beacon::EventBeacon;
+use repaint_server_model::event_beacon::{EventBeacon, IBeacon};
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -10,90 +10,85 @@ use repaint_server_model::visitor::Visitor;
 use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::{AsyncSafe, StaticError};
 
-use crate::model::event::{CreateEventResponse, EventResponse, UpdateEventResponse};
-use crate::model::spot::{SpotResponse, TrafficStatus};
-use crate::model::visitor::{VisitorIdentification, VisitorResponse};
+use crate::model::visitor::VisitorIdentification;
 
 #[async_trait]
 pub trait SpotRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn register_spot(
+    async fn register(&self, event_id: Id<Event>, name: String) -> Result<EventSpot, Self::Error>;
+
+    async fn list_with_event_id(&self, event_id: Id<Event>) -> Result<Vec<EventSpot>, Self::Error>;
+
+    async fn get_by_beacon(
         &self,
         event_id: Id<Event>,
-        name: String,
-        beacon_data: EventBeacon,
-    ) -> Result<SpotResponse, Self::Error>;
+        beacon: EventBeacon,
+    ) -> Result<Option<EventSpot>, Self::Error>;
 
-    async fn check_status_by_beacon(
-        &self,
-        event_id: Id<Event>,
-        beacon_data: EventBeacon,
-    ) -> Result<Option<SpotResponse>, Self::Error>;
-
-    async fn check_status_by_qr(
+    async fn get_by_qr(
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
-    ) -> Result<Option<SpotResponse>, Self::Error>;
+    ) -> Result<Option<EventSpot>, Self::Error>;
 
-    async fn list_spot(&self, event_id: Id<Event>) -> Result<Vec<SpotResponse>, Self::Error>;
-
-    async fn update_spot(
+    async fn update(
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
-    ) -> Result<SpotResponse, Self::Error>;
+    ) -> Result<EventSpot, Self::Error>;
 
-    async fn delete_spot(
+    async fn delete(
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<IsUpdated, Self::Error>;
+
+    async fn get_bonus_state(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<bool, Self::Error>;
+
+    async fn set_bonus_state(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+        is_bonus: bool,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
-pub trait EventRepository: AsyncSafe {
+pub trait BeaconRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn create_event(
+    async fn register(
         &self,
-        name: String,
-        hp_url: String,
-        contact: Contact,
-    ) -> Result<CreateEventResponse, Self::Error>;
+        spot_id: Id<EventSpot>,
+        i_beacon: IBeacon,
+        hw_id: String,
+        service_uuid: String,
+    ) -> Result<EventBeacon, Self::Error>;
 
-    async fn list_event(&self, admin_id: Id<Admin>) -> Result<Vec<EventResponse>, Self::Error>;
+    async fn get_by_spot_id(&self, spot_id: Id<EventSpot>) -> Result<EventBeacon, Self::Error>;
+}
 
-    async fn update_event(
-        &self,
-        event_id: Id<Event>,
-        name: String,
-        hp_url: String,
-        contact: Contact,
-    ) -> Result<UpdateEventResponse, Self::Error>;
-
-    async fn delete_event(&self, event_id: Id<Event>) -> Result<IsUpdated, Self::Error>;
-
-    async fn add_operator(
-        &self,
-        event_id: Id<Event>,
-        email: EmailAddress,
-    ) -> Result<(), Self::Error>;
-
-    async fn controll_notification(
-        &self,
-        event_id: Id<Event>,
-        content: String,
-    ) -> Result<(), Self::Error>;
+#[async_trait]
+pub trait ImageRepository: AsyncSafe {
+    type Error: StaticError;
 
     async fn add_default_image(
         &self,
         event_id: Id<Event>,
-        image: String, //FIXME
-    ) -> Result<(), Self::Error>;
+        image_id: Id<EventImage>,
+    ) -> Result<IsUpdated, Self::Error>;
+
+    async fn get_default_image(
+        &self,
+        event_id: Id<Event>,
+    ) -> Result<Vec<Id<EventImage>>, Self::Error>;
 
     async fn delete_default_image(
         &self,
@@ -101,93 +96,110 @@ pub trait EventRepository: AsyncSafe {
         image_id: Id<EventImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn check_visitor_exist(
-        &self,
-        event_id: Id<Event>,
-        visitor_id: Id<Visitor>,
-    ) -> Result<Option<VisitorResponse>, Self::Error>;
-
     async fn upload_visitor_image(
         &self,
+        visitor_id: Id<Visitor>,
+        image_id: Id<VisitorImage>,
+    ) -> Result<IsUpdated, Self::Error>;
+
+    async fn get_visitor_image(
+        &self,
+        visitor_id: Id<Visitor>,
+    ) -> Result<Option<Id<VisitorImage>>, Self::Error>;
+
+    async fn list_default_image(
+        &self,
         event_id: Id<Event>,
-        image: String, //FIXME
-    ) -> Result<(), Self::Error>;
+    ) -> Result<Vec<Id<EventImage>>, Self::Error>;
+
+    async fn get_current_image(
+        &self,
+        visitor_id: Id<Visitor>,
+    ) -> Result<Id<CurrentImage>, Self::Error>;
+
+    async fn set_current_image(
+        &self,
+        visitor_id: Id<Visitor>,
+        image_id: Id<VisitorImage>,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
-pub trait TrafficRepository: AsyncSafe {
+pub trait PaletteRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn get_traffic_status(
-        &self,
-        event_id: Id<Event>,
-    ) -> Result<Vec<TrafficStatus>, Self::Error>;
+    async fn get(&self, visitor_id: Id<Visitor>) -> Result<Vec<i32>, Self::Error>;
 
-    async fn controll_traffic(
+    async fn set(&self, visitor_id: Id<Visitor>, palette: i32) -> Result<IsUpdated, Self::Error>;
+}
+
+#[async_trait]
+pub trait EventRepository: AsyncSafe {
+    type Error: StaticError;
+
+    async fn create(
+        &self,
+        name: String,
+        hp_url: String,
+        contact: Contact,
+    ) -> Result<Event, Self::Error>;
+
+    async fn delete(&self, event_id: Id<Event>) -> Result<IsUpdated, Self::Error>;
+
+    async fn list_with_admin_id(
+        &self,
+        admin_id: Id<Admin>,
+    ) -> Result<Option<Vec<Event>>, Self::Error>;
+
+    async fn update(
         &self,
         event_id: Id<Event>,
-        from: Id<EventSpot>,
-        to: Id<EventSpot>,
-    ) -> Result<(), Self::Error>;
+        name: String,
+        hp_url: String,
+        contact: Contact,
+    ) -> Result<Event, Self::Error>;
+
+    async fn get(&self, event_id: Id<Event>) -> Result<Option<Event>, Self::Error>;
+}
+
+#[async_trait]
+pub trait AdminRepository: AsyncSafe {
+    type Error: StaticError;
+
+    async fn add_subject(
+        &self,
+        event_id: Id<Event>,
+        subject: Id<Subject>,
+    ) -> Result<IsUpdated, Self::Error>;
+
+    async fn add_event_by_email(
+        &self,
+        email: EmailAddress,
+        event_id: Id<Event>,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
 pub trait VisitorRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn join_event(
+    async fn create(
         &self,
         event_id: Id<Event>,
         registration_id: String,
-    ) -> Result<(EventResponse, VisitorResponse), Self::Error>;
+    ) -> Result<Visitor, Self::Error>;
 
-    async fn initialize_visitor(
+    async fn get(
         &self,
         visitor_identification: VisitorIdentification,
-    ) -> Result<(EventResponse, VisitorResponse), Self::Error>;
+    ) -> Result<Option<Visitor>, Self::Error>;
 
-    async fn publish_qr(
-        &self,
-        visitor_identification: VisitorIdentification,
-    ) -> Result<String, Self::Error>; //FIXME
-
-    async fn controll_notification(
+    async fn delete(
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn delete_visitor(
-        &self,
-        visitor_identification: VisitorIdentification,
-    ) -> Result<IsUpdated, Self::Error>;
-
-    async fn list_image(
-        &self,
-        visitor_identification: VisitorIdentification,
-    ) -> Result<Vec<Id<VisitorImage>>, Self::Error>;
-
-    async fn set_current_image(
-        &self,
-        visitor_identification: VisitorIdentification,
-        image_id: Id<VisitorImage>,
-    ) -> Result<IsUpdated, Self::Error>;
-
-    async fn get_current_image(
-        &self,
-        visitor_identification: VisitorIdentification,
-    ) -> Result<Id<CurrentImage>, Self::Error>;
-
-    async fn drop_palette(
-        &self,
-        visitor_identification: VisitorIdentification,
-        beacon: EventBeacon,
-    ) -> Result<(), Self::Error>;
-
-    async fn pick_palette(
-        &self,
-        visitor_identification: VisitorIdentification,
-        spot_id: Id<EventSpot>,
-    ) -> Result<(), Self::Error>;
+    async fn list_with_event_id(&self, event_id: Id<Event>) -> Result<Vec<Visitor>, Self::Error>;
 }
 
 #[derive(Debug)]
