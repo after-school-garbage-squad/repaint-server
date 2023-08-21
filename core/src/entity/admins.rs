@@ -12,7 +12,7 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     #[sea_orm(unique)]
-    pub admin_id: AsString<Id<Admin>>,
+    pub admin_id: Option<AsString<Id<Admin>>>,
     #[sea_orm(unique)]
     pub subject: AsString<Id<Subject>>,
     pub created_at: DateTime,
