@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use email_address::EmailAddress;
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -55,18 +54,9 @@ pub trait Firestore: AsyncSafe {
         spot_id: Id<EventSpot>,
     ) -> Result<Vec<Id<Visitor>>, Self::Error>;
 
-    async fn set_email(
-        &self,
-        event_id: Id<Event>,
-        token: String,
-        email: EmailAddress,
-    ) -> Result<(), Self::Error>;
+    async fn set_event_id(&self, token: String, event_id: Id<Event>) -> Result<(), Self::Error>;
 
-    async fn get_email(
-        &self,
-        event_id: Id<Event>,
-        token: String,
-    ) -> Result<Option<EmailAddress>, Self::Error>;
+    async fn get_event_id(&self, token: String) -> Result<Option<Id<Event>>, Self::Error>;
 
     async fn subscribe_visitor_log(
         &self,

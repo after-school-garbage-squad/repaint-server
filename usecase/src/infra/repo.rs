@@ -10,15 +10,13 @@ use repaint_server_model::visitor::Visitor;
 use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::{AsyncSafe, StaticError};
 
-use crate::model::visitor::VisitorIdentification;
-
 #[async_trait]
 pub trait SpotRepository: AsyncSafe {
     type Error: StaticError;
 
     async fn register(&self, event_id: Id<Event>, name: String) -> Result<EventSpot, Self::Error>;
 
-    async fn list_with_event_id(&self, event_id: Id<Event>) -> Result<Vec<EventSpot>, Self::Error>;
+    async fn list(&self, event_id: Id<Event>) -> Result<Vec<EventSpot>, Self::Error>;
 
     async fn get_by_beacon(
         &self,
@@ -72,7 +70,7 @@ pub trait BeaconRepository: AsyncSafe {
         service_uuid: String,
     ) -> Result<EventBeacon, Self::Error>;
 
-    async fn get_by_spot_id(&self, spot_id: Id<EventSpot>) -> Result<EventBeacon, Self::Error>;
+    async fn get(&self, spot_id: Id<EventSpot>) -> Result<EventBeacon, Self::Error>;
 }
 
 #[async_trait]
@@ -137,6 +135,12 @@ pub trait PaletteRepository: AsyncSafe {
 pub trait EventRepository: AsyncSafe {
     type Error: StaticError;
 
+    async fn get_event_belong_to_subject(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+    ) -> Result<Option<Event>, Self::Error>;
+
     async fn create(
         &self,
         name: String,
@@ -146,10 +150,7 @@ pub trait EventRepository: AsyncSafe {
 
     async fn delete(&self, event_id: Id<Event>) -> Result<IsUpdated, Self::Error>;
 
-    async fn list_with_admin_id(
-        &self,
-        admin_id: Id<Admin>,
-    ) -> Result<Option<Vec<Event>>, Self::Error>;
+    async fn list(&self, subject: Id<Subject>) -> Result<Vec<Event>, Self::Error>;
 
     async fn update(
         &self,
@@ -177,6 +178,14 @@ pub trait AdminRepository: AsyncSafe {
         email: EmailAddress,
         event_id: Id<Event>,
     ) -> Result<IsUpdated, Self::Error>;
+
+    async fn get(&self, subject: Id<Subject>) -> Result<Option<Admin>, Self::Error>;
+
+    async fn update(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
@@ -191,15 +200,17 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn get(
         &self,
-        visitor_identification: VisitorIdentification,
+        event_id: Id<Event>,
+        visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
 
     async fn delete(
         &self,
-        visitor_identification: VisitorIdentification,
+        event_id: Id<Event>,
+        visitor_id: Id<Visitor>,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn list_with_event_id(&self, event_id: Id<Event>) -> Result<Vec<Visitor>, Self::Error>;
+    async fn list(&self, event_id: Id<Event>) -> Result<Vec<Visitor>, Self::Error>;
 }
 
 #[derive(Debug)]

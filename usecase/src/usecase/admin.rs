@@ -5,7 +5,7 @@ use rand::distributions::Alphanumeric;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
-use repaint_server_model::admin::{Admin, Subject};
+use repaint_server_model::admin::Subject;
 use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::event_beacon::EventBeacon;
 use repaint_server_model::event_image::Image as EventImage;
@@ -24,24 +24,25 @@ use crate::infra::repo::{
 };
 use crate::model::event::{CreateEventResponse, EventResponse, UpdateEventResponse};
 use crate::model::spot::{SpotResponse, TrafficStatus};
-use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
 
 #[async_trait]
 pub trait AdminUsecase: AsyncSafe {
     async fn create_event(
         &self,
+        subject: Id<Subject>,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<CreateEventResponse, Error>;
 
-    async fn delete_event(&self, event_id: Id<Event>) -> Result<(), Error>;
+    async fn delete_event(&self, subject: Id<Subject>, event_id: Id<Event>) -> Result<(), Error>;
 
-    async fn list_event(&self, admin_id: Id<Admin>) -> Result<Vec<EventResponse>, Error>;
+    async fn list_event(&self, subject: Id<Subject>) -> Result<Vec<EventResponse>, Error>;
 
     async fn update_event(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         name: String,
         hp_url: String,
@@ -50,18 +51,21 @@ pub trait AdminUsecase: AsyncSafe {
 
     async fn add_default_image(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error>;
 
     async fn delete_default_image(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error>;
 
     async fn register_spot(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         name: String,
         beacon_data: EventBeacon,
@@ -69,43 +73,64 @@ pub trait AdminUsecase: AsyncSafe {
 
     async fn check_status_by_beacon(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         beacon_data: EventBeacon,
     ) -> Result<Option<SpotResponse>, Error>;
 
     async fn check_status_by_qr(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<SpotResponse>, Error>;
 
-    async fn list_spot(&self, event_id: Id<Event>) -> Result<Vec<SpotResponse>, Error>;
+    async fn list_spot(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+    ) -> Result<Vec<SpotResponse>, Error>;
 
     async fn update_spot(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
     ) -> Result<SpotResponse, Error>;
 
-    async fn delete_spot(&self, event_id: Id<Event>, spot_id: Id<EventSpot>) -> Result<(), Error>;
+    async fn delete_spot(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Error>;
 
     async fn check_visitor_image_exist(
         &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Id<VisitorImage>>, Error>;
 
     async fn upload_visitor_image(
         &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error>;
 
-    async fn get_traffic_status(&self, event_id: Id<Event>) -> Result<Vec<TrafficStatus>, Error>;
+    async fn get_traffic_status(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+    ) -> Result<Vec<TrafficStatus>, Error>;
 
     async fn controll_traffic(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         from: Id<EventSpot>,
         to: Id<EventSpot>,
@@ -113,9 +138,14 @@ pub trait AdminUsecase: AsyncSafe {
 
     async fn add_admin(&self, event_id: Id<Event>, subject: Id<Subject>) -> Result<(), Error>;
 
-    async fn send_email(&self, event_id: Id<Event>, email: EmailAddress) -> Result<(), Error>;
+    async fn send_email(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+        email: EmailAddress,
+    ) -> Result<(), Error>;
 
-    async fn add_operator(&self, event_id: Id<Event>, token: String) -> Result<(), Error>;
+    async fn add_operator(&self, subject: Id<Subject>, token: String) -> Result<(), Error>;
 }
 
 #[derive(Debug)]
@@ -154,10 +184,15 @@ where
 {
     async fn create_event(
         &self,
+        subject: Id<Subject>,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<CreateEventResponse, Error> {
+        let _ = AdminRepository::get(&self.repo, subject)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
@@ -190,6 +225,8 @@ where
 
         let event = EventRepository::create(&self.repo, name, hp_url, contact).await?;
 
+        let _ = AdminRepository::update(&self.repo, subject, event.event_id).await?;
+
         Ok(CreateEventResponse {
             event_id: event.event_id,
             name: event.name,
@@ -198,32 +235,31 @@ where
         })
     }
 
-    async fn delete_event(&self, event_id: Id<Event>) -> Result<(), Error> {
-        let _ = EventRepository::delete(&self.repo, event_id).await?;
-        Firestore::delete(&self.repo, event_id).await?;
+    async fn delete_event(&self, subject: Id<Subject>, event_id: Id<Event>) -> Result<(), Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let _ = EventRepository::delete(&self.repo, event.event_id).await?;
+        Firestore::delete(&self.repo, event.event_id).await?;
 
         Ok(())
     }
 
-    async fn list_event(&self, admin_id: Id<Admin>) -> Result<Vec<EventResponse>, Error> {
-        let events = EventRepository::list_with_admin_id(&self.repo, admin_id)
-            .await?
-            .ok_or(Error::BadRequest {
-                message: format!("{} does not belong to any event", admin_id),
-            })?;
+    async fn list_event(&self, subject: Id<Subject>) -> Result<Vec<EventResponse>, Error> {
+        let events = EventRepository::list(&self.repo, subject).await?;
 
         let s = events
             .iter()
-            .map(|e| SpotRepository::list_with_event_id(&self.repo, e.event_id));
-        let i = events
-            .iter()
-            .map(|e| ImageRepository::list_default_image(&self.repo, e.event_id));
-
+            .map(|e| SpotRepository::list(&self.repo, e.event_id));
         let spots = join_all(s)
             .await
             .into_iter()
             .collect::<Result<Vec<Vec<_>>, _>>()?;
 
+        let i = events
+            .iter()
+            .map(|e| ImageRepository::list_default_image(&self.repo, e.event_id));
         let images = join_all(i)
             .await
             .into_iter()
@@ -246,11 +282,16 @@ where
 
     async fn update_event(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<UpdateEventResponse, Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
@@ -281,10 +322,11 @@ where
             });
         }
 
-        let event = EventRepository::update(&self.repo, event_id, name, hp_url, contact).await?;
+        let event =
+            EventRepository::update(&self.repo, event.event_id, name, hp_url, contact).await?;
 
         Ok(UpdateEventResponse {
-            event_id,
+            event_id: event.event_id,
             name: event.name,
             hp_url: event.hp_url,
             contact: event.contact,
@@ -293,37 +335,52 @@ where
 
     async fn add_default_image(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error> {
-        let _ = ImageRepository::add_default_image(&self.repo, event_id, image_id).await?;
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let _ = ImageRepository::add_default_image(&self.repo, event.event_id, image_id).await?;
 
         Ok(())
     }
 
     async fn delete_default_image(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error> {
-        let _ = ImageRepository::delete_default_image(&self.repo, event_id, image_id).await?;
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let _ = ImageRepository::delete_default_image(&self.repo, event.event_id, image_id).await?;
 
         Ok(())
     }
 
     async fn register_spot(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         name: String,
         beacon_data: EventBeacon,
     ) -> Result<SpotResponse, Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
 
-        let spot = SpotRepository::register(&self.repo, event_id, name).await?;
+        let spot = SpotRepository::register(&self.repo, event.event_id, name).await?;
 
         let beacon = BeaconRepository::register(
             &self.repo,
@@ -344,10 +401,15 @@ where
 
     async fn check_status_by_beacon(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         beacon_data: EventBeacon,
     ) -> Result<Option<SpotResponse>, Error> {
-        let spot = SpotRepository::get_by_beacon(&self.repo, event_id, beacon_data.clone())
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.event_id, beacon_data.clone())
             .await?
             .ok_or(Error::BadRequest {
                 message: format!(
@@ -356,7 +418,7 @@ where
                 ),
             })?;
 
-        let beacon = BeaconRepository::get_by_spot_id(&self.repo, spot.spot_id).await?;
+        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
@@ -368,16 +430,21 @@ where
 
     async fn check_status_by_qr(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<SpotResponse>, Error> {
-        let spot = SpotRepository::get_by_qr(&self.repo, event_id, spot_id)
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let spot = SpotRepository::get_by_qr(&self.repo, event.event_id, spot_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: "This QR code is invalid.".to_string(),
             })?;
 
-        let beacon = BeaconRepository::get_by_spot_id(&self.repo, spot.spot_id).await?;
+        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
@@ -387,12 +454,20 @@ where
         }))
     }
 
-    async fn list_spot(&self, event_id: Id<Event>) -> Result<Vec<SpotResponse>, Error> {
-        let spots = SpotRepository::list_with_event_id(&self.repo, event_id).await?;
+    async fn list_spot(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+    ) -> Result<Vec<SpotResponse>, Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
 
         let s = spots
             .iter()
-            .map(|s| BeaconRepository::get_by_spot_id(&self.repo, s.spot_id));
+            .map(|s| BeaconRepository::get(&self.repo, s.spot_id));
         let beacons = join_all(s)
             .await
             .into_iter()
@@ -412,20 +487,26 @@ where
 
     async fn update_spot(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
     ) -> Result<SpotResponse, Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
 
-        let spot = SpotRepository::update(&self.repo, event_id, spot_id, name, is_pick).await?;
+        let spot =
+            SpotRepository::update(&self.repo, event.event_id, spot_id, name, is_pick).await?;
 
-        let beacon = BeaconRepository::get_by_spot_id(&self.repo, spot.spot_id).await?;
+        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
@@ -435,38 +516,76 @@ where
         })
     }
 
-    async fn delete_spot(&self, event_id: Id<Event>, spot_id: Id<EventSpot>) -> Result<(), Error> {
-        let _ = SpotRepository::delete(&self.repo, event_id, spot_id).await?;
-        Firestore::delete_spot(&self.repo, event_id, spot_id).await?;
+    async fn delete_spot(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let _ = SpotRepository::delete(&self.repo, event.event_id, spot_id).await?;
+        Firestore::delete_spot(&self.repo, event.event_id, spot_id).await?;
 
         Ok(())
     }
 
     async fn check_visitor_image_exist(
         &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Id<VisitorImage>>, Error> {
-        let image = ImageRepository::get_visitor_image(&self.repo, visitor_id)
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let visitor = VisitorRepository::get(&self.repo, event.event_id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
-                message: format!("{} is not being photographed", visitor_id),
+                message: format!("{} aren't exist", visitor_id),
             })?;
 
-        Ok(Some(image))
+        let image = ImageRepository::get_visitor_image(&self.repo, visitor.visitor_id).await?;
+
+        Ok(image)
     }
 
     async fn upload_visitor_image(
         &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error> {
-        let _ = ImageRepository::upload_visitor_image(&self.repo, visitor_id, image_id).await?;
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let visitor = VisitorRepository::get(&self.repo, event.event_id, visitor_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} aren't exist", visitor_id),
+            })?;
+
+        let _ =
+            ImageRepository::upload_visitor_image(&self.repo, visitor.visitor_id, image_id).await?;
 
         Ok(())
     }
 
-    async fn get_traffic_status(&self, event_id: Id<Event>) -> Result<Vec<TrafficStatus>, Error> {
-        let spots = SpotRepository::list_with_event_id(&self.repo, event_id).await?;
+    async fn get_traffic_status(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+    ) -> Result<Vec<TrafficStatus>, Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
 
         let s = spots
             .iter()
@@ -480,7 +599,6 @@ where
             .iter()
             .zip(visitors.clone())
             .map(|(s, v)| Firestore::subscribe_spot_log(&self.repo, event_id, s.spot_id, v.len()));
-
         join_all(s)
             .await
             .into_iter()
@@ -498,12 +616,17 @@ where
 
     async fn controll_traffic(
         &self,
+        subject: Id<Subject>,
         event_id: Id<Event>,
         from: Id<EventSpot>,
         to: Id<EventSpot>,
     ) -> Result<(), Error> {
-        let visitors_in_from = Firestore::get_visitors(&self.repo, event_id, from).await?;
-        let visitors_in_to = Firestore::get_visitors(&self.repo, event_id, to).await?;
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let visitors_in_from = Firestore::get_visitors(&self.repo, event.event_id, from).await?;
+        let visitors_in_to = Firestore::get_visitors(&self.repo, event.event_id, to).await?;
 
         let mut rng = {
             let rng = rand::thread_rng();
@@ -518,21 +641,14 @@ where
             .cloned()
             .collect::<Vec<_>>();
 
-        let v = visitors.iter().map(|&v| {
-            VisitorRepository::get(
-                &self.repo,
-                VisitorIdentification {
-                    event_id,
-                    visitor_id: v,
-                },
-            )
-        });
-
+        let v = visitors
+            .iter()
+            .map(|&v| VisitorRepository::get(&self.repo, event.event_id, v));
         let visitors = join_all(v).await.iter().flatten().collect::<Vec<_>>();
 
-        let _ = SpotRepository::set_bonus_state(&self.repo, event_id, to, true).await?;
+        let _ = SpotRepository::set_bonus_state(&self.repo, event.event_id, to, true).await?;
 
-        Firestore::subscribe_traffic_log(&self.repo, event_id, from, to).await?;
+        Firestore::subscribe_traffic_log(&self.repo, event.event_id, from, to).await?;
 
         Ok(())
     }
@@ -543,7 +659,16 @@ where
         Ok(())
     }
 
-    async fn send_email(&self, event_id: Id<Event>, email: EmailAddress) -> Result<(), Error> {
+    async fn send_email(
+        &self,
+        subject: Id<Subject>,
+        event_id: Id<Event>,
+        email: EmailAddress,
+    ) -> Result<(), Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
         let token = rand::thread_rng()
             .sample_iter(&Alphanumeric)
             .take(32)
@@ -552,19 +677,24 @@ where
 
         EmailSender::send(&self.repo, email.clone(), token.clone()).await?;
 
-        Firestore::set_email(&self.repo, event_id, token, email).await?;
+        Firestore::set_event_id(&self.repo, token, event.event_id).await?;
 
         Ok(())
     }
 
-    async fn add_operator(&self, event_id: Id<Event>, token: String) -> Result<(), Error> {
-        let email = Firestore::get_email(&self.repo, event_id, token)
+    async fn add_operator(&self, subject: Id<Subject>, token: String) -> Result<(), Error> {
+        let admin = AdminRepository::get(&self.repo, subject)
             .await?
-            .ok_or(Error::BadRequest {
-                message: "This token has already expired or is invalid.".to_string(),
-            })?;
+            .ok_or(Error::UnAuthorized)?;
 
-        let _ = AdminRepository::add_event_by_email(&self.repo, email, event_id).await?;
+        let event_id =
+            Firestore::get_event_id(&self.repo, token)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: "This token has already expired or is invalid.".to_string(),
+                })?;
+
+        let _ = AdminRepository::update(&self.repo, subject, event_id).await?;
 
         Ok(())
     }

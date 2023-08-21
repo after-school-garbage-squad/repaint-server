@@ -64,7 +64,6 @@ pub trait VisitorUsecase: AsyncSafe {
     async fn pick_palette(
         &self,
         visitor_identification: VisitorIdentification,
-        spot_id: Id<EventSpot>,
     ) -> Result<(), Error>;
 }
 
@@ -114,7 +113,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let spots = SpotRepository::list_with_event_id(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
         let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
         let visitor =
             VisitorRepository::create(&self.repo, event_id, registration_id.clone()).await?;
@@ -158,13 +157,17 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
-        let spots = SpotRepository::list_with_event_id(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
         let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
-        let visitor = VisitorRepository::get(&self.repo, visitor_identification.clone())
-            .await?
-            .ok_or(Error::BadRequest {
-                message: format!("{} is invalid id", visitor_identification.visitor_id),
-            })?;
+        let visitor = VisitorRepository::get(
+            &self.repo,
+            visitor_identification.event_id,
+            visitor_identification.visitor_id,
+        )
+        .await?
+        .ok_or(Error::BadRequest {
+            message: format!("{} is invalid id", visitor_identification.visitor_id),
+        })?;
         let palettes = PaletteRepository::get(&self.repo, visitor.visitor_id).await?;
         let image_id = ImageRepository::get_visitor_image(&self.repo, visitor.visitor_id).await?;
         let current_image_id =
@@ -200,7 +203,12 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let _ = VisitorRepository::delete(&self.repo, visitor_identification).await?;
+        let _ = VisitorRepository::delete(
+            &self.repo,
+            visitor_identification.event_id,
+            visitor_identification.visitor_id,
+        )
+        .await?;
 
         Ok(())
     }
@@ -336,16 +344,12 @@ where
     async fn pick_palette(
         &self,
         visitor_identification: VisitorIdentification,
-        spot_id: Id<EventSpot>,
     ) -> Result<(), Error> {
-        let visitors =
-            VisitorRepository::list_with_event_id(&self.repo, visitor_identification.event_id)
-                .await?;
+        let visitors = VisitorRepository::list(&self.repo, visitor_identification.event_id).await?;
 
         let p = visitors
             .iter()
             .map(|v| PaletteRepository::get(&self.repo, v.visitor_id));
-
         let palettes = join_all(p)
             .await
             .into_iter()
