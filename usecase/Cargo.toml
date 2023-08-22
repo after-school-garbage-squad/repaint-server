@@ -12,4 +12,4 @@ rand = "0.8.5"
 repaint-server-model = { path = "../model" }
 serde = { version = "1.0.185", features = ["derive"] }
 teloc = "0.2.0"
-thiserror = "1.0.44"
+thiserror = "1.0.47"
