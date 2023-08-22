@@ -14,7 +14,6 @@ impl Migration {
             .col(ColumnDef::new(VisitorImages::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(VisitorImages::VisitorId).integer().not_null())
             .col(ColumnDef::new(VisitorImages::ImageId).char_len(26).not_null())
-            .col(ColumnDef::new(VisitorImages::CompressedImageID).char_len(26).not_null())
             .col(ColumnDef::new(VisitorImages::CurrentImageID).char_len(26).not_null())
             .col(ColumnDef::new(VisitorImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(VisitorImages::UpdatedAt).date_time())
@@ -52,13 +51,12 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 enum VisitorImages {
     Table,
     Id,
     VisitorId,
     ImageId,
-    CompressedImageID,
     CurrentImageID,
     CreatedAt,
     UpdatedAt,
@@ -94,7 +92,6 @@ mod tests {
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""image_id" char(26) NOT NULL,"#,
-                r#""compressed_image_id" char(26) NOT NULL,"#,
                 r#""current_image_id" char(26) NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,

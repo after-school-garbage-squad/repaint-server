@@ -16,7 +16,7 @@ impl Migration {
             .col(ColumnDef::new(EventBeacons::Major).small_integer().not_null())
             .col(ColumnDef::new(EventBeacons::Minor).small_integer().not_null())
             .col(ColumnDef::new(EventBeacons::BeaconUuid).char_len(16).not_null())
-            .col(ColumnDef::new(EventBeacons::HwId).string_len(10).unique_key())
+            .col(ColumnDef::new(EventBeacons::HwId).char_len(10).not_null().unique_key())
             .col(ColumnDef::new(EventBeacons::ServiceUuid).char_len(16).not_null())
             .col(ColumnDef::new(EventBeacons::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventBeacons::UpdatedAt).date_time())
@@ -54,7 +54,7 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 enum EventBeacons {
     Table,
     Id,
@@ -100,7 +100,7 @@ mod tests {
                 r#""major" smallint NOT NULL,"#,
                 r#""minor" smallint NOT NULL,"#,
                 r#""beacon_uuid" char(16) NOT NULL,"#,
-                r#""hw_id" varchar(10) UNIQUE,"#,
+                r#""hw_id" char(10) NOT NULL UNIQUE,"#,
                 r#""service_uuid" char(16) NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,

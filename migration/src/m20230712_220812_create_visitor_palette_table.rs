@@ -50,7 +50,7 @@ impl MigrationTrait for Migration {
     }
 }
 
-#[derive(Iden)]
+#[derive(DeriveIden)]
 enum VisitorPalettes {
     Table,
     Id,

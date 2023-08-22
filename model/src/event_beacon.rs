@@ -1,11 +1,15 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
+use serde::Serialize;
+
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EventBeacon {
     pub i_beacon: IBeacon,
-    pub hw_id: Option<String>,
+    pub hw_id: String,
     pub service_uuid: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct IBeacon {
     pub major: i16,
     pub minor: i16,

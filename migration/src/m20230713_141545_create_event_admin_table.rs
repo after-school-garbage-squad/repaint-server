@@ -26,7 +26,10 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .get_connection()
-            .execute_unprepared("DROP TABLE 'events_admins'")
+            .execute(Statement::from_string(
+                manager.get_database_backend(),
+                r#"DROP TABLE "events_admins""#.to_string(),
+            ))
             .await?;
 
         Ok(())

@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::id::Id;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Event {
     pub event_id: Id<Self>,
     pub name: String,

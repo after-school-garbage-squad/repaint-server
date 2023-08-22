@@ -1,9 +1,13 @@
-use email_address::EmailAddress;
+use serde::Serialize;
 
 use crate::id::Id;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Admin {
     pub admin_id: Id<Self>,
-    pub email: EmailAddress,
+    pub subject: Id<Subject>,
 }
+
+#[derive(Debug)]
+pub struct Subject {}
