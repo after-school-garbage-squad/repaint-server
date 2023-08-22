@@ -17,6 +17,7 @@ use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::email::EmailSender;
+use crate::infra::fcm::FirebaseCloudMessaging;
 use crate::infra::firestore::Firestore;
 use crate::infra::repo::{
     AdminRepository, BeaconRepository, EventRepository, ImageRepository, SpotRepository,
@@ -163,7 +164,8 @@ where
         + VisitorRepository
         + AdminRepository
         + Firestore
-        + EmailSender,
+        + EmailSender
+        + FirebaseCloudMessaging,
 {
     pub fn new(repo: R) -> Self {
         Self { repo }
@@ -180,7 +182,8 @@ where
         + VisitorRepository
         + AdminRepository
         + Firestore
-        + EmailSender,
+        + EmailSender
+        + FirebaseCloudMessaging,
 {
     async fn create_event(
         &self,
@@ -644,7 +647,16 @@ where
         let v = visitors
             .iter()
             .map(|&v| VisitorRepository::get(&self.repo, event.event_id, v));
-        let visitors = join_all(v).await.iter().flatten().collect::<Vec<_>>();
+        let visitors = join_all(v).await.into_iter().flatten().collect::<Vec<_>>();
+
+        let m = visitors
+            .into_iter()
+            .flatten()
+            .map(|v| FirebaseCloudMessaging::send(&self.repo, v.registration_id));
+        join_all(m)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
 
         let _ = SpotRepository::set_bonus_state(&self.repo, event.event_id, to, true).await?;
 
@@ -694,7 +706,7 @@ where
                     message: "This token has already expired or is invalid.".to_string(),
                 })?;
 
-        let _ = AdminRepository::update(&self.repo, subject, event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.subject, event_id).await?;
 
         Ok(())
     }
