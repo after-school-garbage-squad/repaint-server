@@ -1,4 +1,5 @@
-pub use sea_orm_migration::prelude::*;
+use sea_orm_migration::prelude::*;
+pub use sea_orm_migration::MigratorTrait;
 
 mod m20230712_175819_create_event_table;
 mod m20230712_180346_create_event_image_table;

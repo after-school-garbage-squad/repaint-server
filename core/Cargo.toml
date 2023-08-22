@@ -5,12 +5,21 @@ edition = "2021"
 publish = false
 
 [dependencies]
+cfg-if = "1.0.0"
 email_address = "0.2.4"
 repaint-server-model = { path = "../model" }
 serde = "1.0.185"
 serde_json = "1.0.105"
+teloc = "0.2.0"
+thiserror = "1.0.47"
 tracing = "0.1.37"
 
 [dependencies.sea-orm]
 version = "0.12.2"
 features = ["runtime-tokio-rustls", "sqlx-postgres", "postgres-array"]
+
+[dev-dependencies]
+repaint-server-migration = { path = "../migration" }
+sqlx = { version = "0.7.1", features = ["runtime-tokio-rustls", "postgres"] }
+tokio = { version = "1.32.0", features = ["macros"] }
+ulid = "1.0.0"
