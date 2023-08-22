@@ -7,7 +7,7 @@ publish = false
 [dependencies]
 email_address = "0.2.4"
 repaint-server-model = { path = "../model" }
-serde = "1.0.183"
+serde = "1.0.185"
 serde_json = "1.0.105"
 tracing = "0.1.37"
 
