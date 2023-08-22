@@ -1,5 +1,6 @@
-use crate::id::Id;
 use serde::Serialize;
+
+use crate::id::Id;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
