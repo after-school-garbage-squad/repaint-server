@@ -1,5 +1,6 @@
 #![warn(missing_debug_implementations)]
 #![warn(unreachable_pub)]
+#![feature(min_specialization)]
 
 use std::sync::Arc;
 
