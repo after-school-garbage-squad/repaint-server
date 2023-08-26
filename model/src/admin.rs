@@ -6,8 +6,5 @@ use crate::id::Id;
 #[serde(rename_all = "camelCase")]
 pub struct Admin {
     pub admin_id: Id<Self>,
-    pub subject: Id<Subject>,
+    pub subject: String,
 }
-
-#[derive(Debug)]
-pub struct Subject {}

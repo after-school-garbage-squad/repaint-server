@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use repaint_server_model::admin::{Admin, Subject};
+use repaint_server_model::admin::Admin;
 use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::event_beacon::{EventBeacon, IBeacon};
 use repaint_server_model::event_image::Image as EventImage;
@@ -136,7 +136,7 @@ pub trait EventRepository: AsyncSafe {
 
     async fn get_event_belong_to_subject(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
     ) -> Result<Option<Event>, Self::Error>;
 
@@ -149,7 +149,7 @@ pub trait EventRepository: AsyncSafe {
 
     async fn delete(&self, event_id: Id<Event>) -> Result<IsUpdated, Self::Error>;
 
-    async fn list(&self, subject: Id<Subject>) -> Result<Vec<Event>, Self::Error>;
+    async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error>;
 
     async fn update(
         &self,
@@ -166,9 +166,9 @@ pub trait EventRepository: AsyncSafe {
 pub trait AdminRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn add(&self, subject: Id<Subject>) -> Result<IsUpdated, Self::Error>;
+    async fn add(&self, subject: String) -> Result<IsUpdated, Self::Error>;
 
-    async fn get(&self, subject: Id<Subject>) -> Result<Option<Admin>, Self::Error>;
+    async fn get(&self, subject: String) -> Result<Option<Admin>, Self::Error>;
 
     async fn update(
         &self,
