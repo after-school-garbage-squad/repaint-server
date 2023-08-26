@@ -52,20 +52,17 @@ cfg_if::cfg_if! {
 
         impl TestingSeaOrm {
             pub(crate) async fn new() -> Self {
-                const TESTING_MYSQL_URL: &str = "postgresql://user:pass@localhost:5432/local-db/";
+                const TESTING_POSTGRES_URL_BASE: &str = "postgresql://user:pass@localhost";
+                const TESTING_POSTGRES_URL: &str = "postgresql://user:pass@localhost/local-db";
 
                 let db_name = ulid::Ulid::new().to_string();
 
                 {
-                    let mut con = PgConnection::connect(TESTING_MYSQL_URL).await.unwrap();
-                    sqlx::query(&format!("create database {db_name}"))
-                        .execute(&mut con)
-                        .await
-                        .unwrap();
+                    let mut con = PgConnection::connect(TESTING_POSTGRES_URL).await.unwrap();
+                    sqlx::query(&format!("CREATE DATABASE \"{}\"", db_name)).execute(&mut con).await.unwrap();
                 }
 
-                let url = String::from(TESTING_MYSQL_URL) + &db_name;
-
+                let url = format!("{}/{}", TESTING_POSTGRES_URL_BASE, &db_name);
                 let options = ConnectOptions::new(url);
                 let orm = SeaOrm::new(options).await.unwrap();
 
@@ -87,7 +84,7 @@ cfg_if::cfg_if! {
                 Handle::current().spawn(async move {
                     let stmt = Statement::from_string(
                         DatabaseBackend::Postgres,
-                        format!("drop database {}", db_name),
+                        format!("DROP DATABASE {}", db_name),
                     );
 
                     orm.con().execute(stmt).await.unwrap();
