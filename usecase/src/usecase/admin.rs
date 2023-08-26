@@ -137,7 +137,7 @@ pub trait AdminUsecase: AsyncSafe {
         to: Id<EventSpot>,
     ) -> Result<(), Error>;
 
-    async fn add_admin(&self, event_id: Id<Event>, subject: Id<Subject>) -> Result<(), Error>;
+    async fn add_admin(&self, subject: Id<Subject>) -> Result<(), Error>;
 
     async fn send_email(
         &self,
@@ -192,7 +192,7 @@ where
         hp_url: String,
         contact: Contact,
     ) -> Result<CreateEventResponse, Error> {
-        let _ = AdminRepository::get(&self.repo, subject)
+        let admin = AdminRepository::get(&self.repo, subject)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
@@ -228,7 +228,7 @@ where
 
         let event = EventRepository::create(&self.repo, name, hp_url, contact).await?;
 
-        let _ = AdminRepository::update(&self.repo, subject, event.event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.admin_id, event.event_id).await?;
 
         Ok(CreateEventResponse {
             event_id: event.event_id,
@@ -665,8 +665,8 @@ where
         Ok(())
     }
 
-    async fn add_admin(&self, event_id: Id<Event>, subject: Id<Subject>) -> Result<(), Error> {
-        let _ = AdminRepository::add_subject(&self.repo, event_id, subject).await?;
+    async fn add_admin(&self, subject: Id<Subject>) -> Result<(), Error> {
+        let _ = AdminRepository::add(&self.repo, subject).await?;
 
         Ok(())
     }
@@ -706,7 +706,7 @@ where
                     message: "This token has already expired or is invalid.".to_string(),
                 })?;
 
-        let _ = AdminRepository::update(&self.repo, admin.subject, event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.admin_id, event_id).await?;
 
         Ok(())
     }

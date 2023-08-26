@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use email_address::EmailAddress;
 use repaint_server_model::admin::{Admin, Subject};
 use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::event_beacon::{EventBeacon, IBeacon};
@@ -167,23 +166,13 @@ pub trait EventRepository: AsyncSafe {
 pub trait AdminRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn add_subject(
-        &self,
-        event_id: Id<Event>,
-        subject: Id<Subject>,
-    ) -> Result<IsUpdated, Self::Error>;
-
-    async fn add_event_by_email(
-        &self,
-        email: EmailAddress,
-        event_id: Id<Event>,
-    ) -> Result<IsUpdated, Self::Error>;
+    async fn add(&self, subject: Id<Subject>) -> Result<IsUpdated, Self::Error>;
 
     async fn get(&self, subject: Id<Subject>) -> Result<Option<Admin>, Self::Error>;
 
     async fn update(
         &self,
-        subject: Id<Subject>,
+        admin_id: Id<Admin>,
         event_id: Id<Event>,
     ) -> Result<IsUpdated, Self::Error>;
 }
