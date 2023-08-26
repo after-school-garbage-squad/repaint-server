@@ -17,8 +17,8 @@ index c139e11..aafb1b0 100644
      #[sea_orm(primary_key)]
      pub id: i32,
      #[sea_orm(unique)]
--    pub admin_id: Option<String>,
-+    pub admin_id: Option<AsString<Id<Admin>>>,
+-    pub admin_id: String,
++    pub admin_id: AsString<Id<Admin>>,
      #[sea_orm(unique)]
 -    pub subject: String,
 +    pub subject: AsString<Id<Subject>>,
