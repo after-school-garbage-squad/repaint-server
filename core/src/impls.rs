@@ -4,6 +4,7 @@ use sea_orm::{DbErr, DeleteResult, UpdateResult};
 use crate::Error;
 
 pub mod admin;
+pub mod event;
 
 trait IsUpdatedExt {
     fn to_is_updated(self) -> Result<IsUpdated, Error>;
