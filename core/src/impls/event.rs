@@ -3,7 +3,7 @@ use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
 
 use crate::entity::{admins, events};
 use crate::ty::json::AsJson;
@@ -67,14 +67,11 @@ impl EventRepository for SeaOrm {
         to_model(event)
     }
 
-    async fn delete(&self, event_id: Id<Event>) -> Result<IsUpdated, Self::Error> {
-        let event = events::Entity::find()
-            .filter(events::Column::EventId.eq(event_id.dty()))
-            .one(self.con())
-            .await?
-            .unwrap();
-
-        event.delete(self.con()).await.to_is_updated()
+    async fn delete(&self, event_id: i32) -> Result<IsUpdated, Self::Error> {
+        events::Entity::delete_by_id(event_id)
+            .exec(self.con())
+            .await
+            .to_is_updated()
     }
 
     async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error> {
@@ -92,13 +89,12 @@ impl EventRepository for SeaOrm {
 
     async fn update(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<Event, Self::Error> {
-        let mut event: events::ActiveModel = events::Entity::find()
-            .filter(events::Column::EventId.eq(event_id.dty()))
+        let mut event: events::ActiveModel = events::Entity::find_by_id(event_id)
             .one(self.con())
             .await?
             .unwrap()

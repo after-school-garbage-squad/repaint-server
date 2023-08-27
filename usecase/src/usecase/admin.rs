@@ -242,7 +242,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = EventRepository::delete(&self.repo, event.event_id).await?;
+        let _ = EventRepository::delete(&self.repo, event.id).await?;
         Firestore::delete(&self.repo, event.event_id).await?;
 
         Ok(())
@@ -324,8 +324,7 @@ where
             });
         }
 
-        let event =
-            EventRepository::update(&self.repo, event.event_id, name, hp_url, contact).await?;
+        let event = EventRepository::update(&self.repo, event.id, name, hp_url, contact).await?;
 
         Ok(UpdateEventResponse {
             event_id: event.event_id,

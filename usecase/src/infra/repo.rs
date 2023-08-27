@@ -147,13 +147,13 @@ pub trait EventRepository: AsyncSafe {
         contact: Contact,
     ) -> Result<Event, Self::Error>;
 
-    async fn delete(&self, event_id: Id<Event>) -> Result<IsUpdated, Self::Error>;
+    async fn delete(&self, event_id: i32) -> Result<IsUpdated, Self::Error>;
 
     async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error>;
 
     async fn update(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         name: String,
         hp_url: String,
         contact: Contact,
