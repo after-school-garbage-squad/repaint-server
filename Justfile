@@ -21,4 +21,5 @@ gen: start
 test: start
       cd migration && cargo test
       cd model && cargo test
+      cd core && cargo test
       docker compose down
