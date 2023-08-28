@@ -253,7 +253,7 @@ where
 
         let s = events
             .iter()
-            .map(|e| SpotRepository::list(&self.repo, e.event_id));
+            .map(|e| SpotRepository::list(&self.repo, e.id));
         let spots = join_all(s)
             .await
             .into_iter()
@@ -381,7 +381,7 @@ where
             });
         }
 
-        let spot = SpotRepository::register(&self.repo, event.event_id, name).await?;
+        let spot = SpotRepository::register(&self.repo, event.id, name).await?;
 
         let beacon = BeaconRepository::register(
             &self.repo,
@@ -410,7 +410,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.event_id, beacon_data.clone())
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, beacon_data.clone())
             .await?
             .ok_or(Error::BadRequest {
                 message: format!(
@@ -439,7 +439,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spot = SpotRepository::get_by_qr(&self.repo, event.event_id, spot_id)
+        let spot = SpotRepository::get_by_qr(&self.repo, event.id, spot_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: "This QR code is invalid.".to_string(),
@@ -464,7 +464,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
 
         let s = spots
             .iter()
@@ -504,8 +504,7 @@ where
             });
         }
 
-        let spot =
-            SpotRepository::update(&self.repo, event.event_id, spot_id, name, is_pick).await?;
+        let spot = SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?;
 
         let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
 
@@ -527,7 +526,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = SpotRepository::delete(&self.repo, event.event_id, spot_id).await?;
+        let _ = SpotRepository::delete(&self.repo, event.id, spot_id).await?;
         Firestore::delete_spot(&self.repo, event.event_id, spot_id).await?;
 
         Ok(())
@@ -586,7 +585,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
 
         let s = spots
             .iter()
@@ -656,7 +655,7 @@ where
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
 
-        let _ = SpotRepository::set_bonus_state(&self.repo, event.event_id, to, true).await?;
+        let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to, true).await?;
 
         Firestore::subscribe_traffic_log(&self.repo, event.event_id, from, to).await?;
 

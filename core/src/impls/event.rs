@@ -3,7 +3,7 @@ use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 
 use crate::entity::{admins, events};
 use crate::ty::json::AsJson;
@@ -94,15 +94,19 @@ impl EventRepository for SeaOrm {
         hp_url: String,
         contact: Contact,
     ) -> Result<Event, Self::Error> {
+        let tx = self.con().begin().await?;
+
         let mut event: events::ActiveModel = events::Entity::find_by_id(event_id)
-            .one(self.con())
+            .one(&tx)
             .await?
             .unwrap()
             .into();
         event.name = Set(name);
         event.hp_url = Set(hp_url);
         event.contact = Set(AsJson(contact));
-        let event = event.update(self.con()).await?;
+        let event = event.update(&tx).await?;
+
+        tx.commit().await?;
 
         to_model(event)
     }

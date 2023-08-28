@@ -5,6 +5,7 @@ use crate::Error;
 
 pub mod admin;
 pub mod event;
+pub mod spot;
 
 trait IsUpdatedExt {
     fn to_is_updated(self) -> Result<IsUpdated, Error>;

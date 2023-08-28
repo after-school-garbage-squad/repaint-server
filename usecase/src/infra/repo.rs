@@ -13,35 +13,32 @@ use repaint_server_model::{AsyncSafe, StaticError};
 pub trait SpotRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn register(&self, event_id: Id<Event>, name: String) -> Result<EventSpot, Self::Error>;
+    async fn register(&self, event_id: i32, name: String) -> Result<EventSpot, Self::Error>;
 
-    async fn list(&self, event_id: Id<Event>) -> Result<Vec<EventSpot>, Self::Error>;
+    async fn list(&self, event_id: i32) -> Result<Vec<EventSpot>, Self::Error>;
 
     async fn get_by_beacon(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         beacon: EventBeacon,
     ) -> Result<Option<EventSpot>, Self::Error>;
 
     async fn get_by_qr(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<EventSpot>, Self::Error>;
 
     async fn update(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
     ) -> Result<EventSpot, Self::Error>;
 
-    async fn delete(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<IsUpdated, Self::Error>;
+    async fn delete(&self, event_id: i32, spot_id: Id<EventSpot>)
+        -> Result<IsUpdated, Self::Error>;
 
     async fn get_bonus_state(
         &self,
@@ -51,7 +48,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn set_bonus_state(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         spot_id: Id<EventSpot>,
         is_bonus: bool,
     ) -> Result<IsUpdated, Self::Error>;

@@ -113,7 +113,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
         let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
         let visitor =
             VisitorRepository::create(&self.repo, event_id, registration_id.clone()).await?;
@@ -157,7 +157,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
         let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
         let visitor = VisitorRepository::get(
             &self.repo,
