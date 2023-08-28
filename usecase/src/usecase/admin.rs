@@ -6,7 +6,6 @@ use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
 use repaint_server_model::event::{Contact, Event};
-use repaint_server_model::event_beacon::EventBeacon;
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -19,11 +18,10 @@ use crate::infra::email::EmailSender;
 use crate::infra::fcm::FirebaseCloudMessaging;
 use crate::infra::firestore::Firestore;
 use crate::infra::repo::{
-    AdminRepository, BeaconRepository, EventRepository, ImageRepository, SpotRepository,
-    VisitorRepository,
+    AdminRepository, EventRepository, ImageRepository, SpotRepository, VisitorRepository,
 };
 use crate::model::event::{CreateEventResponse, EventResponse, UpdateEventResponse};
-use crate::model::spot::{SpotResponse, TrafficStatus};
+use crate::model::spot::{Beacon, SpotResponse, TrafficStatus};
 use crate::usecase::error::Error;
 
 #[async_trait]
@@ -68,14 +66,14 @@ pub trait AdminUsecase: AsyncSafe {
         subject: String,
         event_id: Id<Event>,
         name: String,
-        beacon_data: EventBeacon,
+        beacon_data: Beacon,
     ) -> Result<SpotResponse, Error>;
 
     async fn check_status_by_beacon(
         &self,
         subject: String,
         event_id: Id<Event>,
-        beacon_data: EventBeacon,
+        hw_id: String,
     ) -> Result<Option<SpotResponse>, Error>;
 
     async fn check_status_by_qr(
@@ -159,7 +157,6 @@ where
     R: EventRepository
         + SpotRepository
         + ImageRepository
-        + BeaconRepository
         + VisitorRepository
         + AdminRepository
         + Firestore
@@ -177,7 +174,6 @@ where
     R: EventRepository
         + SpotRepository
         + ImageRepository
-        + BeaconRepository
         + VisitorRepository
         + AdminRepository
         + Firestore
@@ -369,7 +365,7 @@ where
         subject: String,
         event_id: Id<Event>,
         name: String,
-        beacon_data: EventBeacon,
+        beacon_data: Beacon,
     ) -> Result<SpotResponse, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
@@ -381,12 +377,13 @@ where
             });
         }
 
-        let spot = SpotRepository::register(&self.repo, event.id, name).await?;
-
-        let beacon = BeaconRepository::register(
+        let spot = SpotRepository::register(
             &self.repo,
-            spot.spot_id,
-            beacon_data.i_beacon,
+            event.id,
+            name,
+            beacon_data.i_beacon.major,
+            beacon_data.i_beacon.minor,
+            beacon_data.i_beacon.beacon_uuid,
             beacon_data.hw_id,
             beacon_data.service_uuid,
         )
@@ -395,8 +392,13 @@ where
         Ok(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
-            is_pick: false,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
+            is_pick: spot.is_pick,
+            bonus: spot.bonus,
         })
     }
 
@@ -404,28 +406,28 @@ where
         &self,
         subject: String,
         event_id: Id<Event>,
-        beacon_data: EventBeacon,
+        hw_id: String,
     ) -> Result<Option<SpotResponse>, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, beacon_data.clone())
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
             .await?
             .ok_or(Error::BadRequest {
-                message: format!(
-                    "No spots associated with {} have been registered",
-                    beacon_data.hw_id
-                ),
+                message: format!("No spots associated with {} have been registered", hw_id),
             })?;
-
-        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
-            is_pick: false,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
+            is_pick: spot.is_pick,
+            bonus: spot.bonus,
         }))
     }
 
@@ -445,13 +447,16 @@ where
                 message: "This QR code is invalid.".to_string(),
             })?;
 
-        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
-
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
-            is_pick: false,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
+            is_pick: spot.is_pick,
+            bonus: spot.bonus,
         }))
     }
 
@@ -466,22 +471,18 @@ where
 
         let spots = SpotRepository::list(&self.repo, event.id).await?;
 
-        let s = spots
-            .iter()
-            .map(|s| BeaconRepository::get(&self.repo, s.spot_id));
-        let beacons = join_all(s)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
-
         Ok(spots
             .into_iter()
-            .zip(beacons)
-            .map(|(s, b)| SpotResponse {
+            .map(|s| SpotResponse {
                 spot_id: s.spot_id,
                 name: s.name,
-                beacon: b,
+                beacon: Beacon {
+                    i_beacon: s.i_beacon,
+                    hw_id: s.hw_id,
+                    service_uuid: s.service_uuid,
+                },
                 is_pick: s.is_pick,
+                bonus: s.bonus,
             })
             .collect())
     }
@@ -506,13 +507,16 @@ where
 
         let spot = SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?;
 
-        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
-
         Ok(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
             is_pick: spot.is_pick,
+            bonus: spot.bonus,
         })
     }
 

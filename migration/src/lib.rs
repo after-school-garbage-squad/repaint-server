@@ -4,7 +4,6 @@ pub use sea_orm_migration::MigratorTrait;
 mod m20230712_175819_create_event_table;
 mod m20230712_180346_create_event_image_table;
 mod m20230712_213646_create_event_spot_table;
-mod m20230712_214136_create_event_beacon_table;
 mod m20230712_215023_create_visitor_table;
 mod m20230712_215554_create_visitor_image_table;
 mod m20230712_220812_create_visitor_palette_table;
@@ -20,7 +19,6 @@ impl MigratorTrait for Migrator {
             Box::new(m20230712_175819_create_event_table::Migration),
             Box::new(m20230712_180346_create_event_image_table::Migration),
             Box::new(m20230712_213646_create_event_spot_table::Migration),
-            Box::new(m20230712_214136_create_event_beacon_table::Migration),
             Box::new(m20230712_215023_create_visitor_table::Migration),
             Box::new(m20230712_215554_create_visitor_image_table::Migration),
             Box::new(m20230712_220812_create_visitor_palette_table::Migration),

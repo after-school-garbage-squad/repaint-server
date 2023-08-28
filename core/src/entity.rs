@@ -3,7 +3,6 @@
 pub mod prelude;
 
 pub mod admins;
-pub mod event_beacons;
 pub mod event_images;
 pub mod event_spots;
 pub mod events;

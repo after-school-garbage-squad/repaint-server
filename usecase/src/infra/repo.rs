@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use repaint_server_model::admin::Admin;
 use repaint_server_model::event::{Contact, Event};
-use repaint_server_model::event_beacon::{EventBeacon, IBeacon};
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -13,14 +12,23 @@ use repaint_server_model::{AsyncSafe, StaticError};
 pub trait SpotRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn register(&self, event_id: i32, name: String) -> Result<EventSpot, Self::Error>;
+    async fn register(
+        &self,
+        event_id: i32,
+        name: String,
+        major: i16,
+        minor: i16,
+        beacon_uuid: String,
+        hw_id: String,
+        service_uuid: String,
+    ) -> Result<EventSpot, Self::Error>;
 
     async fn list(&self, event_id: i32) -> Result<Vec<EventSpot>, Self::Error>;
 
     async fn get_by_beacon(
         &self,
         event_id: i32,
-        beacon: EventBeacon,
+        hw_id: String,
     ) -> Result<Option<EventSpot>, Self::Error>;
 
     async fn get_by_qr(
@@ -52,21 +60,6 @@ pub trait SpotRepository: AsyncSafe {
         spot_id: Id<EventSpot>,
         is_bonus: bool,
     ) -> Result<IsUpdated, Self::Error>;
-}
-
-#[async_trait]
-pub trait BeaconRepository: AsyncSafe {
-    type Error: StaticError;
-
-    async fn register(
-        &self,
-        spot_id: Id<EventSpot>,
-        i_beacon: IBeacon,
-        hw_id: String,
-        service_uuid: String,
-    ) -> Result<EventBeacon, Self::Error>;
-
-    async fn get(&self, spot_id: Id<EventSpot>) -> Result<EventBeacon, Self::Error>;
 }
 
 #[async_trait]

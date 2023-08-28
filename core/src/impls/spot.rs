@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use repaint_server_model::event::Event;
-use repaint_server_model::event_beacon::EventBeacon;
-use repaint_server_model::event_spot::EventSpot;
+use repaint_server_model::event_spot::{EventSpot, IBeacon};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
@@ -9,7 +8,7 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
 };
 
-use crate::entity::{event_beacons, event_spots, events};
+use crate::entity::{event_spots, events};
 use crate::ty::string::ToDatabaseType;
 use crate::{Error, SeaOrm};
 
@@ -21,6 +20,13 @@ pub fn to_model(m: event_spots::Model) -> Result<EventSpot, Error> {
         name: m.name,
         is_pick: m.is_pick,
         bonus: m.bonus,
+        i_beacon: IBeacon {
+            major: m.major,
+            minor: m.minor,
+            beacon_uuid: m.beacon_uuid,
+        },
+        hw_id: m.hw_id,
+        service_uuid: m.service_uuid,
     })
 }
 
@@ -28,13 +34,27 @@ pub fn to_model(m: event_spots::Model) -> Result<EventSpot, Error> {
 impl SpotRepository for SeaOrm {
     type Error = Error;
 
-    async fn register(&self, event_id: i32, name: String) -> Result<EventSpot, Self::Error> {
+    async fn register(
+        &self,
+        event_id: i32,
+        name: String,
+        major: i16,
+        minor: i16,
+        beacon_uuid: String,
+        hw_id: String,
+        service_uuid: String,
+    ) -> Result<EventSpot, Self::Error> {
         let spot = event_spots::ActiveModel {
             event_id: Set(event_id),
             spot_id: Set(Id::new().dty()),
             name: Set(name),
             is_pick: Set(false),
             bonus: Set(false),
+            major: Set(major),
+            minor: Set(minor),
+            beacon_uuid: Set(beacon_uuid),
+            hw_id: Set(hw_id),
+            service_uuid: Set(service_uuid),
             ..Default::default()
         }
         .insert(self.con())
@@ -58,30 +78,19 @@ impl SpotRepository for SeaOrm {
     async fn get_by_beacon(
         &self,
         event_id: i32,
-        beacon: EventBeacon,
+        hw_id: String,
     ) -> Result<Option<EventSpot>, Self::Error> {
-        let tx = self.con().begin().await?;
-
-        let Some(beacon) = event_beacons::Entity::find()
-            .filter(event_beacons::Column::HwId.eq(beacon.hw_id))
-            .one(&tx)
-            .await?
-        else {
-            return Ok(None);
-        };
         let Some(spot) = events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(&tx)
+            .all(self.con())
             .await?
             .into_iter()
             .map(|(_, s)| s)
             .flatten()
-            .find(|s| s.id == beacon.spot_id)
+            .find(|s| s.hw_id == hw_id)
         else {
             return Ok(None);
         };
-
-        tx.commit().await?;
 
         to_model(spot).map(Some)
     }
