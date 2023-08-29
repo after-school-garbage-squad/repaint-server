@@ -116,7 +116,7 @@ where
         let spots = SpotRepository::list(&self.repo, event.id).await?;
         let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
         let visitor =
-            VisitorRepository::create(&self.repo, event_id, registration_id.clone()).await?;
+            VisitorRepository::create(&self.repo, event.id, registration_id.clone()).await?;
         let palettes = PaletteRepository::get(&self.repo, visitor.visitor_id).await?;
 
         Firestore::subscribe_register_log(&self.repo, event_id, visitor.visitor_id).await?;
@@ -159,15 +159,12 @@ where
             })?;
         let spots = SpotRepository::list(&self.repo, event.id).await?;
         let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
-        let visitor = VisitorRepository::get(
-            &self.repo,
-            visitor_identification.event_id,
-            visitor_identification.visitor_id,
-        )
-        .await?
-        .ok_or(Error::BadRequest {
-            message: format!("{} is invalid id", visitor_identification.visitor_id),
-        })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
         let palettes = PaletteRepository::get(&self.repo, visitor.visitor_id).await?;
         let image_id = ImageRepository::get_visitor_image(&self.repo, visitor.visitor_id).await?;
         let current_image_id =
@@ -203,12 +200,7 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let _ = VisitorRepository::delete(
-            &self.repo,
-            visitor_identification.event_id,
-            visitor_identification.visitor_id,
-        )
-        .await?;
+        let _ = VisitorRepository::delete(&self.repo, visitor_identification.visitor_id).await?;
 
         Ok(())
     }

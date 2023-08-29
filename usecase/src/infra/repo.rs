@@ -171,23 +171,15 @@ pub trait AdminRepository: AsyncSafe {
 pub trait VisitorRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn create(
-        &self,
-        event_id: Id<Event>,
-        registration_id: String,
-    ) -> Result<Visitor, Self::Error>;
+    async fn create(&self, event_id: i32, registration_id: String) -> Result<Visitor, Self::Error>;
 
     async fn get(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
 
-    async fn delete(
-        &self,
-        event_id: Id<Event>,
-        visitor_id: Id<Visitor>,
-    ) -> Result<IsUpdated, Self::Error>;
+    async fn delete(&self, visitor_id: Id<Visitor>) -> Result<IsUpdated, Self::Error>;
 
     async fn list(&self, event_id: Id<Event>) -> Result<Vec<Visitor>, Self::Error>;
 }

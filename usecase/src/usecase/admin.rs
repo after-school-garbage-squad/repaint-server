@@ -546,7 +546,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let visitor = VisitorRepository::get(&self.repo, event.event_id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
@@ -568,7 +568,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let visitor = VisitorRepository::get(&self.repo, event.event_id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
@@ -647,7 +647,7 @@ where
 
         let v = visitors
             .iter()
-            .map(|&v| VisitorRepository::get(&self.repo, event.event_id, v));
+            .map(|&v| VisitorRepository::get(&self.repo, event.id, v));
         let visitors = join_all(v).await.into_iter().flatten().collect::<Vec<_>>();
 
         let m = visitors
