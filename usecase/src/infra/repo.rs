@@ -115,9 +115,9 @@ pub trait ImageRepository: AsyncSafe {
 pub trait PaletteRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn get(&self, visitor_id: Id<Visitor>) -> Result<Vec<i32>, Self::Error>;
+    async fn get(&self, visitor_id: i32) -> Result<Vec<i32>, Self::Error>;
 
-    async fn set(&self, visitor_id: Id<Visitor>, palette: i32) -> Result<IsUpdated, Self::Error>;
+    async fn set(&self, visitor_id: i32, palette: i32) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
