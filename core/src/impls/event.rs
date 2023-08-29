@@ -105,7 +105,6 @@ impl EventRepository for SeaOrm {
         event.hp_url = Set(hp_url);
         event.contact = Set(AsJson(contact));
         let event = event.update(&tx).await?;
-
         tx.commit().await?;
 
         to_model(event)

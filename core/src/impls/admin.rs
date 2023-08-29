@@ -4,7 +4,7 @@ use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{AdminRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 
 use crate::entity::{admins, events, events_admins};
 use crate::ty::string::ToDatabaseType;
@@ -48,24 +48,27 @@ impl AdminRepository for SeaOrm {
         admin_id: Id<Admin>,
         event_id: Id<Event>,
     ) -> Result<IsUpdated, Self::Error> {
+        let tx = self.con().begin().await?;
+
         let admin = admins::Entity::find()
             .filter(admins::Column::AdminId.eq(admin_id.dty()))
-            .one(self.con())
+            .one(&tx)
             .await?
             .unwrap();
         let event = events::Entity::find()
             .filter(events::Column::EventId.eq(event_id.dty()))
-            .one(self.con())
+            .one(&tx)
             .await?
             .unwrap();
-
-        events_admins::ActiveModel {
+        let admin = events_admins::ActiveModel {
             event_id: Set(event.id),
             admin_id: Set(admin.id),
             ..Default::default()
         }
-        .insert(self.con())
-        .await
-        .to_is_updated()
+        .insert(&tx)
+        .await;
+        tx.commit().await?;
+
+        admin.to_is_updated()
     }
 }
