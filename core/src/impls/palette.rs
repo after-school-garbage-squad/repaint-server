@@ -63,3 +63,35 @@ impl PaletteRepository for SeaOrm {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::*;
+
+    use crate::TestingSeaOrm;
+
+    use super::*;
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_set() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let visitor = orm.make_test_visitor(event.id).await;
+
+        let palette1 = PaletteRepository::get(orm.orm(), visitor.id).await.unwrap();
+        let _ = PaletteRepository::set(orm.orm(), visitor.id, 1)
+            .await
+            .unwrap();
+        let palette2 = PaletteRepository::get(orm.orm(), visitor.id).await.unwrap();
+        for i in 2..6 {
+            let _ = PaletteRepository::set(orm.orm(), visitor.id, i)
+                .await
+                .unwrap();
+        }
+        let palette3 = PaletteRepository::get(orm.orm(), visitor.id).await.unwrap();
+
+        self::assert_eq!(palette1, Vec::<i32>::new());
+        self::assert_eq!(palette2, [1]);
+        self::assert_eq!(palette3, [1, 2, 3, 4, 5]);
+    }
+}
