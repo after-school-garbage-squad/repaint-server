@@ -54,3 +54,39 @@ impl AdminRepository for SeaOrm {
         .to_is_updated()
     }
 }
+
+#[cfg(test)]
+pub(crate) mod test {
+    use pretty_assertions::*;
+
+    use crate::TestingSeaOrm;
+
+    use super::*;
+
+    impl TestingSeaOrm {
+        pub(crate) async fn make_test_admin(&self) -> Admin {
+            let admin = crate::entity::admins::ActiveModel {
+                admin_id: Set(Id::new().dty()),
+                subject: Set("auth0|abcdefghijkmno123456789".into()),
+                ..Default::default()
+            }
+            .insert(self.orm().con())
+            .await
+            .unwrap();
+
+            to_model(admin).unwrap()
+        }
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get() {
+        let orm = TestingSeaOrm::new().await;
+        let admin = orm.make_test_admin().await;
+
+        let res = AdminRepository::get(orm.orm(), admin.subject.clone())
+            .await
+            .unwrap();
+
+        self::assert_eq!(res, Some(admin));
+    }
+}
