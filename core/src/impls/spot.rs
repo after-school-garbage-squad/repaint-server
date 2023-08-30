@@ -198,3 +198,141 @@ impl SpotRepository for SeaOrm {
         res.to_is_updated()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::*;
+    use rand::distributions::Alphanumeric;
+    use rand::rngs::StdRng;
+    use rand::{Rng, SeedableRng};
+
+    use crate::TestingSeaOrm;
+
+    use super::*;
+
+    impl TestingSeaOrm {
+        async fn make_test_spot(&self, event_id: i32) -> EventSpot {
+            let rng = {
+                let rng = rand::thread_rng();
+                StdRng::from_rng(rng).unwrap()
+            };
+
+            let hw_id: String = rng
+                .sample_iter(&Alphanumeric)
+                .take(10)
+                .map(char::from)
+                .collect();
+
+            let spot = crate::entity::event_spots::ActiveModel {
+                event_id: Set(event_id),
+                spot_id: Set(Id::new().dty()),
+                name: Set("test".into()),
+                is_pick: Set(false),
+                bonus: Set(false),
+                major: Set(2525),
+                minor: Set(100),
+                beacon_uuid: Set("feaa7564-bd8a-45".into()),
+                hw_id: Set(hw_id),
+                service_uuid: Set("c974fe40-aa94-4e".into()),
+                ..Default::default()
+            }
+            .insert(self.orm().con())
+            .await
+            .unwrap();
+
+            to_model(spot).unwrap()
+        }
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_list() {
+        async fn test(q: u8) {
+            let orm = TestingSeaOrm::new().await;
+            let event = orm.make_test_event().await;
+            let mut spots = Vec::<EventSpot>::new();
+            for _ in 0..q {
+                spots.push(orm.make_test_spot(event.id).await);
+            }
+
+            let res = SpotRepository::list(orm.orm(), event.id).await.unwrap();
+
+            self::assert_eq!(res, spots);
+        }
+
+        test(1).await;
+        test(2).await;
+        test(3).await;
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_by_beacon() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let spot = orm.make_test_spot(event.id).await;
+
+        let res = SpotRepository::get_by_beacon(orm.orm(), event.id, spot.hw_id.clone())
+            .await
+            .unwrap()
+            .unwrap();
+
+        self::assert_eq!(res, spot);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_by_qr() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let spot = orm.make_test_spot(event.id).await;
+
+        let res = SpotRepository::get_by_qr(orm.orm(), event.id, spot.spot_id)
+            .await
+            .unwrap()
+            .unwrap();
+
+        self::assert_eq!(res, spot);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_update() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let spot = orm.make_test_spot(event.id).await;
+
+        let res = SpotRepository::update(orm.orm(), event.id, spot.spot_id, "test2".into(), true)
+            .await
+            .unwrap();
+
+        self::assert_eq!(
+            res,
+            EventSpot {
+                spot_id: spot.spot_id,
+                name: "test2".into(),
+                is_pick: true,
+                bonus: false,
+                i_beacon: IBeacon {
+                    major: 2525,
+                    minor: 100,
+                    beacon_uuid: "feaa7564-bd8a-45".into(),
+                },
+                hw_id: spot.hw_id,
+                service_uuid: "c974fe40-aa94-4e".into(),
+            }
+        );
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_set_get_bonus() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let spot = orm.make_test_spot(event.id).await;
+
+        let _ = SpotRepository::set_bonus_state(orm.orm(), event.id, spot.spot_id, true)
+            .await
+            .unwrap();
+        let res = SpotRepository::get_bonus_state(orm.orm(), event.id, spot.spot_id)
+            .await
+            .unwrap();
+
+        self::assert_eq!(res, true);
+    }
+}

@@ -84,7 +84,7 @@ cfg_if::cfg_if! {
                 Handle::current().spawn(async move {
                     let stmt = Statement::from_string(
                         DatabaseBackend::Postgres,
-                        format!("DROP DATABASE {}", db_name),
+                        format!("DROP DATABASE \"{}\"", db_name),
                     );
 
                     orm.con().execute(stmt).await.unwrap();
