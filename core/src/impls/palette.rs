@@ -8,10 +8,6 @@ use crate::{Error, SeaOrm};
 
 use super::IsUpdatedExt;
 
-pub fn to_model(m: visitor_palettes::Model) -> Result<Vec<i32>, Error> {
-    Ok(m.palette_id_list)
-}
-
 #[async_trait]
 impl PaletteRepository for SeaOrm {
     type Error = Error;
@@ -26,7 +22,7 @@ impl PaletteRepository for SeaOrm {
             return Ok(Vec::new());
         };
 
-        to_model(palettes)
+        Ok(palettes.palette_id_list)
     }
 
     async fn set(&self, visitor_id: i32, palette: i32) -> Result<IsUpdated, Self::Error> {
@@ -39,7 +35,7 @@ impl PaletteRepository for SeaOrm {
             .and_then(|(_, p)| p)
             .unwrap();
 
-        let p = to_model(palettes.clone())?;
+        let p = palettes.clone().palette_id_list;
         let mut palettes: visitor_palettes::ActiveModel = palettes.into();
         palettes.palette_id_list = Set([p, vec![palette]].concat());
         let res = palettes.update(&tx).await;
