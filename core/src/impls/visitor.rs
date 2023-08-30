@@ -1,12 +1,9 @@
 use async_trait::async_trait;
-use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::repo::{IsUpdated, VisitorRepository};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
-};
+use sea_orm::{ActiveModelTrait, EntityTrait};
 
 use crate::entity::{events, visitors};
 use crate::ty::string::ToDatabaseType;
@@ -56,23 +53,15 @@ impl VisitorRepository for SeaOrm {
             .transpose()
     }
 
-    async fn delete(&self, visitor_id: Id<Visitor>) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
-        let visitor = visitors::Entity::find()
-            .filter(visitors::Column::VisitorId.eq(visitor_id.dty()))
-            .one(&tx)
-            .await?
-            .unwrap();
-        let res = visitor.delete(&tx).await;
-        tx.commit().await?;
-
-        res.to_is_updated()
+    async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
+        visitors::Entity::delete_by_id(visitor_id)
+            .exec(self.con())
+            .await
+            .to_is_updated()
     }
 
-    async fn list(&self, event_id: Id<Event>) -> Result<Vec<Visitor>, Self::Error> {
-        events::Entity::find()
-            .filter(events::Column::EventId.eq(event_id.dty()))
+    async fn list(&self, event_id: i32) -> Result<Vec<Visitor>, Self::Error> {
+        events::Entity::find_by_id(event_id)
             .find_with_related(visitors::Entity)
             .all(self.con())
             .await?

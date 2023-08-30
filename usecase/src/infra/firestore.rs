@@ -56,7 +56,7 @@ pub trait Firestore: AsyncSafe {
 
     async fn set_event_id(&self, token: String, event_id: Id<Event>) -> Result<(), Self::Error>;
 
-    async fn get_event_id(&self, token: String) -> Result<Option<Id<Event>>, Self::Error>;
+    async fn get_event_id(&self, token: String) -> Result<Option<i32>, Self::Error>;
 
     async fn subscribe_visitor_log(
         &self,

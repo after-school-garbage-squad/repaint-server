@@ -1,12 +1,9 @@
 use async_trait::async_trait;
-use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::{EventSpot, IBeacon};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
-};
+use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, TransactionTrait};
 
 use crate::entity::{event_spots, events};
 use crate::ty::string::ToDatabaseType;
@@ -160,11 +157,10 @@ impl SpotRepository for SeaOrm {
 
     async fn get_bonus_state(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<bool, Self::Error> {
-        events::Entity::find()
-            .filter(events::Column::EventId.eq(event_id.dty()))
+        events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
             .all(self.con())
             .await?

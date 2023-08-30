@@ -223,7 +223,7 @@ where
 
         let event = EventRepository::create(&self.repo, name, hp_url, contact).await?;
 
-        let _ = AdminRepository::update(&self.repo, admin.admin_id, event.event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.id, event.id).await?;
 
         Ok(CreateEventResponse {
             event_id: event.event_id,
@@ -706,7 +706,7 @@ where
                     message: "This token has already expired or is invalid.".to_string(),
                 })?;
 
-        let _ = AdminRepository::update(&self.repo, admin.admin_id, event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.id, event_id).await?;
 
         Ok(())
     }

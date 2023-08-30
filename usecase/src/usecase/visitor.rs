@@ -199,7 +199,18 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let _ = VisitorRepository::delete(&self.repo, visitor_identification.visitor_id).await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let _ = VisitorRepository::delete(&self.repo, visitor.id).await?;
 
         Ok(())
     }
@@ -293,9 +304,7 @@ where
         let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
             .await?
             .is_some();
-        let is_bonus =
-            SpotRepository::get_bonus_state(&self.repo, visitor_identification.event_id, spot_id)
-                .await?;
+        let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot_id).await?;
 
         Firestore::subscribe_visitor_log(
             &self.repo,
@@ -366,7 +375,12 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let visitors = VisitorRepository::list(&self.repo, visitor_identification.event_id).await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitors = VisitorRepository::list(&self.repo, event.id).await?;
 
         let p = visitors
             .iter()

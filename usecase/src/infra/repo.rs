@@ -50,7 +50,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn get_bonus_state(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<bool, Self::Error>;
 
@@ -149,11 +149,7 @@ pub trait AdminRepository: AsyncSafe {
 
     async fn get(&self, subject: String) -> Result<Option<Admin>, Self::Error>;
 
-    async fn update(
-        &self,
-        admin_id: Id<Admin>,
-        event_id: Id<Event>,
-    ) -> Result<IsUpdated, Self::Error>;
+    async fn update(&self, admin_id: i32, event_id: i32) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
@@ -168,9 +164,9 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
 
-    async fn delete(&self, visitor_id: Id<Visitor>) -> Result<IsUpdated, Self::Error>;
+    async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
 
-    async fn list(&self, event_id: Id<Event>) -> Result<Vec<Visitor>, Self::Error>;
+    async fn list(&self, event_id: i32) -> Result<Vec<Visitor>, Self::Error>;
 }
 
 #[derive(Debug)]
