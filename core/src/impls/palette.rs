@@ -32,15 +32,34 @@ impl PaletteRepository for SeaOrm {
             .find_also_related(visitor_palettes::Entity)
             .one(&tx)
             .await?
-            .and_then(|(_, p)| p)
-            .unwrap();
+            .and_then(|(_, p)| p);
 
-        let p = palettes.palette_id_list.clone();
-        let mut palettes: visitor_palettes::ActiveModel = palettes.into();
-        palettes.palette_id_list = Set([p, vec![palette]].concat());
-        let res = palettes.update(&tx).await;
-        tx.commit().await?;
+        let p = match palettes.clone() {
+            Some(p) => p.palette_id_list,
+            None => Vec::new(),
+        };
 
-        res.to_is_updated()
+        match palettes {
+            Some(palettes) => {
+                let mut palettes: visitor_palettes::ActiveModel = palettes.into();
+                palettes.palette_id_list = Set([p, vec![palette]].concat());
+                let res = palettes.update(&tx).await;
+                tx.commit().await?;
+
+                res.to_is_updated()
+            }
+            None => {
+                let palettes = visitor_palettes::ActiveModel {
+                    visitor_id: Set(visitor_id),
+                    palette_id_list: Set(vec![palette]),
+                    ..Default::default()
+                }
+                .insert(&tx)
+                .await;
+                tx.commit().await?;
+
+                palettes.to_is_updated()
+            }
+        }
     }
 }
