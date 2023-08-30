@@ -257,7 +257,7 @@ where
 
         let i = events
             .iter()
-            .map(|e| ImageRepository::list_default_image(&self.repo, e.event_id));
+            .map(|e| ImageRepository::list_default_image(&self.repo, e.id));
         let images = join_all(i)
             .await
             .into_iter()
@@ -340,7 +340,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = ImageRepository::add_default_image(&self.repo, event.event_id, image_id).await?;
+        let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
     }
@@ -355,7 +355,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = ImageRepository::delete_default_image(&self.repo, event.event_id, image_id).await?;
+        let _ = ImageRepository::delete_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
     }
@@ -552,7 +552,7 @@ where
                 message: format!("{} aren't exist", visitor_id),
             })?;
 
-        let image = ImageRepository::get_visitor_image(&self.repo, visitor.visitor_id).await?;
+        let image = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
 
         Ok(image)
     }
@@ -574,8 +574,7 @@ where
                 message: format!("{} aren't exist", visitor_id),
             })?;
 
-        let _ =
-            ImageRepository::upload_visitor_image(&self.repo, visitor.visitor_id, image_id).await?;
+        let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
 
         Ok(())
     }

@@ -68,45 +68,34 @@ pub trait ImageRepository: AsyncSafe {
 
     async fn add_default_image(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         image_id: Id<EventImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn get_default_image(
-        &self,
-        event_id: Id<Event>,
-    ) -> Result<Vec<Id<EventImage>>, Self::Error>;
-
     async fn delete_default_image(
         &self,
-        event_id: Id<Event>,
+        event_id: i32,
         image_id: Id<EventImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
     async fn upload_visitor_image(
         &self,
-        visitor_id: Id<Visitor>,
+        visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
     async fn get_visitor_image(
         &self,
-        visitor_id: Id<Visitor>,
+        visitor_id: i32,
     ) -> Result<Option<Id<VisitorImage>>, Self::Error>;
 
-    async fn list_default_image(
-        &self,
-        event_id: Id<Event>,
-    ) -> Result<Vec<Id<EventImage>>, Self::Error>;
+    async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error>;
 
-    async fn get_current_image(
-        &self,
-        visitor_id: Id<Visitor>,
-    ) -> Result<Id<CurrentImage>, Self::Error>;
+    async fn get_current_image(&self, visitor_id: i32) -> Result<Id<CurrentImage>, Self::Error>;
 
     async fn set_current_image(
         &self,
-        visitor_id: Id<Visitor>,
+        visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error>;
 }
