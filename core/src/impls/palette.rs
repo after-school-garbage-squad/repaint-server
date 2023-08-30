@@ -35,7 +35,7 @@ impl PaletteRepository for SeaOrm {
             .and_then(|(_, p)| p)
             .unwrap();
 
-        let p = palettes.clone().palette_id_list;
+        let p = palettes.palette_id_list.clone();
         let mut palettes: visitor_palettes::ActiveModel = palettes.into();
         palettes.palette_id_list = Set([p, vec![palette]].concat());
         let res = palettes.update(&tx).await;

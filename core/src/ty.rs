@@ -59,9 +59,9 @@ mod test {
 
         let id = Id::new();
         let contact = Contact {
-            name: "name".to_string(),
+            name: "test".into(),
             email: EmailAddress::from_str("test@example.com").unwrap(),
-            phone: "phone".to_string(),
+            phone: "0120-10-7929".into(),
         };
 
         ActiveModel {
