@@ -86,7 +86,7 @@ pub(crate) mod test {
             let visitor = visitors::ActiveModel {
                 event_id: Set(event_id),
                 visitor_id: Set(Id::new().dty()),
-                registration_id: Set("testtesttest".into()),
+                registration_id: Set("eXaMpLeReGiStRaTiOnId0123456789".into()),
                 ..Default::default()
             }
             .insert(self.orm().con())
