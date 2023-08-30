@@ -90,7 +90,7 @@ use foreign_key;
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::*;
     use sea_orm_migration::prelude::*;
 
     use super::Migration;
@@ -99,7 +99,7 @@ mod tests {
     fn test_event_spot_table() {
         let event_spot = Migration::up_event_spot();
 
-        assert_eq!(
+        self::assert_eq!(
             event_spot.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "event_spots" ("#,

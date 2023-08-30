@@ -59,7 +59,7 @@ pub enum Admins {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::*;
     use sea_orm_migration::prelude::*;
 
     use super::Migration;
@@ -69,7 +69,7 @@ mod tests {
         #[rustfmt::skip]
         let admin = Migration::up_admin();
 
-        assert_eq!(
+        self::assert_eq!(
             admin.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "admins" ("#,

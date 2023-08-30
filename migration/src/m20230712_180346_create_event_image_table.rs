@@ -74,7 +74,7 @@ use foreign_key;
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::*;
     use sea_orm_migration::prelude::*;
 
     use super::Migration;
@@ -83,7 +83,7 @@ mod tests {
     fn test_event_image_table() {
         let event_image = Migration::up_event_image();
 
-        assert_eq!(
+        self::assert_eq!(
             event_image.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "event_images" ("#,
