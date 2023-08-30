@@ -3,9 +3,11 @@ use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+};
 
-use crate::entity::{admins, events};
+use crate::entity::{admins, events, events_admins};
 use crate::ty::json::AsJson;
 use crate::ty::string::ToDatabaseType;
 use crate::{Error, SeaOrm};
@@ -68,10 +70,19 @@ impl EventRepository for SeaOrm {
     }
 
     async fn delete(&self, event_id: i32) -> Result<IsUpdated, Self::Error> {
-        events::Entity::delete_by_id(event_id)
-            .exec(self.con())
-            .await
-            .to_is_updated()
+        let tx = self.con().begin().await?;
+
+        let e = events_admins::Entity::find()
+            .filter(events_admins::Column::EventId.eq(event_id))
+            .one(&tx)
+            .await?
+            .unwrap();
+
+        e.delete(&tx).await?;
+        let res = events::Entity::delete_by_id(event_id).exec(&tx).await;
+        tx.commit().await?;
+
+        res.to_is_updated()
     }
 
     async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error> {
@@ -117,5 +128,185 @@ impl EventRepository for SeaOrm {
             .await?
             .map(to_model)
             .transpose()
+    }
+}
+
+#[cfg(test)]
+pub(crate) mod test {
+    use std::str::FromStr;
+
+    use email_address::EmailAddress;
+    use pretty_assertions::*;
+
+    use crate::TestingSeaOrm;
+
+    use super::*;
+
+    impl TestingSeaOrm {
+        pub(crate) async fn make_test_event(&self) -> Event {
+            let event = crate::entity::events::ActiveModel {
+                event_id: Set(Id::new().dty()),
+                name: Set("test".into()),
+                hp_url: Set("https://example.com".into()),
+                contact: Set(AsJson(Contact {
+                    name: "test".into(),
+                    email: EmailAddress::from_str("test@example.com").unwrap(),
+                    phone: "0120-10-7929".into(),
+                })),
+                ..Default::default()
+            }
+            .insert(self.orm().con())
+            .await
+            .unwrap();
+
+            to_model(event).unwrap()
+        }
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_event_belong_to_subject() {
+        let orm = TestingSeaOrm::new().await;
+        let admin = orm.make_test_admin().await;
+        let event = orm.make_test_event().await;
+        let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
+            orm.orm(),
+            admin.id,
+            event.id,
+        )
+        .await
+        .unwrap();
+
+        let res =
+            EventRepository::get_event_belong_to_subject(orm.orm(), admin.subject, event.event_id)
+                .await
+                .unwrap()
+                .unwrap();
+
+        self::assert_eq!(res, event);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_list() {
+        async fn test(q: u8) {
+            let orm = TestingSeaOrm::new().await;
+            let admin = orm.make_test_admin().await;
+            let mut events = Vec::<repaint_server_model::event::Event>::new();
+            for _ in 0..q {
+                let e = orm.make_test_event().await;
+                let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
+                    orm.orm(),
+                    admin.id,
+                    e.id,
+                )
+                .await
+                .unwrap();
+                events.push(e);
+            }
+
+            let res = EventRepository::list(orm.orm(), admin.subject.clone())
+                .await
+                .unwrap();
+
+            self::assert_eq!(res, events);
+        }
+
+        test(1).await;
+        test(2).await;
+        test(3).await;
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get() {
+        let orm = TestingSeaOrm::new().await;
+        let admin = orm.make_test_admin().await;
+        let mut events = Vec::<repaint_server_model::event::Event>::new();
+        for _ in 0..3 {
+            let e = orm.make_test_event().await;
+            let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
+                orm.orm(),
+                admin.id,
+                e.id,
+            )
+            .await
+            .unwrap();
+            events.push(e);
+        }
+
+        let res = EventRepository::get(orm.orm(), events[1].event_id)
+            .await
+            .unwrap()
+            .unwrap();
+
+        self::assert_eq!(res, events[1]);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_update() {
+        let orm = TestingSeaOrm::new().await;
+        let admin = orm.make_test_admin().await;
+        let event = orm.make_test_event().await;
+        let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
+            orm.orm(),
+            admin.id,
+            event.id,
+        )
+        .await
+        .unwrap();
+        let res = EventRepository::update(
+            orm.orm(),
+            event.id,
+            "test2".into(),
+            event.hp_url.clone(),
+            Contact {
+                name: "test2".into(),
+                email: event.contact.email.clone(),
+                phone: event.contact.phone.clone(),
+            },
+        )
+        .await
+        .unwrap();
+
+        self::assert_eq!(
+            res,
+            Event {
+                id: event.id,
+                event_id: event.event_id,
+                name: "test2".into(),
+                hp_url: event.hp_url,
+                contact: Contact {
+                    name: "test2".into(),
+                    email: event.contact.email,
+                    phone: event.contact.phone,
+                },
+            }
+        );
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_delete() {
+        let orm = TestingSeaOrm::new().await;
+        let admin = orm.make_test_admin().await;
+        let mut events = Vec::<repaint_server_model::event::Event>::new();
+        for _ in 0..3 {
+            let e = orm.make_test_event().await;
+            let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
+                orm.orm(),
+                admin.id,
+                e.id,
+            )
+            .await
+            .unwrap();
+            events.push(e);
+        }
+        let _ = EventRepository::delete(orm.orm(), events[1].id)
+            .await
+            .unwrap();
+        events.remove(1);
+
+        let res = EventRepository::list(orm.orm(), admin.subject.clone())
+            .await
+            .unwrap();
+
+        self::assert_eq!(res, events);
     }
 }
