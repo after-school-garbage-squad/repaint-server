@@ -1,0 +1,7 @@
+[package]
+name = "repaint-server-firestore"
+version = "1.0.0"
+edition = "2021"
+publish = false
+
+[dependencies]
