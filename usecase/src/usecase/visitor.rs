@@ -113,11 +113,11 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
-        let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
+        let images = ImageRepository::list_default_image(&self.repo, event.id).await?;
         let visitor =
-            VisitorRepository::create(&self.repo, event_id, registration_id.clone()).await?;
-        let palettes = PaletteRepository::get(&self.repo, visitor.visitor_id).await?;
+            VisitorRepository::create(&self.repo, event.id, registration_id.clone()).await?;
+        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
 
         Firestore::subscribe_register_log(&self.repo, event_id, visitor.visitor_id).await?;
 
@@ -157,21 +157,17 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
-        let images = ImageRepository::list_default_image(&self.repo, event.event_id).await?;
-        let visitor = VisitorRepository::get(
-            &self.repo,
-            visitor_identification.event_id,
-            visitor_identification.visitor_id,
-        )
-        .await?
-        .ok_or(Error::BadRequest {
-            message: format!("{} is invalid id", visitor_identification.visitor_id),
-        })?;
-        let palettes = PaletteRepository::get(&self.repo, visitor.visitor_id).await?;
-        let image_id = ImageRepository::get_visitor_image(&self.repo, visitor.visitor_id).await?;
-        let current_image_id =
-            ImageRepository::get_current_image(&self.repo, visitor.visitor_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
+        let images = ImageRepository::list_default_image(&self.repo, event.id).await?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let image_id = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
+        let current_image_id = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
 
         Firestore::subscribe_initialize_log(
             &self.repo,
@@ -203,12 +199,18 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let _ = VisitorRepository::delete(
-            &self.repo,
-            visitor_identification.event_id,
-            visitor_identification.visitor_id,
-        )
-        .await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let _ = VisitorRepository::delete(&self.repo, visitor.id).await?;
 
         Ok(())
     }
@@ -217,12 +219,19 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<Vec<Id<VisitorImage>>, Error> {
-        let default =
-            ImageRepository::list_default_image(&self.repo, visitor_identification.event_id)
-                .await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
         let visitor =
-            ImageRepository::get_visitor_image(&self.repo, visitor_identification.visitor_id)
-                .await?;
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+        let visitor = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
         let mut images = default
             .iter()
             .filter_map(|&i| Id::<VisitorImage>::from_str(&i.to_string()).ok())
@@ -238,9 +247,18 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<Id<CurrentImage>, Error> {
-        let current_image_id =
-            ImageRepository::get_current_image(&self.repo, visitor_identification.visitor_id)
-                .await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let current_image_id = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
 
         Ok(current_image_id)
     }
@@ -250,12 +268,18 @@ where
         visitor_identification: VisitorIdentification,
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error> {
-        let _ = ImageRepository::set_current_image(
-            &self.repo,
-            visitor_identification.visitor_id,
-            image_id,
-        )
-        .await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let _ = ImageRepository::set_current_image(&self.repo, visitor.id, image_id).await?;
 
         Ok(())
     }
@@ -265,15 +289,22 @@ where
         visitor_identification: VisitorIdentification,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Error> {
-        let palettes =
-            PaletteRepository::get(&self.repo, visitor_identification.visitor_id).await?;
-        let took_photo =
-            ImageRepository::get_visitor_image(&self.repo, visitor_identification.visitor_id)
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
                 .await?
-                .is_some();
-        let is_bonus =
-            SpotRepository::get_bonus_state(&self.repo, visitor_identification.event_id, spot_id)
-                .await?;
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
+            .await?
+            .is_some();
+        let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot_id).await?;
 
         Firestore::subscribe_visitor_log(
             &self.repo,
@@ -307,7 +338,7 @@ where
                 .collect::<Vec<_>>();
             let p = palettes
                 .iter()
-                .map(|&p| PaletteRepository::set(&self.repo, visitor_identification.visitor_id, p));
+                .map(|&p| PaletteRepository::set(&self.repo, visitor.id, p));
             join_all(p)
                 .await
                 .into_iter()
@@ -325,8 +356,7 @@ where
             let palette =
                 Firestore::get_palette(&self.repo, visitor_identification.event_id, spot_id)
                     .await?;
-            let _ = PaletteRepository::set(&self.repo, visitor_identification.visitor_id, palette)
-                .await?;
+            let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
 
             let palette = palettes.choose(&mut rng).cloned().unwrap();
             Firestore::subscribe_palette(
@@ -345,11 +375,16 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let visitors = VisitorRepository::list(&self.repo, visitor_identification.event_id).await?;
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitors = VisitorRepository::list(&self.repo, event.id).await?;
 
         let p = visitors
             .iter()
-            .map(|v| PaletteRepository::get(&self.repo, v.visitor_id));
+            .map(|v| PaletteRepository::get(&self.repo, v.id));
         let palettes = join_all(p)
             .await
             .into_iter()
@@ -358,11 +393,22 @@ where
             .flatten()
             .collect::<Vec<_>>();
 
-        let visitor_palettes =
-            PaletteRepository::get(&self.repo, visitor_identification.visitor_id)
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
                 .await?
-                .into_iter()
-                .collect::<Vec<_>>();
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+
+        let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
+            .await?
+            .into_iter()
+            .collect::<Vec<_>>();
 
         let mut rng = {
             let rng = rand::thread_rng();
@@ -371,8 +417,7 @@ where
 
         while let Some(&palette) = palettes.choose(&mut rng) {
             if !visitor_palettes.contains(&palette) {
-                let _ =
-                    PaletteRepository::set(&self.repo, visitor_identification.visitor_id, palette);
+                let _ = PaletteRepository::set(&self.repo, visitor.id, palette);
                 break;
             }
         }

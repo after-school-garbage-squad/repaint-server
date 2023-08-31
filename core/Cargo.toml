@@ -5,12 +5,29 @@ edition = "2021"
 publish = false
 
 [dependencies]
+async-trait = "0.1.73"
+cfg-if = "1.0.0"
 email_address = "0.2.4"
 repaint-server-model = { path = "../model" }
+repaint-server-usecase = { path = "../usecase" }
 serde = "1.0.185"
 serde_json = "1.0.105"
+teloc = "0.2.0"
+thiserror = "1.0.47"
 tracing = "0.1.37"
 
 [dependencies.sea-orm]
 version = "0.12.2"
 features = ["runtime-tokio-rustls", "sqlx-postgres", "postgres-array"]
+
+[dev-dependencies]
+pretty_assertions = "1.4.0"
+rand = "0.8.5"
+repaint-server-migration = { path = "../migration" }
+sqlx = { version = "0.7.1", features = ["runtime-tokio-rustls", "postgres"] }
+test-log = { version = "0.2.12", default-features = false, features = [
+  "trace",
+] }
+tokio = { version = "1.32.0", features = ["macros"] }
+tracing-subscriber = "0.3.17"
+ulid = "1.0.0"

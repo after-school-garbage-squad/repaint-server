@@ -74,7 +74,7 @@ use foreign_key;
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::*;
     use sea_orm_migration::prelude::*;
 
     use super::Migration;
@@ -83,7 +83,7 @@ mod tests {
     fn test_visitor_palette_table() {
         let visitor_palette = Migration::up_visitor_palette();
 
-        assert_eq!(
+        self::assert_eq!(
             visitor_palette.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "visitor_palettes" ("#,

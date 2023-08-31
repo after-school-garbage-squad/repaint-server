@@ -5,9 +5,7 @@ use rand::distributions::Alphanumeric;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::{Rng, SeedableRng};
-use repaint_server_model::admin::Subject;
 use repaint_server_model::event::{Contact, Event};
-use repaint_server_model::event_beacon::EventBeacon;
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -20,30 +18,29 @@ use crate::infra::email::EmailSender;
 use crate::infra::fcm::FirebaseCloudMessaging;
 use crate::infra::firestore::Firestore;
 use crate::infra::repo::{
-    AdminRepository, BeaconRepository, EventRepository, ImageRepository, SpotRepository,
-    VisitorRepository,
+    AdminRepository, EventRepository, ImageRepository, SpotRepository, VisitorRepository,
 };
 use crate::model::event::{CreateEventResponse, EventResponse, UpdateEventResponse};
-use crate::model::spot::{SpotResponse, TrafficStatus};
+use crate::model::spot::{Beacon, SpotResponse, TrafficStatus};
 use crate::usecase::error::Error;
 
 #[async_trait]
 pub trait AdminUsecase: AsyncSafe {
     async fn create_event(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<CreateEventResponse, Error>;
 
-    async fn delete_event(&self, subject: Id<Subject>, event_id: Id<Event>) -> Result<(), Error>;
+    async fn delete_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error>;
 
-    async fn list_event(&self, subject: Id<Subject>) -> Result<Vec<EventResponse>, Error>;
+    async fn list_event(&self, subject: String) -> Result<Vec<EventResponse>, Error>;
 
     async fn update_event(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         name: String,
         hp_url: String,
@@ -52,49 +49,49 @@ pub trait AdminUsecase: AsyncSafe {
 
     async fn add_default_image(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error>;
 
     async fn delete_default_image(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error>;
 
     async fn register_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         name: String,
-        beacon_data: EventBeacon,
+        beacon_data: Beacon,
     ) -> Result<SpotResponse, Error>;
 
     async fn check_status_by_beacon(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
-        beacon_data: EventBeacon,
+        hw_id: String,
     ) -> Result<Option<SpotResponse>, Error>;
 
     async fn check_status_by_qr(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<SpotResponse>, Error>;
 
     async fn list_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
     ) -> Result<Vec<SpotResponse>, Error>;
 
     async fn update_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
         name: String,
@@ -103,21 +100,21 @@ pub trait AdminUsecase: AsyncSafe {
 
     async fn delete_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Error>;
 
     async fn check_visitor_image_exist(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Id<VisitorImage>>, Error>;
 
     async fn upload_visitor_image(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
@@ -125,28 +122,28 @@ pub trait AdminUsecase: AsyncSafe {
 
     async fn get_traffic_status(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
     ) -> Result<Vec<TrafficStatus>, Error>;
 
     async fn controll_traffic(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         from: Id<EventSpot>,
         to: Id<EventSpot>,
     ) -> Result<(), Error>;
 
-    async fn add_admin(&self, event_id: Id<Event>, subject: Id<Subject>) -> Result<(), Error>;
+    async fn add_admin(&self, subject: String) -> Result<(), Error>;
 
     async fn send_email(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         email: EmailAddress,
     ) -> Result<(), Error>;
 
-    async fn add_operator(&self, subject: Id<Subject>, token: String) -> Result<(), Error>;
+    async fn add_operator(&self, subject: String, token: String) -> Result<(), Error>;
 }
 
 #[derive(Debug)]
@@ -160,7 +157,6 @@ where
     R: EventRepository
         + SpotRepository
         + ImageRepository
-        + BeaconRepository
         + VisitorRepository
         + AdminRepository
         + Firestore
@@ -178,7 +174,6 @@ where
     R: EventRepository
         + SpotRepository
         + ImageRepository
-        + BeaconRepository
         + VisitorRepository
         + AdminRepository
         + Firestore
@@ -187,12 +182,12 @@ where
 {
     async fn create_event(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<CreateEventResponse, Error> {
-        let _ = AdminRepository::get(&self.repo, subject)
+        let admin = AdminRepository::get(&self.repo, subject)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
@@ -228,7 +223,7 @@ where
 
         let event = EventRepository::create(&self.repo, name, hp_url, contact).await?;
 
-        let _ = AdminRepository::update(&self.repo, subject, event.event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.id, event.id).await?;
 
         Ok(CreateEventResponse {
             event_id: event.event_id,
@@ -238,23 +233,23 @@ where
         })
     }
 
-    async fn delete_event(&self, subject: Id<Subject>, event_id: Id<Event>) -> Result<(), Error> {
+    async fn delete_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = EventRepository::delete(&self.repo, event.event_id).await?;
+        let _ = EventRepository::delete(&self.repo, event.id).await?;
         Firestore::delete(&self.repo, event.event_id).await?;
 
         Ok(())
     }
 
-    async fn list_event(&self, subject: Id<Subject>) -> Result<Vec<EventResponse>, Error> {
+    async fn list_event(&self, subject: String) -> Result<Vec<EventResponse>, Error> {
         let events = EventRepository::list(&self.repo, subject).await?;
 
         let s = events
             .iter()
-            .map(|e| SpotRepository::list(&self.repo, e.event_id));
+            .map(|e| SpotRepository::list(&self.repo, e.id));
         let spots = join_all(s)
             .await
             .into_iter()
@@ -262,7 +257,7 @@ where
 
         let i = events
             .iter()
-            .map(|e| ImageRepository::list_default_image(&self.repo, e.event_id));
+            .map(|e| ImageRepository::list_default_image(&self.repo, e.id));
         let images = join_all(i)
             .await
             .into_iter()
@@ -285,7 +280,7 @@ where
 
     async fn update_event(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         name: String,
         hp_url: String,
@@ -325,8 +320,7 @@ where
             });
         }
 
-        let event =
-            EventRepository::update(&self.repo, event.event_id, name, hp_url, contact).await?;
+        let event = EventRepository::update(&self.repo, event.id, name, hp_url, contact).await?;
 
         Ok(UpdateEventResponse {
             event_id: event.event_id,
@@ -338,7 +332,7 @@ where
 
     async fn add_default_image(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error> {
@@ -346,14 +340,14 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = ImageRepository::add_default_image(&self.repo, event.event_id, image_id).await?;
+        let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
     }
 
     async fn delete_default_image(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error> {
@@ -361,17 +355,17 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = ImageRepository::delete_default_image(&self.repo, event.event_id, image_id).await?;
+        let _ = ImageRepository::delete_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
     }
 
     async fn register_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         name: String,
-        beacon_data: EventBeacon,
+        beacon_data: Beacon,
     ) -> Result<SpotResponse, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
@@ -383,12 +377,13 @@ where
             });
         }
 
-        let spot = SpotRepository::register(&self.repo, event.event_id, name).await?;
-
-        let beacon = BeaconRepository::register(
+        let spot = SpotRepository::register(
             &self.repo,
-            spot.spot_id,
-            beacon_data.i_beacon,
+            event.id,
+            name,
+            beacon_data.i_beacon.major,
+            beacon_data.i_beacon.minor,
+            beacon_data.i_beacon.beacon_uuid,
             beacon_data.hw_id,
             beacon_data.service_uuid,
         )
@@ -397,43 +392,48 @@ where
         Ok(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
-            is_pick: false,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
+            is_pick: spot.is_pick,
+            bonus: spot.bonus,
         })
     }
 
     async fn check_status_by_beacon(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
-        beacon_data: EventBeacon,
+        hw_id: String,
     ) -> Result<Option<SpotResponse>, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.event_id, beacon_data.clone())
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
             .await?
             .ok_or(Error::BadRequest {
-                message: format!(
-                    "No spots associated with {} have been registered",
-                    beacon_data.hw_id
-                ),
+                message: format!("No spots associated with {} have been registered", hw_id),
             })?;
-
-        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
-            is_pick: false,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
+            is_pick: spot.is_pick,
+            bonus: spot.bonus,
         }))
     }
 
     async fn check_status_by_qr(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<SpotResponse>, Error> {
@@ -441,56 +441,55 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spot = SpotRepository::get_by_qr(&self.repo, event.event_id, spot_id)
+        let spot = SpotRepository::get_by_qr(&self.repo, event.id, spot_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: "This QR code is invalid.".to_string(),
             })?;
 
-        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
-
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
-            is_pick: false,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
+            is_pick: spot.is_pick,
+            bonus: spot.bonus,
         }))
     }
 
     async fn list_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
     ) -> Result<Vec<SpotResponse>, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
-
-        let s = spots
-            .iter()
-            .map(|s| BeaconRepository::get(&self.repo, s.spot_id));
-        let beacons = join_all(s)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
 
         Ok(spots
             .into_iter()
-            .zip(beacons)
-            .map(|(s, b)| SpotResponse {
+            .map(|s| SpotResponse {
                 spot_id: s.spot_id,
                 name: s.name,
-                beacon: b,
+                beacon: Beacon {
+                    i_beacon: s.i_beacon,
+                    hw_id: s.hw_id,
+                    service_uuid: s.service_uuid,
+                },
                 is_pick: s.is_pick,
+                bonus: s.bonus,
             })
             .collect())
     }
 
     async fn update_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
         name: String,
@@ -506,22 +505,24 @@ where
             });
         }
 
-        let spot =
-            SpotRepository::update(&self.repo, event.event_id, spot_id, name, is_pick).await?;
-
-        let beacon = BeaconRepository::get(&self.repo, spot.spot_id).await?;
+        let spot = SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?;
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
-            beacon,
+            beacon: Beacon {
+                i_beacon: spot.i_beacon,
+                hw_id: spot.hw_id,
+                service_uuid: spot.service_uuid,
+            },
             is_pick: spot.is_pick,
+            bonus: spot.bonus,
         })
     }
 
     async fn delete_spot(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Error> {
@@ -529,7 +530,7 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let _ = SpotRepository::delete(&self.repo, event.event_id, spot_id).await?;
+        let _ = SpotRepository::delete(&self.repo, event.id, spot_id).await?;
         Firestore::delete_spot(&self.repo, event.event_id, spot_id).await?;
 
         Ok(())
@@ -537,7 +538,7 @@ where
 
     async fn check_visitor_image_exist(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Id<VisitorImage>>, Error> {
@@ -545,20 +546,20 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let visitor = VisitorRepository::get(&self.repo, event.event_id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
             })?;
 
-        let image = ImageRepository::get_visitor_image(&self.repo, visitor.visitor_id).await?;
+        let image = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
 
         Ok(image)
     }
 
     async fn upload_visitor_image(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
@@ -567,28 +568,27 @@ where
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let visitor = VisitorRepository::get(&self.repo, event.event_id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
             })?;
 
-        let _ =
-            ImageRepository::upload_visitor_image(&self.repo, visitor.visitor_id, image_id).await?;
+        let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
 
         Ok(())
     }
 
     async fn get_traffic_status(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
     ) -> Result<Vec<TrafficStatus>, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
 
-        let spots = SpotRepository::list(&self.repo, event.event_id).await?;
+        let spots = SpotRepository::list(&self.repo, event.id).await?;
 
         let s = spots
             .iter()
@@ -619,7 +619,7 @@ where
 
     async fn controll_traffic(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         from: Id<EventSpot>,
         to: Id<EventSpot>,
@@ -646,7 +646,7 @@ where
 
         let v = visitors
             .iter()
-            .map(|&v| VisitorRepository::get(&self.repo, event.event_id, v));
+            .map(|&v| VisitorRepository::get(&self.repo, event.id, v));
         let visitors = join_all(v).await.into_iter().flatten().collect::<Vec<_>>();
 
         let m = visitors
@@ -658,22 +658,22 @@ where
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
 
-        let _ = SpotRepository::set_bonus_state(&self.repo, event.event_id, to, true).await?;
+        let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to, true).await?;
 
         Firestore::subscribe_traffic_log(&self.repo, event.event_id, from, to).await?;
 
         Ok(())
     }
 
-    async fn add_admin(&self, event_id: Id<Event>, subject: Id<Subject>) -> Result<(), Error> {
-        let _ = AdminRepository::add_subject(&self.repo, event_id, subject).await?;
+    async fn add_admin(&self, subject: String) -> Result<(), Error> {
+        let _ = AdminRepository::add(&self.repo, subject).await?;
 
         Ok(())
     }
 
     async fn send_email(
         &self,
-        subject: Id<Subject>,
+        subject: String,
         event_id: Id<Event>,
         email: EmailAddress,
     ) -> Result<(), Error> {
@@ -694,7 +694,7 @@ where
         Ok(())
     }
 
-    async fn add_operator(&self, subject: Id<Subject>, token: String) -> Result<(), Error> {
+    async fn add_operator(&self, subject: String, token: String) -> Result<(), Error> {
         let admin = AdminRepository::get(&self.repo, subject)
             .await?
             .ok_or(Error::UnAuthorized)?;
@@ -706,7 +706,7 @@ where
                     message: "This token has already expired or is invalid.".to_string(),
                 })?;
 
-        let _ = AdminRepository::update(&self.repo, admin.subject, event_id).await?;
+        let _ = AdminRepository::update(&self.repo, admin.id, event_id).await?;
 
         Ok(())
     }

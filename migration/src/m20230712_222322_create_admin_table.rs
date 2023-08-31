@@ -10,7 +10,7 @@ impl Migration {
             .table(Admins::Table)
             .if_not_exists()
             .col(ColumnDef::new(Admins::Id).integer().not_null().auto_increment().primary_key())
-            .col(ColumnDef::new(Admins::AdminId).char_len(26).unique_key())
+            .col(ColumnDef::new(Admins::AdminId).char_len(26).not_null().unique_key())
             .col(ColumnDef::new(Admins::Subject).string_len(64).not_null().unique_key())
             .col(ColumnDef::new(Admins::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(Admins::UpdatedAt).date_time())
@@ -59,7 +59,7 @@ pub enum Admins {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::*;
     use sea_orm_migration::prelude::*;
 
     use super::Migration;
@@ -69,12 +69,12 @@ mod tests {
         #[rustfmt::skip]
         let admin = Migration::up_admin();
 
-        assert_eq!(
+        self::assert_eq!(
             admin.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "admins" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
-                r#""admin_id" char(26) UNIQUE,"#,
+                r#""admin_id" char(26) NOT NULL UNIQUE,"#,
                 r#""subject" varchar(64) NOT NULL UNIQUE,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone"#,

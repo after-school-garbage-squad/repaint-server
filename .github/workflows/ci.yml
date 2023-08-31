@@ -22,8 +22,9 @@ jobs:
       - name: Setup | Checkout
         uses: actions/checkout@v3.6.0
       - name: Setup | Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
+          toolchain: "nightly-2023-07-15"
           components: rustfmt
       - name: Build | Format
         run: cargo fmt --all -- --check
@@ -34,8 +35,9 @@ jobs:
       - name: Setup | Checkout
         uses: actions/checkout@v3.6.0
       - name: Setup | Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
         with:
+          toolchain: "nightly-2023-07-15"
           components: clippy
       - name: Setup | Cache
         uses: Swatinem/rust-cache@v2.6.2
@@ -48,7 +50,9 @@ jobs:
       - name: Setup | Checkout
         uses: actions/checkout@v3.6.0
       - name: Setup | Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: "nightly-2023-07-15"
       - name: Setup | Cache
         uses: Swatinem/rust-cache@v2.6.2
       - name: Build | Check
@@ -60,7 +64,9 @@ jobs:
       - name: Setup | Checkout
         uses: actions/checkout@v3.6.0
       - name: Setup | Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: dtolnay/rust-toolchain@nightly
+        with:
+          toolchain: "nightly-2023-07-15"
       - name: Setup | Just
         uses: taiki-e/install-action@v2.17.7
         with:

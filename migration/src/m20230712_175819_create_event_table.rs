@@ -63,7 +63,7 @@ pub enum Events {
 
 #[cfg(test)]
 mod tests {
-    use pretty_assertions::assert_eq;
+    use pretty_assertions::*;
     use sea_orm_migration::prelude::*;
 
     use super::Migration;
@@ -73,7 +73,7 @@ mod tests {
         #[rustfmt::skip]
         let events = Migration::up_events();
 
-        assert_eq!(
+        self::assert_eq!(
             events.to_string(PostgresQueryBuilder),
             [
                 r#"CREATE TABLE IF NOT EXISTS "events" ("#,

@@ -2,7 +2,6 @@
 
 pub mod admin;
 pub mod event;
-pub mod event_beacon;
 pub mod event_image;
 pub mod event_spot;
 pub mod id;

@@ -17,14 +17,18 @@ pub struct Model {
     pub name: String,
     pub is_pick: bool,
     pub bonus: bool,
+    pub major: i16,
+    pub minor: i16,
+    pub beacon_uuid: String,
+    #[sea_orm(unique)]
+    pub hw_id: String,
+    pub service_uuid: String,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::event_beacons::Entity")]
-    EventBeacons,
     #[sea_orm(
         belongs_to = "super::events::Entity",
         from = "Column::EventId",
@@ -33,12 +37,6 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Events,
-}
-
-impl Related<super::event_beacons::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::EventBeacons.def()
-    }
 }
 
 impl Related<super::events::Entity> for Entity {
