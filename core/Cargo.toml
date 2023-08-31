@@ -30,4 +30,4 @@ test-log = { version = "0.2.12", default-features = false, features = [
 ] }
 tokio = { version = "1.32.0", features = ["macros"] }
 tracing-subscriber = "0.3.17"
-ulid = "1.0.0"
+ulid = "1.0.1"
