@@ -19,10 +19,3 @@ pub struct Beacon {
     pub hw_id: String,
     pub service_uuid: String,
 }
-
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct TrafficStatus {
-    pub spot_id: Id<EventSpot>,
-    pub head_count: usize,
-}
