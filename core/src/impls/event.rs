@@ -190,7 +190,7 @@ pub(crate) mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let admin = orm.make_test_admin().await;
-            let mut events = Vec::<repaint_server_model::event::Event>::new();
+            let mut events = Vec::new();
             for _ in 0..q {
                 let e = orm.make_test_event().await;
                 let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
@@ -219,7 +219,7 @@ pub(crate) mod test {
     async fn test_get() {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
-        let mut events = Vec::<repaint_server_model::event::Event>::new();
+        let mut events = Vec::new();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
             let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
@@ -286,7 +286,7 @@ pub(crate) mod test {
     async fn test_delete() {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
-        let mut events = Vec::<repaint_server_model::event::Event>::new();
+        let mut events = Vec::new();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
             let _ = repaint_server_usecase::infra::repo::AdminRepository::update(

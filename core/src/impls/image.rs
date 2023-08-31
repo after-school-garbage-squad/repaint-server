@@ -141,3 +141,138 @@ impl ImageRepository for SeaOrm {
         res.to_is_updated()
     }
 }
+
+#[cfg(test)]
+mod test {
+    use pretty_assertions::*;
+
+    use crate::TestingSeaOrm;
+
+    use super::*;
+
+    #[test_log::test(tokio::test)]
+    async fn test_add_default_image() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+
+        let image_id = Id::<EventImage>::new();
+
+        let _ = ImageRepository::add_default_image(orm.orm(), event.id, image_id.clone())
+            .await
+            .unwrap();
+
+        let res = ImageRepository::list_default_image(orm.orm(), event.id)
+            .await
+            .unwrap();
+
+        self::assert_eq!(res, [image_id]);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_delete_default_image() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+
+        let image_id = Id::<EventImage>::new();
+
+        let _ = ImageRepository::add_default_image(orm.orm(), event.id, image_id.clone())
+            .await
+            .unwrap();
+        let res1 = ImageRepository::list_default_image(orm.orm(), event.id)
+            .await
+            .unwrap();
+        let _ = ImageRepository::delete_default_image(orm.orm(), event.id, image_id.clone())
+            .await
+            .unwrap();
+        let res2 = ImageRepository::list_default_image(orm.orm(), event.id)
+            .await
+            .unwrap();
+
+        self::assert_eq!(res1, [image_id]);
+        self::assert_eq!(res2, []);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_visitor_image() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let visitor = orm.make_test_visitor(event.id).await;
+
+        let image_id = Id::<VisitorImage>::new();
+
+        let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, image_id.clone())
+            .await
+            .unwrap();
+
+        let res = ImageRepository::get_visitor_image(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
+        self::assert_eq!(res, Some(image_id));
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_current_image() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let visitor = orm.make_test_visitor(event.id).await;
+
+        let image_id = Id::<VisitorImage>::new();
+
+        let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, image_id.clone())
+            .await
+            .unwrap();
+
+        let res = ImageRepository::get_current_image(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
+        let current_image_id = Id::<CurrentImage>::from_str(&image_id.to_string())
+            .ok()
+            .unwrap();
+
+        self::assert_eq!(res, current_image_id);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_set_current_image() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let visitor = orm.make_test_visitor(event.id).await;
+        let mut images = Vec::new();
+
+        for _ in 0..3 {
+            let i = Id::new();
+            let _ = ImageRepository::add_default_image(orm.orm(), event.id, i)
+                .await
+                .unwrap();
+            images.push(i);
+        }
+
+        let v = Id::new();
+        let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, v)
+            .await
+            .unwrap();
+
+        let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+        let current_id1 = Id::<CurrentImage>::from_str(&v.to_string()).ok().unwrap();
+
+        let visitor_image_id = Id::<VisitorImage>::from_str(&images[1].to_string())
+            .ok()
+            .unwrap();
+        let _ = ImageRepository::set_current_image(orm.orm(), visitor.id, visitor_image_id.clone())
+            .await
+            .unwrap();
+        let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+        let current_id2 = Id::<CurrentImage>::from_str(&visitor_image_id.to_string())
+            .ok()
+            .unwrap();
+
+        self::assert_eq!(res1, current_id1);
+        self::assert_eq!(res2, current_id2);
+    }
+}

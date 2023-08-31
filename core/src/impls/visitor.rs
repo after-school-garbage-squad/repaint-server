@@ -134,7 +134,7 @@ pub(crate) mod test {
     async fn test_delete() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let mut visitors = Vec::<Visitor>::new();
+        let mut visitors = Vec::new();
         for _ in 0..3 {
             visitors.push(orm.make_test_visitor(event.id).await);
         }

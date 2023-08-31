@@ -249,7 +249,7 @@ mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let event = orm.make_test_event().await;
-            let mut spots = Vec::<EventSpot>::new();
+            let mut spots = Vec::new();
             for _ in 0..q {
                 spots.push(orm.make_test_spot(event.id).await);
             }
