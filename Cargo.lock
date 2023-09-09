@@ -1588,6 +1588,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "repaint-server-sg"
+version = "1.0.0"
+
+[[package]]
 name = "repaint-server-usecase"
 version = "1.0.0"
 dependencies = [
