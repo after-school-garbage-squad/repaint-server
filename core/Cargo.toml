@@ -13,7 +13,7 @@ repaint-server-usecase = { path = "../usecase" }
 serde = "1.0.188"
 serde_json = "1.0.105"
 teloc = "0.2.0"
-thiserror = "1.0.47"
+thiserror = "1.0.48"
 tracing = "0.1.37"
 
 [dependencies.sea-orm]
