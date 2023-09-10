@@ -1,8 +1,13 @@
 [package]
-name = "fcm"
-version = "0.1.0"
+name = "repaint-server-fcm"
+version = "1.0.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
+async-trait = "0.1.73"
+repaint-server-usecase = { path = "../usecase" }
+reqwest = { version = "0.11.20", default-features = false, features = [
+  "rustls-tls",
+] }
+serde_json = "1.0.105"
+teloc = "0.2.0"

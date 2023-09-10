@@ -623,10 +623,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6999dc1837253364c2ebb0704ba97994bd874e8f195d665c50b7548f6ea92764"
 
 [[package]]
-name = "fcm"
-version = "0.1.0"
-
-[[package]]
 name = "flume"
 version = "0.10.14"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1702,6 +1698,17 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "ulid",
+]
+
+[[package]]
+name = "repaint-server-fcm"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "repaint-server-usecase",
+ "reqwest",
+ "serde_json",
+ "teloc",
 ]
 
 [[package]]
