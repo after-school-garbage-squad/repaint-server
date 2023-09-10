@@ -1701,6 +1701,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "repaint-server-fcm"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "repaint-server-usecase",
+ "reqwest",
+ "serde_json",
+ "teloc",
+]
+
+[[package]]
 name = "repaint-server-migration"
 version = "1.0.0"
 dependencies = [

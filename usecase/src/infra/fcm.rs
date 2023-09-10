@@ -5,5 +5,5 @@ use repaint_server_model::{AsyncSafe, StaticError};
 pub trait FirebaseCloudMessaging: AsyncSafe {
     type Error: StaticError;
 
-    async fn send(&self, registration_id: String) -> Result<(), Self::Error>;
+    async fn send(&self, registration_id: String, spot_name: String) -> Result<(), Self::Error>;
 }

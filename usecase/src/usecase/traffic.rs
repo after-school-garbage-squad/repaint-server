@@ -127,6 +127,12 @@ where
             .cloned()
             .collect::<Vec<_>>();
 
+        let spot = SpotRepository::get_by_qr(&self.repo, event.id, to)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("spot isn't found"),
+            })?;
+
         let v = visitors
             .iter()
             .map(|&v| VisitorRepository::get(&self.repo, event.id, v));
@@ -135,7 +141,7 @@ where
         let m = visitors
             .into_iter()
             .flatten()
-            .map(|v| self.fcm.send(v.registration_id));
+            .map(|v| self.fcm.send(v.registration_id, spot.name.clone()));
         join_all(m)
             .await
             .into_iter()
