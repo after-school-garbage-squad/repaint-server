@@ -3,4 +3,10 @@ name = "repaint-server-macros"
 version = "1.0.0"
 edition = "2021"
 
+[lib]
+proc-macro = true
+
 [dependencies]
+proc-macro-error = "1.0.4"
+quote = "1.0.33"
+syn = "2.0.37"
