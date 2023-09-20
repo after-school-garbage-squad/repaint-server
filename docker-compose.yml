@@ -37,7 +37,7 @@ services:
     ports:
       - 9090:9090
   prometheus_postgres:
-    image: quay.io/prometheuscommunity/postgres-exporter:v0.13.2
+    image: quay.io/prometheuscommunity/postgres-exporter:v0.14.0
     ports:
       - :9187:9187
     depends_on:
