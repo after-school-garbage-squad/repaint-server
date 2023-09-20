@@ -2192,6 +2192,10 @@ name = "repaint-server-api"
 version = "1.0.0"
 
 [[package]]
+name = "repaint-server-auth0"
+version = "1.0.0"
+
+[[package]]
 name = "repaint-server-core"
 version = "1.0.0"
 dependencies = [

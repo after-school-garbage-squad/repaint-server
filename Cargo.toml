@@ -8,6 +8,7 @@ license = "AGPLv3"
 members = [
   ".",
   "api",
+  "auth0",
   "core",
   "fcm",
   "firestore",
