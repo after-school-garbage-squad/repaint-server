@@ -20,7 +20,7 @@ jobs:
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v4.0.0
+        uses: actions/checkout@v4.1.0
       - name: Test | Security Audit
         uses: EmbarkStudios/cargo-deny-action@v1.5.4
         with:
