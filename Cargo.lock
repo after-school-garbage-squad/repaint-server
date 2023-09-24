@@ -2186,13 +2186,13 @@ dependencies = [
 [[package]]
 name = "repaint-server"
 version = "1.0.0"
+dependencies = [
+ "repaint-server-api",
+ "tokio",
+]
 
 [[package]]
 name = "repaint-server-api"
-version = "1.0.0"
-
-[[package]]
-name = "repaint-server-auth0"
 version = "1.0.0"
 
 [[package]]

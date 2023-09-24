@@ -1,3 +1,4 @@
-fn main() {
-    println!("Hello, world!");
+#[tokio::main]
+async fn main() {
+    repaint_server_api::run().await
 }
