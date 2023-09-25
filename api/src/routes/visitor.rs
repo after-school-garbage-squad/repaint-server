@@ -10,18 +10,28 @@ use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::model::visitor::{
     DeleteRequest, InitializeRequest, RegisterRequest, VisitorIdentification,
 };
+use repaint_server_usecase::usecase::palette::PaletteUsecase;
 use repaint_server_usecase::usecase::visitor::VisitorUsecase;
 
 use crate::routes::recover::Error;
 
-pub fn visitor(usecase: impl VisitorUsecase) -> Router {
-    let usecase = Arc::new(usecase);
+use self::palette::palette;
+
+mod palette;
+
+pub fn visitor(
+    visitor_usecase: impl VisitorUsecase,
+    palette_usecase: impl PaletteUsecase,
+) -> Router {
+    let palette = palette(palette_usecase);
+    let usecase = Arc::new(visitor_usecase);
 
     Router::new()
         .route("/:visotor_id/delete", delete_handler(delete))
         .route("/:visitor_id/initialize", patch(initialize))
         .route("/join", post(join))
         .with_state(&usecase)
+        .nest("/:visitor_id/palette", palette)
 }
 
 async fn delete<U: VisitorUsecase>(
