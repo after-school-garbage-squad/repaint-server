@@ -7,6 +7,8 @@ use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
 use reqwest::{Client, Error as ReqwestError};
 use serde::{Deserialize, Serialize};
 
+use crate::utils::envvar_str;
+
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
     status: &'static str,
@@ -21,11 +23,11 @@ struct Claims {
 
 pub async fn auth<B>(
     mut req: Request<B>,
-    base_url: String,
     next: Next<B>,
 ) -> Result<impl IntoResponse, (StatusCode, Json<ErrorResponse>)> {
     let token = parse_bearer_token(&req)?;
-    let subject = get_auth0_id_from_bearer(token, base_url).await?;
+    let authority = envvar_str("AUTHORITY", None);
+    let subject = get_auth0_id_from_bearer(token, authority).await?;
     req.extensions_mut().insert(subject);
 
     Ok(next.run(req).await)
