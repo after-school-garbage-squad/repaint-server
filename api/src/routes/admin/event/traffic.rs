@@ -17,13 +17,13 @@ pub fn traffic(usecase: impl TrafficUsecase) -> Router {
     let usecase = Arc::new(usecase);
 
     Router::new()
-        .route("/controll", post(controll))
+        .route("/control", post(control))
         .route("/get-status", get(get_status))
         .layer(middleware::from_fn(auth))
         .with_state(&usecase)
 }
 
-async fn controll<U: TrafficUsecase>(
+async fn control<U: TrafficUsecase>(
     State(usecase): State<&Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
