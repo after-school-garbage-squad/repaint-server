@@ -9,17 +9,25 @@ use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::model::event::{CreateEventRequest, UpdateEventRequest};
 use repaint_server_usecase::usecase::event::EventUsecase;
+use repaint_server_usecase::usecase::spot::SpotUsecase;
 use repaint_server_usecase::usecase::traffic::TrafficUsecase;
 
 use crate::middleware::auth::auth;
 use crate::routes::recover::Error;
 
+use self::spot::spot;
 use self::traffic::traffic;
 
+mod spot;
 mod traffic;
 
-pub fn event(event_usecase: impl EventUsecase, traffic_usecase: impl TrafficUsecase) -> Router {
+pub fn event(
+    event_usecase: impl EventUsecase,
+    traffic_usecase: impl TrafficUsecase,
+    spot_usecase: impl SpotUsecase,
+) -> Router {
     let traffic = traffic(traffic_usecase);
+    let spot = spot(spot_usecase);
     let usecase = Arc::new(event_usecase);
 
     Router::new()
@@ -30,6 +38,7 @@ pub fn event(event_usecase: impl EventUsecase, traffic_usecase: impl TrafficUsec
         .layer(middleware::from_fn(auth))
         .with_state(&usecase)
         .nest("/:event_id/traffic", traffic)
+        .nest("/:event_id/spot", spot)
 }
 
 async fn create<U: EventUsecase>(

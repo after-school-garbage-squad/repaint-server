@@ -1,6 +1,6 @@
-use repaint_server_model::event_spot::{EventSpot, IBeacon};
+use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -15,7 +15,40 @@ pub struct SpotResponse {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct Beacon {
-    pub i_beacon: IBeacon,
     pub hw_id: String,
     pub service_uuid: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckByBeaconRequest {
+    pub hw_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckByQrRequest {
+    pub spot_id: Id<EventSpot>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DeleteRequest {
+    pub spot_id: Id<EventSpot>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RegisterRequest {
+    pub name: String,
+    pub hw_id: String,
+    pub service_uuid: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateRequest {
+    pub spot_id: Id<EventSpot>,
+    pub name: String,
+    pub is_pick: bool,
 }
