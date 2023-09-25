@@ -2216,6 +2216,7 @@ dependencies = [
  "hyper",
  "jsonwebtoken",
  "repaint-server-core",
+ "repaint-server-model",
  "repaint-server-usecase",
  "reqwest",
  "serde",
