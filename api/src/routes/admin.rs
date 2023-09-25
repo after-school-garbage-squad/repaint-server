@@ -11,7 +11,7 @@ use repaint_server_usecase::usecase::admin::AdminUsecase;
 use crate::middleware::auth::auth;
 use crate::routes::recover::Error;
 
-pub(crate) mod event;
+pub mod event;
 
 pub fn admin(usecase: impl AdminUsecase) -> Router {
     let usecase = Arc::new(usecase);
