@@ -1712,6 +1712,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "repaint-server-gcs"
+version = "1.0.0"
+
+[[package]]
 name = "repaint-server-migration"
 version = "1.0.0"
 dependencies = [
