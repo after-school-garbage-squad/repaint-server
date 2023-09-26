@@ -5,6 +5,6 @@ edition = "2021"
 license = "AGPLv3"
 
 [workspace]
-members = [".", "core", "fcm", "migration", "model", "sg", "usecase"]
+members = [".", "core", "fcm", "gcs", "migration", "model", "sg", "usecase"]
 
 [dependencies]

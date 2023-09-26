@@ -9,6 +9,7 @@ use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
+use crate::infra::gcs::GoogleCloudStorage;
 use crate::infra::repo::{EventRepository, ImageRepository, VisitorRepository};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -19,7 +20,7 @@ pub trait ImageUsecase: AsyncSafe {
         &self,
         subject: String,
         event_id: Id<Event>,
-        image_id: Id<EventImage>,
+        data: Vec<u8>,
     ) -> Result<(), Error>;
 
     async fn delete_default_image(
@@ -41,7 +42,7 @@ pub trait ImageUsecase: AsyncSafe {
         subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
-        image_id: Id<VisitorImage>,
+        data: Vec<u8>,
     ) -> Result<(), Error>;
 
     async fn list_image(
@@ -62,35 +63,42 @@ pub trait ImageUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct ImageUsecaseImpl<R> {
+pub struct ImageUsecaseImpl<R, S> {
     repo: R,
+    storage: S,
 }
 
 #[inject]
-impl<R> ImageUsecaseImpl<R>
+impl<R, S> ImageUsecaseImpl<R, S>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
+    S: GoogleCloudStorage,
 {
-    pub fn new(repo: R) -> Self {
-        Self { repo }
+    pub fn new(repo: R, storage: S) -> Self {
+        Self { repo, storage }
     }
 }
 
 #[async_trait]
-impl<R> ImageUsecase for ImageUsecaseImpl<R>
+impl<R, S> ImageUsecase for ImageUsecaseImpl<R, S>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
+    S: GoogleCloudStorage,
 {
     async fn add_default_image(
         &self,
         subject: String,
         event_id: Id<Event>,
-        image_id: Id<EventImage>,
+        data: Vec<u8>,
     ) -> Result<(), Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
+        let image_id = Id::<EventImage>::new();
+        let _ = self
+            .storage
+            .upload_event_image(data, event_id, image_id)
+            .await?;
         let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
@@ -105,7 +113,6 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let _ = ImageRepository::delete_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
@@ -120,13 +127,11 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
             })?;
-
         let image = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
 
         Ok(image)
@@ -137,18 +142,21 @@ where
         subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
-        image_id: Id<VisitorImage>,
+        data: Vec<u8>,
     ) -> Result<(), Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
             })?;
-
+        let image_id = Id::<VisitorImage>::new();
+        let _ = self
+            .storage
+            .upload_visitor_image(data, event_id, image_id)
+            .await?;
         let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
 
         Ok(())
