@@ -1,0 +1,38 @@
+name: manual-deploy-production
+run-name: Deploy Production from ${{ inputs.ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Git ref to deploy (e.g. main, v1.0.0, c91ee3c, etc.)
+        required: true
+      major:
+        description: Major version number
+        required: false
+        default: "0"
+      minor:
+        description: Minor version number
+        required: false
+        default: "0"
+      patch:
+        description: Patch version number
+        required: false
+        default: "0"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.0
+        with:
+          ref: ${{ github.event.inputs.ref }}
+      - name: Deploy
+        uses: re-taro/actions/docker-publish@v3.3.0
+        with:
+          images: ghcr.io/after-school-garbage-squad/repaint-server
+          major: ${{ github.event.inputs.major }}
+          minor: ${{ github.event.inputs.minor }}
+          patch: ${{ github.event.inputs.patch }}
+          sha: ${{ github.sha }}
