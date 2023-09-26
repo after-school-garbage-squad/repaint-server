@@ -1,0 +1,15 @@
+# Ignore everything
+*
+
+# Except these files
+!api/**
+!core/**
+!fcm/**
+!migration/**
+!model/**
+!sg/**
+!src/main.rs
+!usecase/**
+!Cargo.lock
+!Cargo.toml
+!rust-toolchain.toml
