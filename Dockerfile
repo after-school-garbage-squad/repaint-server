@@ -30,6 +30,7 @@ RUN GIT_HASH=`git rev-parse HEAD | head -c 7` \
 
 FROM gcr.io/distroless/cc-debian11 as runtime
 
+LABEL org.opencontainers.image.source=https://github.com/after-school-garbage-squad/repaint-server
 USER nonroot:nonroot
 COPY --chown=nonroot:nonroot --from=build /app/target/release/repaint-server /
 
