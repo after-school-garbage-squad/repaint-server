@@ -10,6 +10,8 @@ use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::gcs::GoogleCloudStorage;
+use crate::infra::otp::ImageOtp;
+use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, ImageRepository, VisitorRepository};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -60,30 +62,48 @@ pub trait ImageUsecase: AsyncSafe {
         visitor_identification: VisitorIdentification,
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error>;
+
+    async fn proxy_image(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<CurrentImage>,
+        visitor_id: Id<Visitor>,
+    ) -> Result<String, Error>;
 }
 
-#[derive(Debug)]
-pub struct ImageUsecaseImpl<R, S> {
+#[derive(Debug, Clone)]
+pub struct ImageUsecaseImpl<R, S, O, P> {
     repo: R,
     storage: S,
+    otp: O,
+    pubsub: P,
 }
 
 #[inject]
-impl<R, S> ImageUsecaseImpl<R, S>
+impl<R, S, O, P> ImageUsecaseImpl<R, S, O, P>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
     S: GoogleCloudStorage,
+    O: ImageOtp,
+    P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, storage: S) -> Self {
-        Self { repo, storage }
+    pub fn new(repo: R, storage: S, otp: O, pubsub: P) -> Self {
+        Self {
+            repo,
+            storage,
+            otp,
+            pubsub,
+        }
     }
 }
 
 #[async_trait]
-impl<R, S> ImageUsecase for ImageUsecaseImpl<R, S>
+impl<R, S, O, P> ImageUsecase for ImageUsecaseImpl<R, S, O, P>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
     S: GoogleCloudStorage,
+    O: ImageOtp,
+    P: GoogleCloudPubSub,
 {
     async fn add_default_image(
         &self,
@@ -99,6 +119,7 @@ where
             .storage
             .upload_event_image(data, event_id, image_id)
             .await?;
+        let _ = self.pubsub.publish_event_image(event_id, image_id).await?;
         let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
@@ -156,6 +177,10 @@ where
         let _ = self
             .storage
             .upload_visitor_image(data, event_id, image_id)
+            .await?;
+        let _ = self
+            .pubsub
+            .publish_visitor_image(event_id, visitor_id, image_id)
             .await?;
         let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
 
@@ -229,5 +254,16 @@ where
         let _ = ImageRepository::set_current_image(&self.repo, visitor.id, image_id).await?;
 
         Ok(())
+    }
+
+    async fn proxy_image(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<CurrentImage>,
+        visitor_id: Id<Visitor>,
+    ) -> Result<String, Error> {
+        let token = self.otp.verify(event_id, image_id, visitor_id).await?;
+
+        Ok(token.full)
     }
 }

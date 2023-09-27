@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use repaint_server_model::event_spot::{EventSpot, IBeacon};
+use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
@@ -17,11 +17,6 @@ pub fn to_model(m: event_spots::Model) -> Result<EventSpot, Error> {
         name: m.name,
         is_pick: m.is_pick,
         bonus: m.bonus,
-        i_beacon: IBeacon {
-            major: m.major,
-            minor: m.minor,
-            beacon_uuid: m.beacon_uuid,
-        },
         hw_id: m.hw_id,
         service_uuid: m.service_uuid,
     })
@@ -35,9 +30,6 @@ impl SpotRepository for SeaOrm {
         &self,
         event_id: i32,
         name: String,
-        major: i16,
-        minor: i16,
-        beacon_uuid: String,
         hw_id: String,
         service_uuid: String,
     ) -> Result<EventSpot, Self::Error> {
@@ -47,9 +39,6 @@ impl SpotRepository for SeaOrm {
             name: Set(name),
             is_pick: Set(false),
             bonus: Set(false),
-            major: Set(major),
-            minor: Set(minor),
-            beacon_uuid: Set(beacon_uuid),
             hw_id: Set(hw_id),
             service_uuid: Set(service_uuid),
             ..Default::default()
@@ -309,11 +298,6 @@ mod test {
                 name: "test2".into(),
                 is_pick: true,
                 bonus: false,
-                i_beacon: IBeacon {
-                    major: 2525,
-                    minor: 100,
-                    beacon_uuid: "feaa7564-bd8a-45".into(),
-                },
                 hw_id: spot.hw_id,
                 service_uuid: "c974fe40-aa94-4e".into(),
             }

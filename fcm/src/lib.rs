@@ -18,7 +18,7 @@ pub struct Fcm {
 
 impl Fcm {
     /// Please set `GOOGLE_APPLICATION_CREDENTIALS_JSON` environment variable.
-    pub async fn new(project_id: &str) -> Self {
+    pub async fn new(project_id: String) -> Self {
         let scopes = ["https://www.googleapis.com/auth/firebase.messaging"];
         let config = Config {
             audience: None,
@@ -47,7 +47,7 @@ impl Fcm {
                 .default_headers(headers)
                 .build()
                 .expect("failed to create client"),
-            project_id: project_id.to_string(),
+            project_id,
         }
     }
 }

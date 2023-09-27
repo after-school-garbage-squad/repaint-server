@@ -101,9 +101,6 @@ where
             &self.repo,
             event.id,
             name,
-            beacon_data.i_beacon.major,
-            beacon_data.i_beacon.minor,
-            beacon_data.i_beacon.beacon_uuid,
             beacon_data.hw_id,
             beacon_data.service_uuid,
         )
@@ -113,7 +110,6 @@ where
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                i_beacon: spot.i_beacon,
                 hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
@@ -142,7 +138,6 @@ where
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                i_beacon: spot.i_beacon,
                 hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
@@ -171,7 +166,6 @@ where
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                i_beacon: spot.i_beacon,
                 hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
@@ -197,7 +191,6 @@ where
                 spot_id: s.spot_id,
                 name: s.name,
                 beacon: Beacon {
-                    i_beacon: s.i_beacon,
                     hw_id: s.hw_id,
                     service_uuid: s.service_uuid,
                 },
@@ -231,7 +224,6 @@ where
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                i_beacon: spot.i_beacon,
                 hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },

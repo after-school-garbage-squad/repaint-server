@@ -1,0 +1,38 @@
+[package]
+name = "repaint-server-api"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.6.20", features = ["multipart"] }
+dotenvy = "0.15.7"
+hyper = { version = "0.14.27", features = ["full"] }
+jsonwebtoken = "8.3.0"
+repaint-server-core = { path = "../core" }
+repaint-server-fcm = { path = "../fcm" }
+repaint-server-firestore = { path = "../firestore" }
+repaint-server-gcs = { path = "../gcs" }
+repaint-server-otp = { path = "../otp" }
+repaint-server-pubsub = { path = "../pubsub" }
+repaint-server-sg = { path = "../sg" }
+repaint-server-model = { path = "../model" }
+repaint-server-usecase = { path = "../usecase" }
+reqwest = { version = "0.11.20", default-features = false, features = [
+  "rustls-tls",
+] }
+serde = "1.0.188"
+serde_json = "1.0.107"
+static_assertions = "1.1.0"
+teloc = "0.2.0"
+tokio = { version = "1.32.0", features = [
+  "rt",
+  "rt-multi-thread",
+  "signal",
+  "sync",
+  "time",
+] }
+tracing = "0.1.37"
+tracing-subscriber = { version = "0.3.17", features = ["env-filter"] }
+
+[package.metadata.cargo-udeps.ignore]
+normal = ["static_assertions"]

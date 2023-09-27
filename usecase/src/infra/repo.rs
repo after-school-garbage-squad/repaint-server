@@ -16,9 +16,6 @@ pub trait SpotRepository: AsyncSafe {
         &self,
         event_id: i32,
         name: String,
-        major: i16,
-        minor: i16,
-        beacon_uuid: String,
         hw_id: String,
         service_uuid: String,
     ) -> Result<EventSpot, Self::Error>;

@@ -1,17 +1,18 @@
+use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct TrafficStatus {
+pub struct DropRequest {
+    pub event_id: Id<Event>,
     pub spot_id: Id<EventSpot>,
-    pub head_count: usize,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ControllTrafficRequest {
-    pub from: Id<EventSpot>,
-    pub to: Id<EventSpot>,
+pub struct PickRequest {
+    pub event_id: Id<Event>,
+    pub spot_id: Id<EventSpot>,
 }

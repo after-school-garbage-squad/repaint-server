@@ -42,7 +42,6 @@ impl GoogleCloudPubSub for PubSub {
         &self,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
-        palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error> {
         let topic = self.client.topic(&self.topic);
         if !topic.exists(None).await? {
@@ -54,7 +53,6 @@ impl GoogleCloudPubSub for PubSub {
                 "event_id": event_id,
                 "visitor_id": None::<Id<Visitor>>,
                 "image_id": image_id,
-                "palette_ids": palette_ids,
             })
             .to_string()
             .into(),
@@ -69,9 +67,9 @@ impl GoogleCloudPubSub for PubSub {
 
     async fn publish_visitor_image(
         &self,
+        event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
-        palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error> {
         let topic = self.client.topic(&self.topic);
         if !topic.exists(None).await? {
@@ -80,10 +78,9 @@ impl GoogleCloudPubSub for PubSub {
         let mut publisher = topic.new_publisher(None);
         let msg = PubsubMessage {
             data: serde_json::json!({
-                "event_id": None::<Id<Event>>,
+                "event_id": event_id,
                 "visitor_id": visitor_id,
                 "image_id": image_id,
-                "palette_ids": palette_ids,
             })
             .to_string()
             .into(),
