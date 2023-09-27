@@ -98,6 +98,10 @@ pub trait ImageRepository: AsyncSafe {
         visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error>;
+
+    async fn set_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
+
+    async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error>;
 }
 
 #[async_trait]

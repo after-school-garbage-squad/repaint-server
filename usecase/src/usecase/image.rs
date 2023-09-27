@@ -69,6 +69,14 @@ pub trait ImageUsecase: AsyncSafe {
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
     ) -> Result<String, Error>;
+
+    async fn set_update(&self, event_id: Id<Event>, visitor_id: Id<Visitor>) -> Result<(), Error>;
+
+    async fn check_update(
+        &self,
+        event_id: Id<Event>,
+        visitor_id: Id<Visitor>,
+    ) -> Result<bool, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -292,5 +300,42 @@ where
         let token = self.otp.verify(event_id, image_id, visitor_id).await?;
 
         Ok(token.full)
+    }
+
+    async fn set_update(&self, event_id: Id<Event>, visitor_id: Id<Visitor>) -> Result<(), Error> {
+        let event = EventRepository::get(&self.repo, event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", event_id),
+            })?;
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_id),
+            })?;
+
+        let _ = ImageRepository::set_update(&self.repo, visitor.id).await?;
+
+        Ok(())
+    }
+
+    async fn check_update(
+        &self,
+        event_id: Id<Event>,
+        visitor_id: Id<Visitor>,
+    ) -> Result<bool, Error> {
+        let event = EventRepository::get(&self.repo, event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", event_id),
+            })?;
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_id),
+            })?;
+        let is_updated = ImageRepository::check_update(&self.repo, visitor.id).await?;
+
+        Ok(is_updated)
     }
 }

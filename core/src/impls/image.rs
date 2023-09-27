@@ -145,6 +145,34 @@ impl ImageRepository for SeaOrm {
 
         res.to_is_updated()
     }
+
+    async fn set_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
+        let tx = self.con().begin().await?;
+
+        let mut image: visitor_images::ActiveModel = visitors::Entity::find_by_id(visitor_id)
+            .find_also_related(visitor_images::Entity)
+            .one(&tx)
+            .await?
+            .and_then(|(_, i)| i)
+            .unwrap()
+            .into();
+        image.is_updated = Set(true);
+        let res = image.update(&tx).await;
+        tx.commit().await?;
+
+        res.to_is_updated()
+    }
+
+    async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error> {
+        let image = visitors::Entity::find_by_id(visitor_id)
+            .find_also_related(visitor_images::Entity)
+            .one(self.con())
+            .await?
+            .and_then(|(_, i)| i)
+            .unwrap();
+
+        Ok(image.is_updated)
+    }
 }
 
 #[cfg(test)]
