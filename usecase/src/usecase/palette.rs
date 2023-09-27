@@ -7,7 +7,7 @@ use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
-use repaint_server_model::visitor_image::Image as VisitorImage;
+use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
@@ -81,7 +81,24 @@ where
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
         let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
-        let image = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
+        let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
+            Some(i) => i,
+            None => {
+                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+                let current_image_id = default
+                    .first()
+                    .ok_or(Error::BadRequest {
+                        message: "default image is empty".to_string(),
+                    })?
+                    .clone();
+
+                Id::<CurrentImage>::from_str(&current_image_id.to_string())
+                    .ok()
+                    .ok_or(Error::BadRequest {
+                        message: "failed to parse default image id to current image id".to_string(),
+                    })?
+            }
+        };
         let image_id = Id::<VisitorImage>::from_str(&image.to_string())?;
         let _ = self
             .pubsub
@@ -215,7 +232,24 @@ where
             .into_iter()
             .collect::<Vec<_>>();
 
-        let image = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
+        let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
+            Some(i) => i,
+            None => {
+                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+                let current_image_id = default
+                    .first()
+                    .ok_or(Error::BadRequest {
+                        message: "default image is empty".to_string(),
+                    })?
+                    .clone();
+
+                Id::<CurrentImage>::from_str(&current_image_id.to_string())
+                    .ok()
+                    .ok_or(Error::BadRequest {
+                        message: "failed to parse default image id to current image id".to_string(),
+                    })?
+            }
+        };
         let image_id = Id::<VisitorImage>::from_str(&image.to_string())?;
         let _ = self
             .pubsub

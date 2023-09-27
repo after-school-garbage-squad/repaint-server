@@ -1,6 +1,9 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
+use repaint_server_model::visitor_image::CurrentImage;
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
@@ -127,7 +130,26 @@ where
                 })?;
         let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
         let image_id = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
-        let current_image_id = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
+        let current_image_id = match ImageRepository::get_current_image(&self.repo, visitor.id)
+            .await?
+        {
+            Some(i) => i,
+            None => {
+                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+                let current_image_id = default
+                    .first()
+                    .ok_or(Error::BadRequest {
+                        message: "default image is empty".to_string(),
+                    })?
+                    .clone();
+
+                Id::<CurrentImage>::from_str(&current_image_id.to_string())
+                    .ok()
+                    .ok_or(Error::BadRequest {
+                        message: "failed to parse default image id to current image id".to_string(),
+                    })?
+            }
+        };
 
         self.firestore
             .subscribe_initialize_log(
