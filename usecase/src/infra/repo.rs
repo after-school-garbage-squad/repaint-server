@@ -88,7 +88,10 @@ pub trait ImageRepository: AsyncSafe {
 
     async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error>;
 
-    async fn get_current_image(&self, visitor_id: i32) -> Result<Id<CurrentImage>, Self::Error>;
+    async fn get_current_image(
+        &self,
+        visitor_id: i32,
+    ) -> Result<Option<Id<CurrentImage>>, Self::Error>;
 
     async fn set_current_image(
         &self,

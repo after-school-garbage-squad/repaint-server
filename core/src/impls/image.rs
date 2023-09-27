@@ -105,15 +105,20 @@ impl ImageRepository for SeaOrm {
         Ok(ids)
     }
 
-    async fn get_current_image(&self, visitor_id: i32) -> Result<Id<CurrentImage>, Self::Error> {
-        let image = visitors::Entity::find_by_id(visitor_id)
+    async fn get_current_image(
+        &self,
+        visitor_id: i32,
+    ) -> Result<Option<Id<CurrentImage>>, Self::Error> {
+        let Some(image) = visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_images::Entity)
             .one(self.con())
             .await?
             .and_then(|(_, i)| i)
-            .unwrap();
+        else {
+            return Ok(None);
+        };
 
-        Ok(image.current_image_id.model())
+        Ok(Some(image.current_image_id.model()))
     }
 
     async fn set_current_image(
@@ -231,7 +236,7 @@ mod test {
             .ok()
             .unwrap();
 
-        self::assert_eq!(res, current_image_id);
+        self::assert_eq!(res, Some(current_image_id));
     }
 
     #[test_log::test(tokio::test)]
@@ -249,15 +254,19 @@ mod test {
             images.push(i);
         }
 
+        let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
         let v = Id::new();
         let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, v)
             .await
             .unwrap();
 
-        let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
             .unwrap();
-        let current_id1 = Id::<CurrentImage>::from_str(&v.to_string()).ok().unwrap();
+        let current_id2 = Id::<CurrentImage>::from_str(&v.to_string()).ok().unwrap();
 
         let visitor_image_id = Id::<VisitorImage>::from_str(&images[1].to_string())
             .ok()
@@ -265,14 +274,15 @@ mod test {
         let _ = ImageRepository::set_current_image(orm.orm(), visitor.id, visitor_image_id.clone())
             .await
             .unwrap();
-        let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res3 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
             .unwrap();
-        let current_id2 = Id::<CurrentImage>::from_str(&visitor_image_id.to_string())
+        let current_id3 = Id::<CurrentImage>::from_str(&visitor_image_id.to_string())
             .ok()
             .unwrap();
 
-        self::assert_eq!(res1, current_id1);
-        self::assert_eq!(res2, current_id2);
+        self::assert_eq!(res1, None);
+        self::assert_eq!(res2, Some(current_id2));
+        self::assert_eq!(res3, Some(current_id3));
     }
 }
