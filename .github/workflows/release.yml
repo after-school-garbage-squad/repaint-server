@@ -13,10 +13,16 @@ jobs:
       pull-requests: write
       packages: write
     steps:
+      - name: Install git
+        run: |
+          apt-get update
+          apt-get install git -y
       - name: Checkout
         uses: actions/checkout@v4.1.0
         with:
           fetch-depth: 0
+      - name: Add safe directory
+        run: git config --global --add safe.directory $PWD
       - name: Setup GitHub App
         id: bot
         uses: re-taro/actions/gen-installation-token@v3.3.0
