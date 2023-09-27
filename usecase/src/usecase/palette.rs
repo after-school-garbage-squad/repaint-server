@@ -96,12 +96,25 @@ where
             let rng = rand::thread_rng();
             StdRng::from_rng(rng).unwrap()
         };
+        let visitors = VisitorRepository::list(&self.repo, event.id).await?;
+
+        let p = visitors
+            .iter()
+            .map(|v| PaletteRepository::get(&self.repo, v.id));
+        let palettes = join_all(p)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?
+            .into_iter()
+            .flatten()
+            .collect::<Vec<_>>();
 
         if is_bonus {
             let palettes = self
                 .firestore
                 .get_palettes(visitor_identification.event_id, spot_id)
-                .await?;
+                .await?
+                .unwrap_or(palettes);
             let palettes = palettes
                 .choose_multiple(&mut rng, 2)
                 .cloned()
@@ -122,7 +135,8 @@ where
             let palette = self
                 .firestore
                 .get_palette(visitor_identification.event_id, spot_id)
-                .await?;
+                .await?
+                .unwrap_or(palettes.choose(&mut rng).cloned().unwrap());
             let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
 
             let palette = palettes.choose(&mut rng).cloned().unwrap();
