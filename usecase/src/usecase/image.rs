@@ -10,6 +10,7 @@ use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::gcs::GoogleCloudStorage;
+use crate::infra::otp::ImageOtp;
 use crate::infra::repo::{EventRepository, ImageRepository, VisitorRepository};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -70,27 +71,30 @@ pub trait ImageUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct ImageUsecaseImpl<R, S> {
+pub struct ImageUsecaseImpl<R, S, O> {
     repo: R,
     storage: S,
+    otp: O,
 }
 
 #[inject]
-impl<R, S> ImageUsecaseImpl<R, S>
+impl<R, S, O> ImageUsecaseImpl<R, S, O>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
     S: GoogleCloudStorage,
+    O: ImageOtp,
 {
-    pub fn new(repo: R, storage: S) -> Self {
-        Self { repo, storage }
+    pub fn new(repo: R, storage: S, otp: O) -> Self {
+        Self { repo, storage, otp }
     }
 }
 
 #[async_trait]
-impl<R, S> ImageUsecase for ImageUsecaseImpl<R, S>
+impl<R, S, O> ImageUsecase for ImageUsecaseImpl<R, S, O>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
     S: GoogleCloudStorage,
+    O: ImageOtp,
 {
     async fn add_default_image(
         &self,
@@ -244,7 +248,8 @@ where
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
     ) -> Result<String, Error> {
-        todo!("proxy_image");
-        Ok("".to_string())
+        let token = self.otp.verify(event_id, image_id, visitor_id).await?;
+
+        Ok(token.full)
     }
 }
