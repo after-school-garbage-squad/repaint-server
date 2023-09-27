@@ -13,6 +13,7 @@ members = [
   "migration",
   "model",
   "otp",
+  "pubsub",
   "sg",
   "usecase",
 ]
