@@ -10,16 +10,24 @@ use repaint_server_model::{AsyncSafe, StaticError};
 pub trait GoogleCloudPubSub: AsyncSafe {
     type Error: StaticError;
 
-    async fn publish_event_image(
+    async fn publish_clustering_event_image(
         &self,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Self::Error>;
 
-    async fn publish_visitor_image(
+    async fn publish_clustering_visitor_image(
         &self,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
+    ) -> Result<(), Self::Error>;
+
+    async fn publish_merge_current_image(
+        &self,
+        event_id: Id<Event>,
+        visitor_id: Id<Visitor>,
+        image_id: Id<VisitorImage>,
+        palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error>;
 }
