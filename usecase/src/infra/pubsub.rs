@@ -14,13 +14,12 @@ pub trait GoogleCloudPubSub: AsyncSafe {
         &self,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
-        palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error>;
 
     async fn publish_visitor_image(
         &self,
+        event_id: Id<Event>,
         visitor_id: Id<Visitor>,
         image_id: Id<VisitorImage>,
-        palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error>;
 }
