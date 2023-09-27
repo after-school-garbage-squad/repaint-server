@@ -12,7 +12,7 @@ use teloc::inject;
 use crate::infra::gcs::GoogleCloudStorage;
 use crate::infra::otp::ImageOtp;
 use crate::infra::pubsub::GoogleCloudPubSub;
-use crate::infra::repo::{EventRepository, ImageRepository, VisitorRepository};
+use crate::infra::repo::{EventRepository, ImageRepository, PaletteRepository, VisitorRepository};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
 
@@ -82,7 +82,7 @@ pub struct ImageUsecaseImpl<R, S, O, P> {
 #[inject]
 impl<R, S, O, P> ImageUsecaseImpl<R, S, O, P>
 where
-    R: ImageRepository + EventRepository + VisitorRepository,
+    R: ImageRepository + EventRepository + VisitorRepository + PaletteRepository,
     S: GoogleCloudStorage,
     O: ImageOtp,
     P: GoogleCloudPubSub,
@@ -100,7 +100,7 @@ where
 #[async_trait]
 impl<R, S, O, P> ImageUsecase for ImageUsecaseImpl<R, S, O, P>
 where
-    R: ImageRepository + EventRepository + VisitorRepository,
+    R: ImageRepository + EventRepository + VisitorRepository + PaletteRepository,
     S: GoogleCloudStorage,
     O: ImageOtp,
     P: GoogleCloudPubSub,
@@ -119,7 +119,10 @@ where
             .storage
             .upload_event_image(data, event_id, image_id)
             .await?;
-        let _ = self.pubsub.publish_event_image(event_id, image_id).await?;
+        let _ = self
+            .pubsub
+            .publish_clustering_event_image(event.event_id, image_id)
+            .await?;
         let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
@@ -180,7 +183,7 @@ where
             .await?;
         let _ = self
             .pubsub
-            .publish_visitor_image(event_id, visitor_id, image_id)
+            .publish_clustering_visitor_image(event.event_id, visitor.visitor_id, image_id)
             .await?;
         let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
 
@@ -251,7 +254,12 @@ where
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
+        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
         let _ = ImageRepository::set_current_image(&self.repo, visitor.id, image_id).await?;
+        let _ = self
+            .pubsub
+            .publish_merge_current_image(event.event_id, visitor.visitor_id, image_id, palettes)
+            .await?;
 
         Ok(())
     }

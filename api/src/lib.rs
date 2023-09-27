@@ -64,7 +64,7 @@ pub async fn run() {
         .add_transient::<AdminUsecaseImpl<SeaOrm, FirestoreProvider, SendGridProvider>>()
         .add_transient::<EventUsecaseImpl<SeaOrm, FirestoreProvider>>()
         .add_transient::<ImageUsecaseImpl<SeaOrm, GcsProvider, OtpProvider, PubSubProvider>>()
-        .add_transient::<PaletteUsecaseImpl<SeaOrm, FirestoreProvider>>()
+        .add_transient::<PaletteUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_transient::<SpotUsecaseImpl<SeaOrm, FirestoreProvider>>()
         .add_transient::<TrafficUsecaseImpl<SeaOrm, FirestoreProvider, FcmProvider>>()
         .add_transient::<VisitorUsecaseImpl<SeaOrm, FirestoreProvider>>()
@@ -79,7 +79,7 @@ pub async fn run() {
     let admin_usecase: AdminUsecaseImpl<_, _, _> = container.resolve();
     let event_usecase: EventUsecaseImpl<_, _> = container.resolve();
     let image_usecase: ImageUsecaseImpl<_, _, _, _> = container.resolve();
-    let palette_usecase: PaletteUsecaseImpl<_, _> = container.resolve();
+    let palette_usecase: PaletteUsecaseImpl<_, _, _> = container.resolve();
     let spot_usecase: SpotUsecaseImpl<_, _> = container.resolve();
     let traffic_usecase: TrafficUsecaseImpl<_, _, _> = container.resolve();
     let visitor_usecase: VisitorUsecaseImpl<_, _> = container.resolve();
@@ -180,9 +180,11 @@ fn otp_provider() -> OtpProvider {
 }
 
 async fn pubsub_provider() -> PubSubProvider {
-    let topic = envvar_str("TOPIC", None);
+    let cluster = envvar("CLUSTER", None);
+    let clustering_topic = envvar_str("CLUSTERING_TOPIC", None);
+    let merge_topic = envvar_str("MERGE_TOPIC", None);
 
-    PubSub::new(topic).await
+    PubSub::new(cluster, clustering_topic, merge_topic).await
 }
 
 fn sendgrid_provider() -> SendGridProvider {

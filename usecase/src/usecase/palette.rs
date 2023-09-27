@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use futures::future::join_all;
 use rand::rngs::StdRng;
@@ -5,10 +7,12 @@ use rand::seq::SliceRandom;
 use rand::SeedableRng;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
+use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::firestore::Firestore;
+use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
@@ -31,27 +35,34 @@ pub trait PaletteUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct PaletteUsecaseImpl<R, F> {
+pub struct PaletteUsecaseImpl<R, F, P> {
     repo: R,
     firestore: F,
+    pubsub: P,
 }
 
 #[inject]
-impl<R, F> PaletteUsecaseImpl<R, F>
+impl<R, F, P> PaletteUsecaseImpl<R, F, P>
 where
     R: PaletteRepository + EventRepository + VisitorRepository + ImageRepository + SpotRepository,
     F: Firestore,
+    P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, firestore: F) -> Self {
-        Self { repo, firestore }
+    pub fn new(repo: R, firestore: F, pubsub: P) -> Self {
+        Self {
+            repo,
+            firestore,
+            pubsub,
+        }
     }
 }
 
 #[async_trait]
-impl<R, F> PaletteUsecase for PaletteUsecaseImpl<R, F>
+impl<R, F, P> PaletteUsecase for PaletteUsecaseImpl<R, F, P>
 where
     R: PaletteRepository + EventRepository + VisitorRepository + ImageRepository + SpotRepository,
     F: Firestore,
+    P: GoogleCloudPubSub,
 {
     async fn drop_palette(
         &self,
@@ -70,6 +81,17 @@ where
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
         let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let image = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
+        let image_id = Id::<VisitorImage>::from_str(&image.to_string())?;
+        let _ = self
+            .pubsub
+            .publish_merge_current_image(
+                event.event_id,
+                visitor.visitor_id,
+                image_id,
+                palettes.clone(),
+            )
+            .await?;
         let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
             .await?
             .is_some();
@@ -192,6 +214,18 @@ where
             .await?
             .into_iter()
             .collect::<Vec<_>>();
+
+        let image = ImageRepository::get_current_image(&self.repo, visitor.id).await?;
+        let image_id = Id::<VisitorImage>::from_str(&image.to_string())?;
+        let _ = self
+            .pubsub
+            .publish_merge_current_image(
+                event.event_id,
+                visitor.visitor_id,
+                image_id,
+                visitor_palettes.clone(),
+            )
+            .await?;
 
         let mut rng = {
             let rng = rand::thread_rng();
