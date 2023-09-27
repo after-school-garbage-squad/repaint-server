@@ -5,7 +5,7 @@ use repaint_server_usecase::usecase::error::Error as UsecaseError;
 use serde_json::json;
 
 #[derive(Debug)]
-pub struct Error(UsecaseError);
+pub struct Error(pub UsecaseError);
 
 impl From<UsecaseError> for Error {
     fn from(e: UsecaseError) -> Self {
