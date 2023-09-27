@@ -86,7 +86,7 @@ where
 
         self.email.send(email.clone(), token.clone()).await?;
 
-        self.firestore.set_event_id(token, event.event_id).await?;
+        self.firestore.set_event_id(token, event.id).await?;
 
         Ok(())
     }
