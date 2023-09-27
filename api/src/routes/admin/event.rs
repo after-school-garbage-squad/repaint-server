@@ -41,18 +41,18 @@ pub fn event(
         .route("/list", get(list))
         .route("/:event_id/update", patch(update))
         .layer(middleware::from_fn(auth))
-        .with_state(&usecase)
+        .with_state(usecase)
         .nest("/:event_id/traffic", traffic)
         .nest("/:event_id/spot", spot)
         .nest("/:event_id/image", image)
 }
 
 async fn create<U: EventUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Json(req): Json<CreateEventRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .create_event(subject, req.name, req.hp_url, req.contact)
         .await?;
@@ -61,33 +61,33 @@ async fn create<U: EventUsecase>(
 }
 
 async fn delete<U: EventUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase.delete_event(subject, event_id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
 
 async fn list<U: EventUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase.list_event(subject).await?;
 
     Ok((StatusCode::OK, Json(res)))
 }
 
 async fn update<U: EventUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<UpdateEventRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .update_event(subject, event_id, req.name, req.hp_url, req.contact)
         .await?;

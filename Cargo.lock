@@ -2196,17 +2196,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "repaint-image-otp"
-version = "1.0.0"
-dependencies = [
- "async-trait",
- "repaint-server-model",
- "repaint-server-usecase",
- "reqwest",
- "teloc",
-]
-
-[[package]]
 name = "repaint-server"
 version = "1.0.0"
 dependencies = [
@@ -2219,14 +2208,22 @@ name = "repaint-server-api"
 version = "1.0.0"
 dependencies = [
  "axum",
+ "dotenvy",
  "hyper",
  "jsonwebtoken",
  "repaint-server-core",
+ "repaint-server-fcm",
+ "repaint-server-firestore",
+ "repaint-server-gcs",
  "repaint-server-model",
+ "repaint-server-otp",
+ "repaint-server-pubsub",
+ "repaint-server-sg",
  "repaint-server-usecase",
  "reqwest",
  "serde",
  "serde_json",
+ "static_assertions",
  "teloc",
  "tokio",
  "tracing",
@@ -2317,6 +2314,17 @@ dependencies = [
  "serde",
  "serde_json",
  "ulid",
+]
+
+[[package]]
+name = "repaint-server-otp"
+version = "1.0.0"
+dependencies = [
+ "async-trait",
+ "repaint-server-model",
+ "repaint-server-usecase",
+ "reqwest",
+ "teloc",
 ]
 
 [[package]]

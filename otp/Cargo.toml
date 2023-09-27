@@ -1,5 +1,5 @@
 [package]
-name = "repaint-image-otp"
+name = "repaint-server-otp"
 version = "1.0.0"
 edition = "2021"
 

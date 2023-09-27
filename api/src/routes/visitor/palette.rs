@@ -19,15 +19,15 @@ pub fn palette(usecase: impl PaletteUsecase) -> Router {
     Router::new()
         .route("/drop", post(drop))
         .route("/pick", post(pick))
-        .with_state(&usecase)
+        .with_state(usecase)
 }
 
 async fn drop<U: PaletteUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<DropRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase
         .drop_palette(
             VisitorIdentification {
@@ -42,11 +42,11 @@ async fn drop<U: PaletteUsecase>(
 }
 
 async fn pick<U: PaletteUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<PickRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase
         .pick_palette(
             VisitorIdentification {

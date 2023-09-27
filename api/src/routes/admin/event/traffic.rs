@@ -20,16 +20,16 @@ pub fn traffic(usecase: impl TrafficUsecase) -> Router {
         .route("/control", post(control))
         .route("/get-status", get(get_status))
         .layer(middleware::from_fn(auth))
-        .with_state(&usecase)
+        .with_state(usecase)
 }
 
 async fn control<U: TrafficUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<ControllTrafficRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase
         .controll_traffic(subject, event_id, req.from, req.to)
         .await?;
@@ -38,11 +38,11 @@ async fn control<U: TrafficUsecase>(
 }
 
 async fn get_status<U: TrafficUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase.get_traffic_status(subject, event_id).await?;
 
     Ok((StatusCode::OK, Json(res)))

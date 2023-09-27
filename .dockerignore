@@ -2,11 +2,16 @@
 *
 
 # Except these files
+!.git/**
 !api/**
 !core/**
 !fcm/**
+!firestore/**
+!gcs/**
 !migration/**
 !model/**
+!otp/**
+!pubsub/**
 !sg/**
 !src/main.rs
 !usecase/**

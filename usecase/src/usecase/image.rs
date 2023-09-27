@@ -71,7 +71,7 @@ pub trait ImageUsecase: AsyncSafe {
     ) -> Result<String, Error>;
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ImageUsecaseImpl<R, S, O, P> {
     repo: R,
     storage: S,

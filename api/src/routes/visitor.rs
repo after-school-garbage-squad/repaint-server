@@ -35,17 +35,17 @@ pub fn visitor(
         .route("/:visotor_id/delete", delete_handler(delete))
         .route("/:visitor_id/initialize", patch(initialize))
         .route("/join", post(join))
-        .with_state(&usecase)
+        .with_state(usecase)
         .nest("/:visitor_id/palette", palette)
         .nest("/:visitor_id/image", image)
 }
 
 async fn delete<U: VisitorUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<DeleteRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase
         .delete_visitor(VisitorIdentification {
             visitor_id,
@@ -57,11 +57,11 @@ async fn delete<U: VisitorUsecase>(
 }
 
 async fn initialize<U: VisitorUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<InitializeRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .initialize_visitor(
             VisitorIdentification {
@@ -82,10 +82,10 @@ async fn initialize<U: VisitorUsecase>(
 }
 
 async fn join<U: VisitorUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Json(req): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .join_event(req.event_id, req.registration_id)
         .await?;

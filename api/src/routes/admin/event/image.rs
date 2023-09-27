@@ -25,16 +25,16 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
         .route("/register-default", post(register_default))
         .route("/upload-visitor", post(upload_visitor))
         .layer(middleware::from_fn(auth))
-        .with_state(&usecase)
+        .with_state(usecase)
 }
 
 async fn check_visitor<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<CheckVisitorRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .check_visitor_image_exist(subject, event_id, req.visitor_id)
         .await?;
@@ -43,12 +43,12 @@ async fn check_visitor<U: ImageUsecase>(
 }
 
 async fn delete_default<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<DeleteDefaultRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase
         .delete_default_image(subject, event_id, req.image_id)
         .await?;
@@ -57,12 +57,12 @@ async fn delete_default<U: ImageUsecase>(
 }
 
 async fn register_default<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     while let Some(field) = multipart
         .next_field()
         .await
@@ -81,12 +81,12 @@ async fn register_default<U: ImageUsecase>(
 }
 
 async fn upload_visitor<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     while let Some(field) = multipart
         .next_field()
         .await

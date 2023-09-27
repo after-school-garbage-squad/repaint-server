@@ -26,16 +26,16 @@ pub fn spot(usecase: impl SpotUsecase) -> Router {
         .route("/register", post(register))
         .route("/update", patch(update))
         .layer(middleware::from_fn(auth))
-        .with_state(&usecase)
+        .with_state(usecase)
 }
 
 async fn check_by_beacon<U: SpotUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<CheckByBeaconRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .check_status_by_beacon(subject, event_id, req.hw_id)
         .await?;
@@ -44,12 +44,12 @@ async fn check_by_beacon<U: SpotUsecase>(
 }
 
 async fn check_by_qr<U: SpotUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<CheckByQrRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .check_status_by_qr(subject, event_id, req.spot_id)
         .await?;
@@ -58,35 +58,35 @@ async fn check_by_qr<U: SpotUsecase>(
 }
 
 async fn delete<U: SpotUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<DeleteRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase.delete_spot(subject, event_id, req.spot_id).await?;
 
     Ok(StatusCode::NO_CONTENT)
 }
 
 async fn list<U: SpotUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase.list_spot(subject, event_id).await?;
 
     Ok((StatusCode::OK, Json(res)))
 }
 
 async fn register<U: SpotUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<RegisterRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .register_spot(
             subject,
@@ -103,12 +103,12 @@ async fn register<U: SpotUsecase>(
 }
 
 async fn update<U: SpotUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
     Json(req): Json<UpdateRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .update_spot(subject, event_id, req.spot_id, req.name, req.is_pick)
         .await?;

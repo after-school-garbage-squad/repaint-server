@@ -1,6 +1,8 @@
 #![warn(missing_debug_implementations)]
 #![warn(unreachable_pub)]
 
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use email_address::EmailAddress;
 use repaint_server_usecase::infra::email::EmailSender;
@@ -16,13 +18,14 @@ pub struct SendGrid {
 }
 
 impl SendGrid {
-    pub fn new(api_key: &str, send_from: EmailAddress, url: &str) -> Self {
-        let sender = Sender::new(api_key.to_string());
+    pub fn new(api_key: String, send_from: String, url: String) -> Self {
+        let sender = Sender::new(api_key);
+        let send_from = EmailAddress::from_str(&send_from).expect("invalid email address");
 
         Self {
             sender,
             send_from,
-            url: url.to_string(),
+            url,
         }
     }
 }

@@ -16,18 +16,19 @@ impl From<UsecaseError> for Error {
 impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
-            Error(UsecaseError::BadRequest { message }) => {
-                let msg: &str = &message;
-
-                (StatusCode::BAD_REQUEST, msg)
-            }
+            Error(UsecaseError::BadRequest { message }) => (StatusCode::BAD_REQUEST, message),
             Error(UsecaseError::InternalServerError(e)) => {
                 tracing::error!("internal server error: {:?}", e);
 
-                (StatusCode::INTERNAL_SERVER_ERROR, "Internal Server Error")
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Internal Server Error".to_string(),
+                )
             }
-            Error(UsecaseError::NotFound) => (StatusCode::NOT_FOUND, "Not Found"),
-            Error(UsecaseError::UnAuthorized) => (StatusCode::UNAUTHORIZED, "UnAuthorized"),
+            Error(UsecaseError::NotFound) => (StatusCode::NOT_FOUND, "Not Found".to_string()),
+            Error(UsecaseError::UnAuthorized) => {
+                (StatusCode::UNAUTHORIZED, "UnAuthorized".to_string())
+            }
         };
         let body = Json(json!({
             "error": error_message,

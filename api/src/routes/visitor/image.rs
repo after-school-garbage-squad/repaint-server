@@ -23,15 +23,15 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
         .route("/list", get(list))
         .route("/proxy", get(proxy))
         .route("/set-current", post(set_current))
-        .with_state(&usecase)
+        .with_state(usecase)
 }
 
 async fn get_current<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<GetCurrentRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .get_current_image(VisitorIdentification {
             visitor_id,
@@ -43,11 +43,11 @@ async fn get_current<U: ImageUsecase>(
 }
 
 async fn list<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<ListRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .list_image(VisitorIdentification {
             visitor_id,
@@ -59,11 +59,11 @@ async fn list<U: ImageUsecase>(
 }
 
 async fn proxy<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<ProxyRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let res = usecase
         .proxy_image(req.event_id, req.image_id, visitor_id)
         .await?;
@@ -72,11 +72,11 @@ async fn proxy<U: ImageUsecase>(
 }
 
 async fn set_current<U: ImageUsecase>(
-    State(usecase): State<&Arc<U>>,
+    State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
     Json(req): Json<SetCurrentRequest>,
 ) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(usecase);
+    let usecase = Arc::clone(&usecase);
     let _ = usecase
         .set_current_image(
             VisitorIdentification {
