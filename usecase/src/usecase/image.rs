@@ -11,6 +11,7 @@ use teloc::inject;
 
 use crate::infra::gcs::GoogleCloudStorage;
 use crate::infra::otp::ImageOtp;
+use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, ImageRepository, VisitorRepository};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -71,30 +72,38 @@ pub trait ImageUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct ImageUsecaseImpl<R, S, O> {
+pub struct ImageUsecaseImpl<R, S, O, P> {
     repo: R,
     storage: S,
     otp: O,
+    pubsub: P,
 }
 
 #[inject]
-impl<R, S, O> ImageUsecaseImpl<R, S, O>
+impl<R, S, O, P> ImageUsecaseImpl<R, S, O, P>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
     S: GoogleCloudStorage,
     O: ImageOtp,
+    P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, storage: S, otp: O) -> Self {
-        Self { repo, storage, otp }
+    pub fn new(repo: R, storage: S, otp: O, pubsub: P) -> Self {
+        Self {
+            repo,
+            storage,
+            otp,
+            pubsub,
+        }
     }
 }
 
 #[async_trait]
-impl<R, S, O> ImageUsecase for ImageUsecaseImpl<R, S, O>
+impl<R, S, O, P> ImageUsecase for ImageUsecaseImpl<R, S, O, P>
 where
     R: ImageRepository + EventRepository + VisitorRepository,
     S: GoogleCloudStorage,
     O: ImageOtp,
+    P: GoogleCloudPubSub,
 {
     async fn add_default_image(
         &self,
@@ -110,6 +119,7 @@ where
             .storage
             .upload_event_image(data, event_id, image_id)
             .await?;
+        let _ = self.pubsub.publish_event_image(event_id, image_id).await?;
         let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
 
         Ok(())
@@ -167,6 +177,10 @@ where
         let _ = self
             .storage
             .upload_visitor_image(data, event_id, image_id)
+            .await?;
+        let _ = self
+            .pubsub
+            .publish_visitor_image(event_id, visitor_id, image_id)
             .await?;
         let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
 
