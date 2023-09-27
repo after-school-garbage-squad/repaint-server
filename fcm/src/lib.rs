@@ -59,7 +59,7 @@ impl FirebaseCloudMessaging for Fcm {
     type Error = Error;
 
     async fn send(&self, registeration_id: String, spot_name: String) -> Result<(), Self::Error> {
-        self.client
+        let _ = self.client
             .post(format!(
                 "https://fcm.googleapis.com/v1/projects/{}/messages:send",
                 self.project_id
