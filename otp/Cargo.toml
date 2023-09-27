@@ -1,0 +1,13 @@
+[package]
+name = "repaint-image-otp"
+version = "1.0.0"
+edition = "2021"
+
+[dependencies]
+async-trait = "0.1.73"
+repaint-server-model = { path = "../model" }
+repaint-server-usecase = { path = "../usecase" }
+reqwest = { version = "0.11.20", default-features = false, features = [
+  "rustls-tls",
+] }
+teloc = "0.2.0"
