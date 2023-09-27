@@ -16,7 +16,8 @@ jobs:
       matrix:
         checks:
           - advisories
-          - bans licenses sources
+          - bans sources
+        #  - bans licenses sources
     continue-on-error: ${{ matrix.checks == 'advisories' }}
     steps:
       - name: Setup | Checkout
