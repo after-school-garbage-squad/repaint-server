@@ -60,6 +60,13 @@ pub trait ImageUsecase: AsyncSafe {
         visitor_identification: VisitorIdentification,
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error>;
+
+    async fn proxy_image(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<CurrentImage>,
+        visitor_id: Id<Visitor>,
+    ) -> Result<String, Error>;
 }
 
 #[derive(Debug)]
@@ -229,5 +236,15 @@ where
         let _ = ImageRepository::set_current_image(&self.repo, visitor.id, image_id).await?;
 
         Ok(())
+    }
+
+    async fn proxy_image(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<CurrentImage>,
+        visitor_id: Id<Visitor>,
+    ) -> Result<String, Error> {
+        todo!("proxy_image");
+        Ok("".to_string())
     }
 }
