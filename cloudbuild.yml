@@ -24,3 +24,5 @@ availableSecrets:
   secretManager:
     - versionName: projects/687466083847/secrets/backend-service-account-key
       env: 'SA_KEY'
+
+timeout: 1800s
