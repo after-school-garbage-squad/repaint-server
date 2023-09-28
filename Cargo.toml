@@ -22,4 +22,3 @@ members = [
 
 [dependencies]
 repaint-server-api = { path = "api" }
-tokio = { version = "1.32.0", features = ["macros"] }

@@ -24,16 +24,17 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Install git
+      - name: Setup OS
         run: |
-          apt-get update
-          apt-get install git -y
+          sudo apt-get update -y
+          sudo apt-get upgrade -y
+      - name: Setup Git
+        run: |
+          sudo apt-get install -y git
       - name: Checkout
         uses: actions/checkout@v4.1.0
         with:
           ref: ${{ github.event.inputs.ref }}
-      - name: Add safe directory
-        run: git config --global --add safe.directory $PWD
       - name: Deploy
         uses: re-taro/actions/docker-publish@v3.3.0
         with:
