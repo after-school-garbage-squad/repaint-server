@@ -40,7 +40,7 @@ pub trait SpotRepository: AsyncSafe {
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
-    ) -> Result<EventSpot, Self::Error>;
+    ) -> Result<Option<EventSpot>, Self::Error>;
 
     async fn delete(&self, event_id: i32, spot_id: Id<EventSpot>)
         -> Result<IsUpdated, Self::Error>;
@@ -140,7 +140,7 @@ pub trait EventRepository: AsyncSafe {
         name: String,
         hp_url: String,
         contact: Contact,
-    ) -> Result<Event, Self::Error>;
+    ) -> Result<Option<Event>, Self::Error>;
 
     async fn get(&self, event_id: Id<Event>) -> Result<Option<Event>, Self::Error>;
 }

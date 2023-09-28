@@ -218,7 +218,13 @@ where
             });
         }
 
-        let spot = SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?;
+        let Some(spot) =
+            SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?
+        else {
+            return Err(Error::BadRequest {
+                message: format!("{} is not found", spot_id),
+            });
+        };
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,

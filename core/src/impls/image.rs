@@ -7,7 +7,7 @@ use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_usecase::infra::repo::{ImageRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
 };
 
 use crate::entity::{event_images, events, visitor_images, visitors};
@@ -137,7 +137,9 @@ impl ImageRepository for SeaOrm {
             .one(&tx)
             .await?
             .and_then(|(_, i)| i)
-            .unwrap()
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(
+                "visitor_images".into(),
+            )))?
             .into();
         image.current_image_id = Set(current_image_id.dty());
         let res = image.update(&tx).await;
@@ -154,7 +156,9 @@ impl ImageRepository for SeaOrm {
             .one(&tx)
             .await?
             .and_then(|(_, i)| i)
-            .unwrap()
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(
+                "visitor_images".into(),
+            )))?
             .into();
         image.is_updated = Set(true);
         let res = image.update(&tx).await;
@@ -169,7 +173,9 @@ impl ImageRepository for SeaOrm {
             .one(self.con())
             .await?
             .and_then(|(_, i)| i)
-            .unwrap();
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(
+                "visitor_images".into(),
+            )))?;
 
         Ok(image.is_updated)
     }
@@ -321,6 +327,10 @@ mod test {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
         let visitor = orm.make_test_visitor(event.id).await;
+        let v = Id::new();
+        let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, v)
+            .await
+            .unwrap();
 
         let res1 = ImageRepository::check_update(orm.orm(), visitor.id)
             .await

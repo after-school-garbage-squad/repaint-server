@@ -197,7 +197,13 @@ where
             });
         }
 
-        let event = EventRepository::update(&self.repo, event.id, name, hp_url, contact).await?;
+        let Some(event) =
+            EventRepository::update(&self.repo, event.id, name, hp_url, contact).await?
+        else {
+            return Err(Error::BadRequest {
+                message: format!("{} is not found", event_id),
+            });
+        };
 
         Ok(UpdateEventResponse {
             event_id: event.event_id,
