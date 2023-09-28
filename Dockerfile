@@ -34,4 +34,7 @@ LABEL org.opencontainers.image.source=https://github.com/after-school-garbage-sq
 USER nonroot:nonroot
 COPY --chown=nonroot:nonroot --from=build /app/target/release/repaint-server /
 
+ARG SA_KEY=""
+RUN echo "$SA_KEY" > /app/credentials.json.json
+
 ENTRYPOINT [ "/repaint-server" ]

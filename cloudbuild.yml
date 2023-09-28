@@ -1,0 +1,26 @@
+steps:
+  # Build the container image
+  - name: 'gcr.io/cloud-builders/docker'
+    entrypoint: 'bash'
+    args: ['-c', 'docker build -t gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA --build-arg SA_KEY=$$KEY_JSON .']
+    secretEnv: ['SA_KEY']
+  # Push the container image to Container Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args: ['push', 'gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA']
+  # Deploy container image to Cloud Run
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: gcloud
+    args:
+    - 'run'
+    - 'deploy'
+    - 'backend-service'
+    - '--image'
+    - 'gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA'
+    - '--region'
+    - 'asia-northeast2'
+images:
+  - 'gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA'
+availableSecrets:
+  secretManager:
+    - versionName: projects/687466083847/secrets/backend-service-account-key
+      env: 'SA_KEY'
