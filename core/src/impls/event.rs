@@ -4,7 +4,7 @@ use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
 };
 
 use crate::entity::{admins, events, events_admins};
@@ -76,7 +76,7 @@ impl EventRepository for SeaOrm {
             .filter(events_admins::Column::EventId.eq(event_id))
             .one(&tx)
             .await?
-            .unwrap();
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("events_admins".into())))?;
 
         e.delete(&tx).await?;
         let res = events::Entity::delete_by_id(event_id).exec(&tx).await;
@@ -104,21 +104,21 @@ impl EventRepository for SeaOrm {
         name: String,
         hp_url: String,
         contact: Contact,
-    ) -> Result<Event, Self::Error> {
+    ) -> Result<Option<Event>, Self::Error> {
         let tx = self.con().begin().await?;
 
-        let mut event: events::ActiveModel = events::Entity::find_by_id(event_id)
-            .one(&tx)
-            .await?
-            .unwrap()
-            .into();
+        let mut event: events::ActiveModel =
+            match events::Entity::find_by_id(event_id).one(&tx).await? {
+                Some(m) => m.into(),
+                None => return Ok(None),
+            };
         event.name = Set(name);
         event.hp_url = Set(hp_url);
         event.contact = Set(AsJson(contact));
         let event = event.update(&tx).await?;
         tx.commit().await?;
 
-        to_model(event)
+        to_model(event).map(Some)
     }
 
     async fn get(&self, event_id: Id<Event>) -> Result<Option<Event>, Self::Error> {
@@ -268,7 +268,7 @@ pub(crate) mod test {
 
         self::assert_eq!(
             res,
-            Event {
+            Some(Event {
                 id: event.id,
                 event_id: event.event_id,
                 name: "test2".into(),
@@ -278,7 +278,7 @@ pub(crate) mod test {
                     email: event.contact.email,
                     phone: event.contact.phone,
                 },
-            }
+            })
         );
     }
 

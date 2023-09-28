@@ -3,7 +3,7 @@ use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, EntityTrait, ModelTrait, TransactionTrait};
+use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, ModelTrait, TransactionTrait};
 
 use crate::entity::{event_spots, events};
 use crate::ty::string::ToDatabaseType;
@@ -104,8 +104,8 @@ impl SpotRepository for SeaOrm {
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
-    ) -> Result<EventSpot, Self::Error> {
-        let mut spot: event_spots::ActiveModel = events::Entity::find_by_id(event_id)
+    ) -> Result<Option<EventSpot>, Self::Error> {
+        let mut spot: event_spots::ActiveModel = match events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
             .all(self.con())
             .await?
@@ -113,13 +113,15 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .unwrap()
-            .into();
+        {
+            Some(m) => m.into(),
+            None => return Ok(None),
+        };
         spot.name = Set(name);
         spot.is_pick = Set(is_pick);
         let spot = spot.update(self.con()).await?;
 
-        to_model(spot)
+        to_model(spot).map(Some)
     }
 
     async fn delete(
@@ -137,7 +139,7 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .unwrap();
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("event_spots".into())))?;
         let res = spot.delete(&tx).await;
         tx.commit().await?;
 
@@ -157,9 +159,9 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .map(to_model)
-            .transpose()
-            .and_then(|s| Ok(s.unwrap().bonus))
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("event_spots".into())))
+            .map(to_model)?
+            .and_then(|s| Ok(s.bonus))
     }
 
     async fn set_bonus_state(
@@ -178,7 +180,7 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .unwrap()
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("event_spots".into())))?
             .into();
         spot.bonus = Set(is_bonus);
         let res = spot.update(&tx).await;
@@ -218,9 +220,6 @@ mod test {
                 name: Set("test".into()),
                 is_pick: Set(false),
                 bonus: Set(false),
-                major: Set(2525),
-                minor: Set(100),
-                beacon_uuid: Set("feaa7564-bd8a-45".into()),
                 hw_id: Set(hw_id),
                 service_uuid: Set("c974fe40-aa94-4e".into()),
                 ..Default::default()
@@ -293,14 +292,14 @@ mod test {
 
         self::assert_eq!(
             res,
-            EventSpot {
+            Some(EventSpot {
                 spot_id: spot.spot_id,
                 name: "test2".into(),
                 is_pick: true,
                 bonus: false,
                 hw_id: spot.hw_id,
                 service_uuid: "c974fe40-aa94-4e".into(),
-            }
+            })
         );
     }
 

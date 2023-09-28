@@ -229,7 +229,7 @@ impl FirestoreInfra for Firestore {
             .try_collect::<Vec<_>>()
             .await?
             .into_iter()
-            .map(|v| Id::<Visitor>::from_str(&v.document).unwrap())
+            .map(|v| Id::<Visitor>::from_str(v.document.as_str()).unwrap())
             .collect::<Vec<_>>();
 
         Ok(res)

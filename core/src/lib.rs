@@ -59,7 +59,7 @@ cfg_if::cfg_if! {
 
                 {
                     let mut con = PgConnection::connect(TESTING_POSTGRES_URL).await.unwrap();
-                    sqlx::query(&format!("CREATE DATABASE \"{}\"", db_name)).execute(&mut con).await.unwrap();
+                    sqlx::query(format!("CREATE DATABASE \"{}\"", db_name).as_str()).execute(&mut con).await.unwrap();
                 }
 
                 let url = format!("{}/{}", TESTING_POSTGRES_URL_BASE, &db_name);
