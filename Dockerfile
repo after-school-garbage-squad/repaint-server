@@ -28,6 +28,9 @@ COPY . .
 RUN GIT_HASH=`git rev-parse HEAD | head -c 7` \
     cargo build --release
 
+ARG SA_KEY=""
+RUN echo "$SA_KEY" > /credentials.json
+
 FROM gcr.io/distroless/cc-debian11 as runtime
 
 LABEL org.opencontainers.image.source=https://github.com/after-school-garbage-squad/repaint-server
