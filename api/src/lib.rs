@@ -1,6 +1,8 @@
 use std::net::{SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
+use axum::body::Body;
+use axum::http::Request;
 use axum::Router;
 use repaint_server_core::SeaOrm;
 use repaint_server_fcm::Fcm;
@@ -16,6 +18,7 @@ use repaint_server_usecase::usecase::palette::PaletteUsecaseImpl;
 use repaint_server_usecase::usecase::spot::SpotUsecaseImpl;
 use repaint_server_usecase::usecase::traffic::TrafficUsecaseImpl;
 use repaint_server_usecase::usecase::visitor::VisitorUsecaseImpl;
+use sentry::integrations::tower as sentry_tower;
 use teloc::{Resolver, ServiceProvider};
 use tokio::signal;
 use tokio::sync::oneshot;
@@ -33,17 +36,32 @@ mod routes;
 mod utils;
 
 #[cfg(debug_assertions)]
-const LOG_LEVEL: &str = "debug,sqlx=warn";
-#[cfg(not(debug_assertions))]
-const LOG_LEVEL: &str = "info,sqlx=warn";
+const VERSION: &str = "DEVELOPMENT BUILD";
 
-pub async fn run() {
+#[cfg(not(debug_assertions))]
+const VERSION: &str = env!("GIT_HASH");
+#[cfg(not(debug_assertions))]
+static_assertions::const_assert!(VERSION.len() == 7);
+
+pub fn run() {
     dotenvy::dotenv().ok();
+    let _ = sentry::init((
+        envvar_str("SENTRY_DSN", None),
+        sentry::ClientOptions {
+            release: Some(VERSION.into()),
+            traces_sample_rate: 1.0,
+            environment: Some(envvar_str("SENTRY_ENVIRONMENT", "development").into()),
+            ..Default::default()
+        },
+    ));
+    start();
+}
+
+#[tokio::main]
+async fn start() {
     tracing_subscriber::registry()
-        .with(tracing_subscriber::EnvFilter::new(envvar_str(
-            "RUST_LOG", LOG_LEVEL,
-        )))
-        .with(tracing_subscriber::fmt::layer().with_ansi(std::env::var("NO_COLOR").is_err()))
+        .with(tracing_subscriber::fmt::layer())
+        .with(sentry_tracing::layer())
         .init();
 
     let addr: SocketAddr = SocketAddr::V4(SocketAddrV4::new(
@@ -100,7 +118,9 @@ pub async fn run() {
         .nest(
             "/visitor",
             visitor(visitor_usecase, palette_usecase, image_usecase),
-        );
+        )
+        .layer(sentry_tower::NewSentryLayer::<Request<Body>>::new_from_top())
+        .layer(sentry_tower::SentryHttpLayer::with_transaction());
 
     tracing::info!("staring server at {addr}");
 
