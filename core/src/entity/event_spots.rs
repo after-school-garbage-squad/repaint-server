@@ -17,9 +17,6 @@ pub struct Model {
     pub name: String,
     pub is_pick: bool,
     pub bonus: bool,
-    pub major: i16,
-    pub minor: i16,
-    pub beacon_uuid: String,
     #[sea_orm(unique)]
     pub hw_id: String,
     pub service_uuid: String,

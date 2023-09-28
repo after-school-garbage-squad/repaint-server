@@ -218,9 +218,6 @@ mod test {
                 name: Set("test".into()),
                 is_pick: Set(false),
                 bonus: Set(false),
-                major: Set(2525),
-                minor: Set(100),
-                beacon_uuid: Set("feaa7564-bd8a-45".into()),
                 hw_id: Set(hw_id),
                 service_uuid: Set("c974fe40-aa94-4e".into()),
                 ..Default::default()
