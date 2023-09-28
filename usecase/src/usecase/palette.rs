@@ -92,14 +92,14 @@ where
                     })?
                     .clone();
 
-                Id::<CurrentImage>::from_str(&current_image_id.to_string())
+                Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
                     .ok()
                     .ok_or(Error::BadRequest {
                         message: "failed to parse default image id to current image id".to_string(),
                     })?
             }
         };
-        let image_id = Id::<VisitorImage>::from_str(&image.to_string())?;
+        let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
         let _ = self
             .pubsub
             .publish_merge_current_image(
@@ -243,14 +243,14 @@ where
                     })?
                     .clone();
 
-                Id::<CurrentImage>::from_str(&current_image_id.to_string())
+                Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
                     .ok()
                     .ok_or(Error::BadRequest {
                         message: "failed to parse default image id to current image id".to_string(),
                     })?
             }
         };
-        let image_id = Id::<VisitorImage>::from_str(&image.to_string())?;
+        let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
         let _ = self
             .pubsub
             .publish_merge_current_image(

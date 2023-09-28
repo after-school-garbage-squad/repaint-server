@@ -143,7 +143,7 @@ where
                     })?
                     .clone();
 
-                Id::<CurrentImage>::from_str(&current_image_id.to_string())
+                Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
                     .ok()
                     .ok_or(Error::BadRequest {
                         message: "failed to parse default image id to current image id".to_string(),

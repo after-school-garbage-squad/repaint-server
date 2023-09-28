@@ -20,7 +20,7 @@ pub struct SendGrid {
 impl SendGrid {
     pub fn new(api_key: String, send_from: String, url: String) -> Self {
         let sender = Sender::new(api_key);
-        let send_from = EmailAddress::from_str(&send_from).expect("invalid email address");
+        let send_from = EmailAddress::from_str(send_from.as_str()).expect("invalid email address");
 
         Self {
             sender,

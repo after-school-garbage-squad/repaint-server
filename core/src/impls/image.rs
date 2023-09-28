@@ -48,7 +48,7 @@ impl ImageRepository for SeaOrm {
             .one(&tx)
             .await?
             .and_then(|(_, i)| i)
-            .unwrap();
+            .expect("image not found");
         let res = image.delete(&tx).await;
         tx.commit().await?;
 
@@ -60,7 +60,7 @@ impl ImageRepository for SeaOrm {
         visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error> {
-        let current_image_id = Id::<CurrentImage>::from_str(&image_id.to_string())
+        let current_image_id = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
             .ok()
             .unwrap();
 
@@ -126,7 +126,7 @@ impl ImageRepository for SeaOrm {
         visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error> {
-        let current_image_id = Id::<CurrentImage>::from_str(&image_id.to_string())
+        let current_image_id = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
             .ok()
             .unwrap();
 
@@ -260,7 +260,7 @@ mod test {
             .await
             .unwrap();
 
-        let current_image_id = Id::<CurrentImage>::from_str(&image_id.to_string())
+        let current_image_id = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
             .ok()
             .unwrap();
 
@@ -294,9 +294,11 @@ mod test {
         let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
             .unwrap();
-        let current_id2 = Id::<CurrentImage>::from_str(&v.to_string()).ok().unwrap();
+        let current_id2 = Id::<CurrentImage>::from_str(v.to_string().as_str())
+            .ok()
+            .unwrap();
 
-        let visitor_image_id = Id::<VisitorImage>::from_str(&images[1].to_string())
+        let visitor_image_id = Id::<VisitorImage>::from_str(images[1].to_string().as_str())
             .ok()
             .unwrap();
         let _ = ImageRepository::set_current_image(orm.orm(), visitor.id, visitor_image_id.clone())
@@ -305,12 +307,34 @@ mod test {
         let res3 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
             .unwrap();
-        let current_id3 = Id::<CurrentImage>::from_str(&visitor_image_id.to_string())
+        let current_id3 = Id::<CurrentImage>::from_str(visitor_image_id.to_string().as_str())
             .ok()
             .unwrap();
 
         self::assert_eq!(res1, None);
         self::assert_eq!(res2, Some(current_id2));
         self::assert_eq!(res3, Some(current_id3));
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_set_get_update() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let visitor = orm.make_test_visitor(event.id).await;
+
+        let res1 = ImageRepository::check_update(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
+        let _ = ImageRepository::set_update(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
+        let res2 = ImageRepository::check_update(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
+        self::assert_eq!(res1, false);
+        self::assert_eq!(res2, true);
     }
 }
