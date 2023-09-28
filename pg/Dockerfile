@@ -1,4 +1,4 @@
-FROM postgres:15.4
+FROM postgres:16.0
 
 ADD pg_stat_statements.sh /docker-entrypoint-initdb.d
 ADD ./init /docker-entrypoint-initdb.d
