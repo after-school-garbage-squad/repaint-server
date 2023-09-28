@@ -26,3 +26,6 @@ test: start
       cd model && cargo test
       cd core && cargo test
       docker compose down
+
+license:
+      cargo about generate about.hbs > api/asset/license.html

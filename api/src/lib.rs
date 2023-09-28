@@ -27,6 +27,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 use crate::routes::admin::admin;
 use crate::routes::healthz::healthz;
+use crate::routes::license::license;
 use crate::routes::version::version;
 use crate::routes::visitor::visitor;
 use crate::utils::{envvar, envvar_str};
@@ -113,12 +114,13 @@ async fn start() {
                 image_usecase.clone(),
             ),
         )
-        .nest("/healthz", healthz())
-        .nest("/version", version())
         .nest(
             "/visitor",
             visitor(visitor_usecase, palette_usecase, image_usecase),
         )
+        .nest("/healthz", healthz())
+        .nest("/version", version())
+        .nest("/license", license())
         .layer(sentry_tower::NewSentryLayer::<Request<Body>>::new_from_top())
         .layer(sentry_tower::SentryHttpLayer::with_transaction());
 
