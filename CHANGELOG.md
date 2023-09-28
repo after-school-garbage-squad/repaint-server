@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.1.0](https://github.com/after-school-garbage-squad/repaint-server/compare/v1.0.0...v1.1.0) (2023-09-28)
+
+
+### Features
+
+* add cloudbuild.yml ([#153](https://github.com/after-school-garbage-squad/repaint-server/issues/153)) ([fabfe7a](https://github.com/after-school-garbage-squad/repaint-server/commit/fabfe7a15f6b3d5204f8b7661fce1308fa28e6e9))
+* impl sentry ([#154](https://github.com/after-school-garbage-squad/repaint-server/issues/154)) ([47a7e9c](https://github.com/after-school-garbage-squad/repaint-server/commit/47a7e9ce5d44297599662438ccd67c32009fda63))
+* impl set and check image update flag ([#157](https://github.com/after-school-garbage-squad/repaint-server/issues/157)) ([3f6e9e0](https://github.com/after-school-garbage-squad/repaint-server/commit/3f6e9e01be61009f210ff94ad629d5d462a01d1c))
+* switch license to Apache-2.0 ([#160](https://github.com/after-school-garbage-squad/repaint-server/issues/160)) ([5fea742](https://github.com/after-school-garbage-squad/repaint-server/commit/5fea7429a541948f455203551ade0f23ba8ab83f))
+
 ## 1.0.0 (2023-09-27)
 
 

@@ -2253,14 +2253,14 @@ dependencies = [
 
 [[package]]
 name = "repaint-server"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "repaint-server-api",
 ]
 
 [[package]]
 name = "repaint-server-api"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "axum",
  "dotenvy",
@@ -2290,7 +2290,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-core"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -2315,7 +2315,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-fcm"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "google-cloud-auth",
@@ -2328,7 +2328,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-firestore"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2344,7 +2344,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-gcs"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "google-cloud-storage",
@@ -2355,7 +2355,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-migration"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "pretty_assertions",
@@ -2365,7 +2365,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-model"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "derivative",
  "email_address",
@@ -2376,7 +2376,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-otp"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "repaint-server-model",
@@ -2387,7 +2387,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-pubsub"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "google-cloud-gax",
@@ -2401,7 +2401,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-sg"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "async-trait",
  "email_address",
@@ -2412,7 +2412,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-usecase"
-version = "1.0.0"
+version = "1.1.0"
 dependencies = [
  "anyhow",
  "async-trait",
