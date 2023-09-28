@@ -35,6 +35,6 @@ USER nonroot:nonroot
 COPY --chown=nonroot:nonroot --from=build /app/target/release/repaint-server /
 
 ARG SA_KEY=""
-RUN echo "$SA_KEY" > /app/credentials.json.json
+RUN echo "$SA_KEY" > /app/credentials.json
 
 ENTRYPOINT [ "/repaint-server" ]
