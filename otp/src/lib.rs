@@ -18,10 +18,10 @@ pub struct Otp {
 }
 
 impl Otp {
-    pub fn new(gcs_url: String, origin: String) -> Self {
+    pub fn new(bucket: String, origin: String) -> Self {
         Self {
             client: Client::new(),
-            gcs_url,
+            gcs_url: format!("gs://{}", bucket),
             origin,
         }
     }

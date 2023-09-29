@@ -6,7 +6,7 @@ use std::str::FromStr;
 use async_trait::async_trait;
 use chrono::Utc;
 use firestore::errors::FirestoreError;
-use firestore::{path, paths, FirestoreDb, FirestoreResult};
+use firestore::{path, paths, FirestoreDb, FirestoreDbOptions, FirestoreResult};
 use futures::stream::BoxStream;
 use futures::TryStreamExt;
 use rand::distributions::Alphanumeric;
@@ -34,10 +34,13 @@ pub struct Firestore {
 }
 
 impl Firestore {
-    pub async fn new(project_id: String) -> Self {
-        let client = FirestoreDb::new(&project_id)
-            .await
-            .expect("Failed to create Firestore client");
+    pub async fn new(project_id: String, cred_path: String) -> Self {
+        let client = FirestoreDb::with_options_service_account_key_file(
+            FirestoreDbOptions::new(project_id),
+            cred_path.into(),
+        )
+        .await
+        .expect("Failed to create Firestore client");
 
         Self { client }
     }
