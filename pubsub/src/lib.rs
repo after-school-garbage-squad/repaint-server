@@ -4,7 +4,6 @@
 use async_trait::async_trait;
 use google_cloud_gax::grpc::Status;
 use google_cloud_googleapis::pubsub::v1::PubsubMessage;
-use google_cloud_pubsub::client::google_cloud_auth::credentials::CredentialsFile;
 use google_cloud_pubsub::client::{Client, ClientConfig};
 use repaint_server_model::event::Event;
 use repaint_server_model::event_image::Image as EventImage;
@@ -23,17 +22,9 @@ pub struct PubSub {
 }
 
 impl PubSub {
-    pub async fn new(
-        cred_path: String,
-        cluster: i32,
-        clustering_topic: String,
-        merge_topic: String,
-    ) -> Self {
-        let cred = CredentialsFile::new_from_file(cred_path)
-            .await
-            .expect("failed to get credentials file");
+    pub async fn new(cluster: i32, clustering_topic: String, merge_topic: String) -> Self {
         let config = ClientConfig::default()
-            .with_credentials(cred)
+            .with_auth()
             .await
             .expect("failed to create config");
         let client = Client::new(config).await.expect("failed to create client");

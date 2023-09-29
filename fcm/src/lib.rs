@@ -17,14 +17,14 @@ pub struct Fcm {
 }
 
 impl Fcm {
-    pub async fn new(project_id: String, cred_path: String) -> Self {
+    pub async fn new(project_id: String) -> Self {
         let scopes = ["https://www.googleapis.com/auth/firebase.messaging"];
         let config = Config {
             audience: None,
             scopes: Some(&scopes),
             sub: None,
         };
-        let cred = CredentialsFile::new_from_file(cred_path)
+        let cred = CredentialsFile::new()
             .await
             .expect("failed to get credentials file");
         let ts = DefaultTokenSourceProvider::new_with_credentials(config, Box::new(cred))
