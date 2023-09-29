@@ -1,28 +1,46 @@
 steps:
-  # Build the container image
-  - name: 'gcr.io/cloud-builders/docker'
-    entrypoint: 'bash'
-    args: ['-c', 'docker build -t gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA --build-arg SA_KEY=$$KEY_JSON .']
+  - name: gcr.io/cloud-builders/docker
+    entrypoint: bash
+    args: ['-c', 'docker build --build-arg SA_KEY=$$KEY_JSON --no-cache -t $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA . -f Dockerfile']
+    id: Build
     secretEnv: ['SA_KEY']
-  # Push the container image to Container Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA']
-  # Deploy container image to Cloud Run
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: gcloud
+  - name: gcr.io/cloud-builders/docker
     args:
-    - 'run'
-    - 'deploy'
-    - 'backend-service'
-    - '--image'
-    - 'gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA'
-    - '--region'
-    - 'asia-northeast2'
+      - push
+      - >-
+        $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+    id: Push
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
+    args:
+      - run
+      - services
+      - update
+      - $_SERVICE_NAME
+      - '--platform=managed'
+      - >-
+        --image=$_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+      - >-
+        --labels=managed-by=gcp-cloud-build-deploy-cloud-run,commit-sha=$COMMIT_SHA,gcb-build-id=$BUILD_ID,gcb-trigger-id=$_TRIGGER_ID
+      - '--region=$_DEPLOY_REGION'
+      - '--quiet'
+    id: Deploy
+    entrypoint: gcloud
 images:
-  - 'gcr.io/$PROJECT_ID/backend-service:$COMMIT_SHA'
+  - >-
+    $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
+options:
+  substitutionOption: ALLOW_LOOSE
+substitutions:
+  _PLATFORM: managed
+  _TRIGGER_ID: 3d06106e-b896-4000-9794-17fb78781542
+  _SERVICE_NAME: backend-server
+  _DEPLOY_REGION: asia-northeast2
+  _AR_HOSTNAME: asia-northeast2-docker.pkg.dev
+tags:
+  - gcp-cloud-build-deploy-cloud-run
+  - gcp-cloud-build-deploy-cloud-run-managed
+  - backend-server
 availableSecrets:
   secretManager:
-    - versionName: projects/687466083847/secrets/backend-service-account-key
+    - versionName: projects/687466083847/secrets/backend-service-account-key/versions/1
       env: 'SA_KEY'
-
-timeout: 1800s
