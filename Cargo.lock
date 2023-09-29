@@ -2312,13 +2312,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "repaint-server"
-version = "1.1.0"
-dependencies = [
- "repaint-server-api",
-]
-
-[[package]]
 name = "repaint-server-api"
 version = "1.1.0"
 dependencies = [

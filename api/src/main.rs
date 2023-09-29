@@ -44,7 +44,7 @@ const VERSION: &str = env!("GIT_HASH");
 #[cfg(not(debug_assertions))]
 static_assertions::const_assert!(VERSION.len() == 7);
 
-pub fn run() {
+fn main() {
     dotenvy::dotenv().ok();
     let _ = sentry::init((
         envvar_str("SENTRY_DSN", None),

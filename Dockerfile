@@ -26,7 +26,10 @@ RUN cargo chef cook --release --recipe-path recipe.json
 
 COPY . .
 RUN GIT_HASH=`git rev-parse HEAD | head -c 7` \
-    cargo build --release
+    cargo build --release \
+    --bin repaint-server-api \
+    --no-default-features \
+    --features=email_gmail
 
 ARG SA_KEY=""
 RUN echo "$SA_KEY" > /credentials.json
@@ -35,6 +38,6 @@ FROM gcr.io/distroless/cc-debian11 as runtime
 
 LABEL org.opencontainers.image.source=https://github.com/after-school-garbage-squad/repaint-server
 USER nonroot:nonroot
-COPY --chown=nonroot:nonroot --from=build /app/target/release/repaint-server /
+COPY --chown=nonroot:nonroot --from=build /app/target/release/repaint-server-api /
 
-ENTRYPOINT [ "/repaint-server" ]
+ENTRYPOINT [ "/repaint-server-api" ]
