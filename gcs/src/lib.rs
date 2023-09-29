@@ -1,6 +1,7 @@
 #![warn(unreachable_pub)]
 
 use async_trait::async_trait;
+use google_cloud_storage::client::google_cloud_auth::credentials::CredentialsFile;
 use google_cloud_storage::client::{Client, ClientConfig};
 use google_cloud_storage::http::objects::upload::{Media, UploadObjectRequest, UploadType};
 use google_cloud_storage::http::Error;
@@ -18,10 +19,12 @@ pub struct Gcs {
 }
 
 impl Gcs {
-    /// Please set `GOOGLE_APPLICATION_CREDENTIALS_JSON` environment variable.
-    pub async fn new(bucket: String) -> Self {
+    pub async fn new(bucket: String, cred_path: String) -> Self {
+        let cred = CredentialsFile::new_from_file(cred_path)
+            .await
+            .expect("failed to get credentials file");
         let config = ClientConfig::default()
-            .with_auth()
+            .with_credentials(cred)
             .await
             .expect("failed to create config");
         let client = Client::new(config);

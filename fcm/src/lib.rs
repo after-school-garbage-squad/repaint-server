@@ -17,17 +17,16 @@ pub struct Fcm {
 }
 
 impl Fcm {
-    /// Please set `GOOGLE_APPLICATION_CREDENTIALS_JSON` environment variable.
-    pub async fn new(project_id: String) -> Self {
+    pub async fn new(project_id: String, cred_path: String) -> Self {
         let scopes = ["https://www.googleapis.com/auth/firebase.messaging"];
         let config = Config {
             audience: None,
             scopes: Some(&scopes),
             sub: None,
         };
-        let cred = CredentialsFile::new()
+        let cred = CredentialsFile::new_from_file(cred_path)
             .await
-            .expect("failed to create credentials file");
+            .expect("failed to get credentials file");
         let ts = DefaultTokenSourceProvider::new_with_credentials(config, Box::new(cred))
             .await
             .expect("failed to create token source");
