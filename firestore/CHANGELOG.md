@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.0...repaint-server-v1.2.1) (2023-09-29)
+
+
+### Bug Fixes
+
+* manualy set GOOGLE_CREDENTIALS ([#168](https://github.com/after-school-garbage-squad/repaint-server/issues/168)) ([661124f](https://github.com/after-school-garbage-squad/repaint-server/commit/661124faaba6f6734120b486819686b0caa2e1a3))
+
 ## 1.2.0 (2023-09-29)
 
 
