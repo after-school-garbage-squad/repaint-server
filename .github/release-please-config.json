@@ -1,7 +1,40 @@
 {
   "release-type": "rust",
   "packages": {
-    "*": {
+    "api": {
+      "component": "repaint-server"
+    },
+    "core": {
+      "component": "repaint-server"
+    },
+    "fcm": {
+      "component": "repaint-server"
+    },
+    "firestore": {
+      "component": "repaint-server"
+    },
+    "gcs": {
+      "component": "repaint-server"
+    },
+    "gmail": {
+      "component": "repaint-server"
+    },
+    "migration": {
+      "component": "repaint-server"
+    },
+    "model": {
+      "component": "repaint-server"
+    },
+    "otp": {
+      "component": "repaint-server"
+    },
+    "pubsub": {
+      "component": "repaint-server"
+    },
+    "sg": {
+      "component": "repaint-server"
+    },
+    "usecase": {
       "component": "repaint-server"
     }
   },
