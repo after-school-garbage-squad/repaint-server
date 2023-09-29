@@ -8,10 +8,11 @@ license.workspace = true
 
 [dependencies]
 async-trait = "0.1.73"
-google-cloud-storage = { version = "0.13.1", default-features = false, features = [
-  "auth",
-  "rustls-tls",
-] }
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
 teloc = "0.2.0"
+
+[dependencies.google-cloud-storage]
+version = "0.13.1"
+default-features = false
+features = ["auth", "rustls-tls"]
