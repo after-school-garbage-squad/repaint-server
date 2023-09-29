@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.2](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.1...repaint-server-v1.2.2) (2023-09-29)
+
+
+### Bug Fixes
+
+* fix credential.json import ([#170](https://github.com/after-school-garbage-squad/repaint-server/issues/170)) ([4299b73](https://github.com/after-school-garbage-squad/repaint-server/commit/4299b7372a956253145d9793e594e84034fdb5eb))
+
 ## [1.2.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.0...repaint-server-v1.2.1) (2023-09-29)
 
 
