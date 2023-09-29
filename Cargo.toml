@@ -1,17 +1,11 @@
-[package]
-name = "repaint-server"
-version = "1.1.0"
-edition = "2021"
-license = "Apache-2.0"
-
 [workspace]
 members = [
-  ".",
   "api",
   "core",
   "fcm",
   "firestore",
   "gcs",
+  "gmail",
   "migration",
   "model",
   "otp",
@@ -20,5 +14,9 @@ members = [
   "usecase",
 ]
 
-[dependencies]
-repaint-server-api = { path = "api" }
+[workspace.package]
+version = "1.1.0"
+edition = "2021"
+publish = false
+authors = ["Rintaro Itokawa <me@re-taro.dev>"]
+license = "Apache-2.0"

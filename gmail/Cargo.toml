@@ -1,5 +1,5 @@
 [package]
-name = "repaint-server-gcs"
+name = "repaint-server-gmail"
 version.workspace = true
 edition.workspace = true
 publish.workspace = true
@@ -8,11 +8,11 @@ license.workspace = true
 
 [dependencies]
 async-trait = "0.1.73"
-repaint-server-model = { path = "../model" }
+email_address = "0.2.4"
 repaint-server-usecase = { path = "../usecase" }
 teloc = "0.2.0"
 
-[dependencies.google-cloud-storage]
-version = "0.13.1"
+[dependencies.lettre]
+version = "0.10.4"
 default-features = false
-features = ["auth", "rustls-tls"]
+features = ["smtp-transport", "pool", "rustls-tls", "hostname", "builder"]

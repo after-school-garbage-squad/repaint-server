@@ -1,17 +1,21 @@
 [package]
 name = "repaint-server-pubsub"
-version = "1.1.0"
-edition = "2021"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+authors.workspace = true
+license.workspace = true
 
 [dependencies]
 async-trait = "0.1.73"
 google-cloud-gax = "0.15.0"
 google-cloud-googleapis = "0.11.0"
-google-cloud-pubsub = { version = "0.20.0", default-features = false, features = [
-  "auth",
-  "rustls-tls",
-] }
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
 serde_json = "1.0.107"
 teloc = "0.2.0"
+
+[dependencies.google-cloud-pubsub]
+version = "0.20.0"
+default-features = false
+features = ["auth", "rustls-tls"]
