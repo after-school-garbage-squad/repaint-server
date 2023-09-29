@@ -1,5 +1,10 @@
 {
   "release-type": "rust",
+  "packages": {
+    "*": {
+      "component": "repaint-server"
+    }
+  },
   "plugins": [
     {
       "type": "cargo-workspace",
