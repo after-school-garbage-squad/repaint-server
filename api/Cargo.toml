@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 axum = { version = "0.6.20", features = ["multipart"] }
+cfg-if = "1.0.0"
 dotenvy = "0.15.7"
 hyper = { version = "0.14.27", features = ["full"] }
 jsonwebtoken = "8.3.0"
@@ -12,9 +13,10 @@ repaint-server-core = { path = "../core" }
 repaint-server-fcm = { path = "../fcm" }
 repaint-server-firestore = { path = "../firestore" }
 repaint-server-gcs = { path = "../gcs" }
+repaint-server-gmail = { path = "../gmail", optional = true }
 repaint-server-otp = { path = "../otp" }
 repaint-server-pubsub = { path = "../pubsub" }
-repaint-server-sg = { path = "../sg" }
+repaint-server-sg = { path = "../sg", optional = true }
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
 reqwest = { version = "0.11.20", default-features = false, features = [
@@ -46,6 +48,11 @@ tokio = { version = "1.32.0", features = [
 tower-http = { version = "0.4.4", features = ["fs", "trace"] }
 tracing = "0.1.37"
 tracing-subscriber = "0.3.17"
+
+[features]
+default = ["email_sg"]
+email_sg = ["repaint-server-sg"]
+email_gmail = ["repaint-server-gmail"]
 
 [package.metadata.cargo-udeps.ignore]
 normal = ["static_assertions"]

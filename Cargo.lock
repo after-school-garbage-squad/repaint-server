@@ -2323,6 +2323,7 @@ name = "repaint-server-api"
 version = "1.1.0"
 dependencies = [
  "axum",
+ "cfg-if",
  "dotenvy",
  "hyper",
  "jsonwebtoken",
@@ -2330,6 +2331,7 @@ dependencies = [
  "repaint-server-fcm",
  "repaint-server-firestore",
  "repaint-server-gcs",
+ "repaint-server-gmail",
  "repaint-server-model",
  "repaint-server-otp",
  "repaint-server-pubsub",

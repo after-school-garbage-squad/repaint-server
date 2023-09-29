@@ -19,7 +19,7 @@ pub struct Gmail {
 }
 
 impl Gmail {
-    pub fn new(send_from: String, username: String, password: String, url: String) -> Self {
+    pub fn new(send_from: String, url: String, username: String, password: String) -> Self {
         let send_from = EmailAddress::from_str(send_from.as_str()).expect("invalid email address");
         let cred = Credentials::new(username, password);
         let client = SmtpTransport::relay("smtp.gmail.com")

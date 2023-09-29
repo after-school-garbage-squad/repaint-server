@@ -4,13 +4,13 @@ use std::time::Duration;
 use axum::body::Body;
 use axum::http::Request;
 use axum::Router;
+use cfg_if::cfg_if;
 use repaint_server_core::SeaOrm;
 use repaint_server_fcm::Fcm;
 use repaint_server_firestore::Firestore;
 use repaint_server_gcs::Gcs;
 use repaint_server_otp::Otp;
 use repaint_server_pubsub::PubSub;
-use repaint_server_sg::SendGrid;
 use repaint_server_usecase::usecase::admin::AdminUsecaseImpl;
 use repaint_server_usecase::usecase::event::EventUsecaseImpl;
 use repaint_server_usecase::usecase::image::ImageUsecaseImpl;
@@ -79,8 +79,8 @@ async fn start() {
         .add_singleton::<GcsProvider>()
         .add_singleton::<OtpProvider>()
         .add_singleton::<PubSubProvider>()
-        .add_singleton::<SendGridProvider>()
-        .add_transient::<AdminUsecaseImpl<SeaOrm, FirestoreProvider, SendGridProvider>>()
+        .add_singleton::<EmailProvider>()
+        .add_transient::<AdminUsecaseImpl<SeaOrm, FirestoreProvider, EmailProvider>>()
         .add_transient::<EventUsecaseImpl<SeaOrm, FirestoreProvider>>()
         .add_transient::<ImageUsecaseImpl<SeaOrm, GcsProvider, OtpProvider, PubSubProvider>>()
         .add_transient::<PaletteUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
@@ -93,7 +93,7 @@ async fn start() {
         .add_instance(gcs_provider().await)
         .add_instance(otp_provider())
         .add_instance(pubsub_provider().await)
-        .add_instance(sendgrid_provider());
+        .add_instance(email_provider());
 
     let admin_usecase: AdminUsecaseImpl<_, _, _> = container.resolve();
     let event_usecase: EventUsecaseImpl<_, _> = container.resolve();
@@ -174,7 +174,6 @@ type FirestoreProvider = Firestore;
 type GcsProvider = Gcs;
 type OtpProvider = Otp;
 type PubSubProvider = PubSub;
-type SendGridProvider = SendGrid;
 
 async fn fcm_provider() -> FcmProvider {
     let project_id = envvar_str("PROJECT_ID", None);
@@ -209,10 +208,33 @@ async fn pubsub_provider() -> PubSubProvider {
     PubSub::new(cluster, clustering_topic, merge_topic).await
 }
 
-fn sendgrid_provider() -> SendGridProvider {
-    let api_key = envvar_str("SENDGRID_API_KEY", None);
-    let send_from = envvar_str("SENDGRID_SEND_FROM", None);
-    let url = envvar_str("SENDGRID_URL", None);
+cfg_if! {
+    if #[cfg(feature = "email_sg")] {
+        use repaint_server_sg::SendGrid;
 
-    SendGrid::new(api_key, send_from, url)
+        type EmailProvider = SendGrid;
+
+        fn email_provider() -> EmailProvider {
+            let api_key = envvar_str("SENDGRID_API_KEY", None);
+            let send_from = envvar_str("SENDGRID_SEND_FROM", None);
+            let url = envvar_str("SENDGRID_URL", None);
+
+            SendGrid::new(api_key, send_from, url)
+        }
+    } else if #[cfg(feature = "email_gmail")] {
+        use repaint_server_gmail::Gmail;
+
+        type EmailProvider = Gmail;
+
+        fn email_provider() -> EmailProvider {
+            let send_from = envvar_str("GMAIL_SEND_FROM", None);
+            let url = envvar_str("GMAIL_URL", None);
+            let username = envvar_str("SMTP_USERNAME", None);
+            let password = envvar_str("SMTP_PASSWORD", None);
+
+            Gmail::new(send_from, url, username, password)
+        }
+    } else {
+        compile_error!("you must set one email provider");
+    }
 }
