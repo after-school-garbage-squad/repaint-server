@@ -1,4 +1,5 @@
 {
+  "latest-release-sha": "4e4e1d2e558c0d4303fe67095bc28bd0320210b8",
   "release-type": "rust",
   "packages": {
     "api": {
