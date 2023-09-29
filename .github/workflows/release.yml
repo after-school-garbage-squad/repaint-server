@@ -27,6 +27,7 @@ jobs:
         id: release
         with:
           release-type: rust
+          plugins: cargo-workspace
           package-name: repaint-server
           token: ${{ steps.bot.outputs.token }}
       - name: Revoke GitHub Apps token
