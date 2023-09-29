@@ -177,23 +177,20 @@ type PubSubProvider = PubSub;
 
 async fn fcm_provider() -> FcmProvider {
     let project_id = envvar_str("PROJECT_ID", None);
-    let cred_path = envvar_str("CRED_PATH", None);
 
-    Fcm::new(project_id, cred_path).await
+    Fcm::new(project_id).await
 }
 
 async fn firestore_provider() -> FirestoreProvider {
     let project_id = envvar_str("PROJECT_ID", None);
-    let cred_path = envvar_str("CRED_PATH", None);
 
-    Firestore::new(project_id, cred_path).await
+    Firestore::new(project_id).await
 }
 
 async fn gcs_provider() -> GcsProvider {
     let bucket = envvar_str("BUCKET", None);
-    let cred_path = envvar_str("CRED_PATH", None);
 
-    Gcs::new(bucket, cred_path).await
+    Gcs::new(bucket).await
 }
 
 fn otp_provider() -> OtpProvider {
@@ -204,12 +201,11 @@ fn otp_provider() -> OtpProvider {
 }
 
 async fn pubsub_provider() -> PubSubProvider {
-    let cred_path = envvar_str("CRED_PATH", None);
     let cluster = envvar("CLUSTER", None);
     let clustering_topic = envvar_str("CLUSTERING_TOPIC", None);
     let merge_topic = envvar_str("MERGE_TOPIC", None);
 
-    PubSub::new(cred_path, cluster, clustering_topic, merge_topic).await
+    PubSub::new(cluster, clustering_topic, merge_topic).await
 }
 
 cfg_if! {

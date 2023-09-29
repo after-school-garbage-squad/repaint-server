@@ -31,13 +31,14 @@ RUN GIT_HASH=`git rev-parse HEAD | head -c 7` \
     --no-default-features \
     --features=email_gmail
 
+ARG SA_KEY=""
+RUN echo "$SA_KEY" > /credentials.json
+
 FROM gcr.io/distroless/cc-debian11 as runtime
 
 LABEL org.opencontainers.image.source=https://github.com/after-school-garbage-squad/repaint-server
 USER nonroot:nonroot
 COPY --chown=nonroot:nonroot --from=build /app/target/release/repaint-server-api /
-
-ARG SA_KEY=""
-RUN echo "$SA_KEY" > /credentials.json
+COPY --chown=nonroot:nonroot --from=build /credentials.json /
 
 ENTRYPOINT [ "/repaint-server-api" ]
