@@ -27,8 +27,9 @@ jobs:
         id: release
         with:
           release-type: rust
-          plugins: cargo-workspace
-          package-name: repaint-server
+          command: manifest
+          config-file: .github/release-please-config.json
+          manifest-file: .github/release-please-manifest.json
           token: ${{ steps.bot.outputs.token }}
       - name: Revoke GitHub Apps token
         env:

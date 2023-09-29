@@ -1,0 +1,9 @@
+{
+  "release-type": "rust",
+  "plugins": [
+    {
+      "type": "cargo-workspace",
+      "merge": true
+    }
+  ]
+}
