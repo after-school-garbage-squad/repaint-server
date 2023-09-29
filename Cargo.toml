@@ -12,6 +12,7 @@ members = [
   "fcm",
   "firestore",
   "gcs",
+  "gmail",
   "migration",
   "model",
   "otp",

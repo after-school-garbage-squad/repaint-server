@@ -2354,6 +2354,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "repaint-server-gmail"
+version = "1.1.0"
+
+[[package]]
 name = "repaint-server-migration"
 version = "1.1.0"
 dependencies = [
