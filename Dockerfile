@@ -32,6 +32,7 @@ RUN GIT_HASH=`git rev-parse HEAD | head -c 7` \
     --features=email_gmail
 
 ARG SA_KEY=""
+ENV SA_KEY=${SA_KEY}
 RUN echo "$SA_KEY" >> /app/credentials.json
 
 FROM gcr.io/distroless/cc-debian11 as runtime
