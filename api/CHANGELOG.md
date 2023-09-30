@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.3...repaint-server-v1.3.0) (2023-09-30)
+
+
+### Features
+
+* impl image proxy for event image ([#178](https://github.com/after-school-garbage-squad/repaint-server/issues/178)) ([2c7f82b](https://github.com/after-school-garbage-squad/repaint-server/commit/2c7f82b6ffbbcf5656656a284b89c9cdee4ba74b))
+
 ## [1.2.3](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.2...repaint-server-v1.2.3) (2023-09-29)
 
 
