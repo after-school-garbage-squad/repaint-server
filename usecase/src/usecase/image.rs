@@ -297,7 +297,10 @@ where
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
     ) -> Result<String, Error> {
-        let token = self.otp.verify(event_id, image_id, visitor_id).await?;
+        let token = self
+            .otp
+            .verify_current(event_id, image_id, visitor_id)
+            .await?;
 
         Ok(token.full)
     }

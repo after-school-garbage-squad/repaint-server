@@ -33,7 +33,7 @@ impl DependencyClone for Otp {}
 impl ImageOtp for Otp {
     type Error = Error;
 
-    async fn verify(
+    async fn verify_current(
         &self,
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
@@ -43,7 +43,7 @@ impl ImageOtp for Otp {
             .client
             .post(format!(
                 "{}/token?url={}/{}/image/${}_current_{}.png",
-                self.origin, self.gcs_url, event_id, visitor_id, image_id
+                self.origin, self.gcs_url, event_id, image_id, visitor_id
             ))
             .send()
             .await?

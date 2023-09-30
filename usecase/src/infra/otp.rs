@@ -11,7 +11,7 @@ use crate::model::otp::Token;
 pub trait ImageOtp: AsyncSafe {
     type Error: StaticError;
 
-    async fn verify(
+    async fn verify_current(
         &self,
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
