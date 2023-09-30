@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.2.3](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.2...repaint-server-v1.2.3) (2023-09-30)
+
+
+### Bug Fixes
+
+* manualy set GOOGLE_CREDENTIALS ([#168](https://github.com/after-school-garbage-squad/repaint-server/issues/168)) ([661124f](https://github.com/after-school-garbage-squad/repaint-server/commit/661124faaba6f6734120b486819686b0caa2e1a3))
+* revert credential_path logic and fix Dockerfile ([#172](https://github.com/after-school-garbage-squad/repaint-server/issues/172)) ([87135a5](https://github.com/after-school-garbage-squad/repaint-server/commit/87135a5a0b5adfd07255ab397ba2de402ba17dc3))
+
 ## [1.2.2](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.2.1...repaint-server-v1.2.2) (2023-09-29)
 
 
