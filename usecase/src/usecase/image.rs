@@ -63,7 +63,7 @@ pub trait ImageUsecase: AsyncSafe {
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error>;
 
-    async fn proxy_image(
+    async fn proxy_current_image(
         &self,
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
@@ -77,6 +77,12 @@ pub trait ImageUsecase: AsyncSafe {
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<bool, Error>;
+
+    async fn proxy_event_image(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<EventImage>,
+    ) -> Result<String, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -291,13 +297,16 @@ where
         Ok(())
     }
 
-    async fn proxy_image(
+    async fn proxy_current_image(
         &self,
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
     ) -> Result<String, Error> {
-        let token = self.otp.verify(event_id, image_id, visitor_id).await?;
+        let token = self
+            .otp
+            .verify_current(event_id, image_id, visitor_id)
+            .await?;
 
         Ok(token.full)
     }
@@ -337,5 +346,15 @@ where
         let is_updated = ImageRepository::check_update(&self.repo, visitor.id).await?;
 
         Ok(is_updated)
+    }
+
+    async fn proxy_event_image(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<EventImage>,
+    ) -> Result<String, Error> {
+        let token = self.otp.verify_event(event_id, image_id).await?;
+
+        Ok(token.full)
     }
 }
