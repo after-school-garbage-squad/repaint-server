@@ -1,7 +1,7 @@
 steps:
   - name: gcr.io/cloud-builders/docker
     entrypoint: bash
-    args: ['-c', 'docker build --build-arg SA_KEY=$$KEY_JSON --no-cache -t $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA . -f Dockerfile']
+    args: ['-c', 'docker build --build-arg SA_KEY="$$KEY_JSON" --no-cache -t $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA . -f Dockerfile']
     id: Build
     secretEnv: ['KEY_JSON']
   - name: gcr.io/cloud-builders/docker
