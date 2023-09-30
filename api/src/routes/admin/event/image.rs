@@ -9,7 +9,9 @@ use axum::{middleware, Extension, Json, Router};
 use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
-use repaint_server_usecase::model::image::{CheckVisitorRequest, DeleteDefaultRequest};
+use repaint_server_usecase::model::image::{
+    CheckVisitorRequest, DeleteDefaultRequest, ProxyEventRequest,
+};
 use repaint_server_usecase::usecase::error::Error as UsecaseError;
 use repaint_server_usecase::usecase::image::ImageUsecase;
 
@@ -24,6 +26,7 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
         .route("/delete-default", delete(delete_default))
         .route("/register-default", post(register_default))
         .route("/upload-visitor", post(upload_visitor))
+        .route("/proxy", get(proxy))
         .layer(middleware::from_fn(auth))
         .with_state(usecase)
 }
@@ -113,4 +116,15 @@ async fn upload_visitor<U: ImageUsecase>(
     }
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+async fn proxy<U: ImageUsecase>(
+    State(usecase): State<Arc<U>>,
+    Path(event_id): Path<Id<Event>>,
+    Json(req): Json<ProxyEventRequest>,
+) -> Result<impl IntoResponse, Error> {
+    let usecase = Arc::clone(&usecase);
+    let res = usecase.proxy_event_image(event_id, req.image_id).await?;
+
+    Ok((StatusCode::OK, Json(res)))
 }

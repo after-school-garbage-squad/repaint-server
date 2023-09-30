@@ -31,7 +31,7 @@ pub struct ListRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ProxyRequest {
+pub struct ProxyCurrentRequest {
     pub event_id: Id<Event>,
     pub image_id: Id<CurrentImage>,
 }
@@ -41,4 +41,10 @@ pub struct ProxyRequest {
 pub struct SetCurrentRequest {
     pub event_id: Id<Event>,
     pub image_id: Id<VisitorImage>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProxyEventRequest {
+    pub image_id: Id<EventImage>,
 }

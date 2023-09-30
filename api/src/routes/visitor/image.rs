@@ -8,7 +8,7 @@ use axum::{Json, Router};
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::model::image::{
-    GetCurrentRequest, ListRequest, ProxyRequest, SetCurrentRequest,
+    GetCurrentRequest, ListRequest, ProxyCurrentRequest, SetCurrentRequest,
 };
 use repaint_server_usecase::model::visitor::VisitorIdentification;
 use repaint_server_usecase::usecase::image::ImageUsecase;
@@ -61,11 +61,11 @@ async fn list<U: ImageUsecase>(
 async fn proxy<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
-    Json(req): Json<ProxyRequest>,
+    Json(req): Json<ProxyCurrentRequest>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
-        .proxy_image(req.event_id, req.image_id, visitor_id)
+        .proxy_current_image(req.event_id, req.image_id, visitor_id)
         .await?;
 
     Ok((StatusCode::OK, Json(res)))

@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use repaint_server_model::event::Event;
+use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_model::visitor_image::CurrentImage;
@@ -16,5 +17,11 @@ pub trait ImageOtp: AsyncSafe {
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
+    ) -> Result<Token, Self::Error>;
+
+    async fn verify_event(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<EventImage>,
     ) -> Result<Token, Self::Error>;
 }
