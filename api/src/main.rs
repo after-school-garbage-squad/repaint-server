@@ -1,8 +1,6 @@
 use std::net::{SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
-use axum::body::Body;
-use axum::http::Request;
 use axum::Router;
 use cfg_if::cfg_if;
 use repaint_server_core::SeaOrm;
@@ -18,10 +16,11 @@ use repaint_server_usecase::usecase::palette::PaletteUsecaseImpl;
 use repaint_server_usecase::usecase::spot::SpotUsecaseImpl;
 use repaint_server_usecase::usecase::traffic::TrafficUsecaseImpl;
 use repaint_server_usecase::usecase::visitor::VisitorUsecaseImpl;
-use sentry::integrations::tower as sentry_tower;
+use sentry::integrations::{tower as sentry_tower, tracing as sentry_tracing};
 use teloc::{Resolver, ServiceProvider};
 use tokio::signal;
 use tokio::sync::oneshot;
+use tower_http::catch_panic::CatchPanicLayer;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 
@@ -36,20 +35,12 @@ mod middleware;
 mod routes;
 mod utils;
 
-#[cfg(debug_assertions)]
-const VERSION: &str = "DEVELOPMENT BUILD";
-
-#[cfg(not(debug_assertions))]
-const VERSION: &str = env!("GIT_HASH");
-#[cfg(not(debug_assertions))]
-static_assertions::const_assert!(VERSION.len() == 7);
-
 fn main() {
     dotenvy::dotenv().ok();
     let _ = sentry::init((
         envvar_str("SENTRY_DSN", None),
         sentry::ClientOptions {
-            release: Some(VERSION.into()),
+            release: sentry::release_name!(),
             traces_sample_rate: 1.0,
             environment: Some(envvar_str("SENTRY_ENVIRONMENT", "development").into()),
             ..Default::default()
@@ -121,8 +112,9 @@ async fn start() {
         .nest("/healthz", healthz())
         .nest("/version", version())
         .nest("/license", license())
-        .layer(sentry_tower::NewSentryLayer::<Request<Body>>::new_from_top())
-        .layer(sentry_tower::SentryHttpLayer::with_transaction());
+        .layer(sentry_tower::SentryHttpLayer::with_transaction())
+        .layer(sentry_tower::NewSentryLayer::new_from_top())
+        .layer(CatchPanicLayer::new());
 
     tracing::info!("staring server at {addr}");
 
