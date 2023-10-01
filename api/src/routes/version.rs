@@ -14,7 +14,7 @@ const VERSION: &str = env!("GIT_HASH");
 static_assertions::const_assert!(VERSION.len() == 7);
 
 pub fn version() -> Router {
-    Router::new().route("/", get(version_handler))
+    Router::new().route("/version", get(version_handler))
 }
 
 async fn version_handler() -> Result<impl IntoResponse, Error> {

@@ -16,17 +16,15 @@ use repaint_server_usecase::usecase::palette::PaletteUsecaseImpl;
 use repaint_server_usecase::usecase::spot::SpotUsecaseImpl;
 use repaint_server_usecase::usecase::traffic::TrafficUsecaseImpl;
 use repaint_server_usecase::usecase::visitor::VisitorUsecaseImpl;
-use sentry::integrations::{tower as sentry_tower, tracing as sentry_tracing};
 use teloc::{Resolver, ServiceProvider};
 use tokio::signal;
 use tokio::sync::oneshot;
-use tower_http::catch_panic::CatchPanicLayer;
-use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::util::SubscriberInitExt;
+use tracing_subscriber::fmt;
 
 use crate::routes::admin::admin;
 use crate::routes::healthz::healthz;
 use crate::routes::license::license;
+use crate::routes::metrics::metrics;
 use crate::routes::version::version;
 use crate::routes::visitor::visitor;
 use crate::utils::{envvar, envvar_str};
@@ -38,18 +36,8 @@ mod utils;
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
-    let _ = sentry::init((
-        envvar_str("SENTRY_DSN", None),
-        sentry::ClientOptions {
-            release: sentry::release_name!(),
-            traces_sample_rate: 1.0,
-            environment: Some(envvar_str("SENTRY_ENVIRONMENT", "development").into()),
-            ..Default::default()
-        },
-    ));
-    tracing_subscriber::registry()
-        .with(tracing_subscriber::fmt::layer())
-        .with(sentry_tracing::layer())
+    tracing_subscriber::fmt()
+        .event_format(fmt::format::json())
         .init();
 
     let addr: SocketAddr = SocketAddr::V4(SocketAddrV4::new(
@@ -105,12 +93,10 @@ async fn main() {
             "/visitor",
             visitor(visitor_usecase, palette_usecase, image_usecase),
         )
-        .nest("/healthz", healthz())
-        .nest("/version", version())
-        .nest("/license", license())
-        .layer(sentry_tower::SentryHttpLayer::with_transaction())
-        .layer(sentry_tower::NewSentryLayer::new_from_top())
-        .layer(CatchPanicLayer::new());
+        .merge(healthz())
+        .merge(version())
+        .merge(license())
+        .merge(metrics());
 
     tracing::info!("staring server at {addr}");
 
