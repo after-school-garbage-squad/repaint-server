@@ -829,9 +829,9 @@ checksum = "8fcfdc7a0362c9f4444381a9e697c79d435fe65b52a37466fc2c1184cee9edc6"
 
 [[package]]
 name = "firestore"
-version = "0.35.2"
+version = "0.36.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8b39489ec0df418363f330778de8211b7bf5c044e8497d466d8a3ff80395612"
+checksum = "0348c19e212dbcbbd92f9dd6bd8a283e890ecee7a8a77f4635fc4a44eb96ceb6"
 dependencies = [
  "async-trait",
  "backoff",
@@ -840,14 +840,12 @@ dependencies = [
  "gcloud-sdk",
  "hex",
  "hyper",
- "prost-types",
  "rsb_derive",
  "rvstruct",
  "serde",
  "struct-path",
  "tokio",
  "tokio-stream",
- "tonic",
  "tracing",
 ]
 
@@ -1062,9 +1060,9 @@ dependencies = [
 
 [[package]]
 name = "gcloud-sdk"
-version = "0.20.7"
+version = "0.21.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a24376e7850e7864bb326debc5765a1dda4fc47603c22e2bc0ebf30ff59141b"
+checksum = "a5fd2c308aa34b0bfd6a20c9bedad71dff811523fc2b61d79dd473070c469360"
 dependencies = [
  "async-trait",
  "chrono",
@@ -1073,14 +1071,14 @@ dependencies = [
  "hyper",
  "jsonwebtoken",
  "once_cell",
- "prost",
- "prost-types",
+ "prost 0.12.1",
+ "prost-types 0.12.1",
  "reqwest",
  "secret-vault-value",
  "serde",
  "serde_json",
  "tokio",
- "tonic",
+ "tonic 0.10.2",
  "tower",
  "tower-layer",
  "tower-util",
@@ -1154,7 +1152,7 @@ dependencies = [
  "thiserror",
  "tokio",
  "tokio-retry",
- "tonic",
+ "tonic 0.9.2",
  "tower",
  "tracing",
 ]
@@ -1165,9 +1163,9 @@ version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5453af21ac0cc1f3b2cfb5b687c174e701c10ec2d5c286aff7ca8cbbf08d31b4"
 dependencies = [
- "prost",
- "prost-types",
- "tonic",
+ "prost 0.11.9",
+ "prost-types 0.11.9",
+ "tonic 0.9.2",
 ]
 
 [[package]]
@@ -1193,7 +1191,7 @@ dependencies = [
  "google-cloud-gax",
  "google-cloud-googleapis",
  "google-cloud-token",
- "prost-types",
+ "prost-types 0.11.9",
  "thiserror",
  "tokio",
  "tokio-util",
@@ -2153,7 +2151,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b82eaa1d779e9a4bc1c3217db8ffbeabaae1dca241bf70183242128d48681cd"
 dependencies = [
  "bytes",
- "prost-derive",
+ "prost-derive 0.11.9",
+]
+
+[[package]]
+name = "prost"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f4fdd22f3b9c31b53c060df4a0613a1c7f062d4115a2b984dd15b1858f7e340d"
+dependencies = [
+ "bytes",
+ "prost-derive 0.12.1",
 ]
 
 [[package]]
@@ -2170,12 +2178,34 @@ dependencies = [
 ]
 
 [[package]]
+name = "prost-derive"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "265baba7fabd416cf5078179f7d2cbeca4ce7a9041111900675ea7c4cb8a4c32"
+dependencies = [
+ "anyhow",
+ "itertools 0.11.0",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.37",
+]
+
+[[package]]
 name = "prost-types"
 version = "0.11.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "213622a1460818959ac1181aaeb2dc9c7f63df720db7d788b3e24eacd1983e13"
 dependencies = [
- "prost",
+ "prost 0.11.9",
+]
+
+[[package]]
+name = "prost-types"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e081b29f63d83a4bc75cfc9f3fe424f9156cf92d8a4f0c9407cce9a1b67327cf"
+dependencies = [
+ "prost 0.12.1",
 ]
 
 [[package]]
@@ -2954,8 +2984,8 @@ version = "0.3.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eddaf2631e82016a3262ce75575ec245ceef9a7115ddf8576851302efe6bdece"
 dependencies = [
- "prost",
- "prost-types",
+ "prost 0.11.9",
+ "prost-types 0.11.9",
  "serde",
  "serde_json",
  "zeroize",
@@ -3862,8 +3892,7 @@ dependencies = [
  "hyper-timeout",
  "percent-encoding",
  "pin-project 1.1.3",
- "prost",
- "rustls-native-certs",
+ "prost 0.11.9",
  "rustls-pemfile",
  "tokio",
  "tokio-rustls",
@@ -3873,6 +3902,37 @@ dependencies = [
  "tower-service",
  "tracing",
  "webpki-roots 0.23.1",
+]
+
+[[package]]
+name = "tonic"
+version = "0.10.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d560933a0de61cf715926b9cac824d4c883c2c43142f787595e48280c40a1d0e"
+dependencies = [
+ "async-stream",
+ "async-trait",
+ "axum",
+ "base64 0.21.4",
+ "bytes",
+ "h2",
+ "http",
+ "http-body",
+ "hyper",
+ "hyper-timeout",
+ "percent-encoding",
+ "pin-project 1.1.3",
+ "prost 0.12.1",
+ "rustls",
+ "rustls-native-certs",
+ "rustls-pemfile",
+ "tokio",
+ "tokio-rustls",
+ "tokio-stream",
+ "tower",
+ "tower-layer",
+ "tower-service",
+ "tracing",
 ]
 
 [[package]]

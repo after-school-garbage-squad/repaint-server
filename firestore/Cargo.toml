@@ -9,7 +9,7 @@ license.workspace = true
 [dependencies]
 async-trait = "0.1.73"
 chrono = "0.4.31"
-firestore = "0.35.2"
+firestore = "0.36.0"
 futures = "0.3.28"
 rand = "0.8.5"
 repaint-server-model = { path = "../model" }
