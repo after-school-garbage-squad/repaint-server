@@ -35,7 +35,8 @@ mod middleware;
 mod routes;
 mod utils;
 
-fn main() {
+#[tokio::main]
+async fn main() {
     dotenvy::dotenv().ok();
     let _ = sentry::init((
         envvar_str("SENTRY_DSN", None),
@@ -46,11 +47,6 @@ fn main() {
             ..Default::default()
         },
     ));
-    start();
-}
-
-#[tokio::main]
-async fn start() {
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
         .with(sentry_tracing::layer())
