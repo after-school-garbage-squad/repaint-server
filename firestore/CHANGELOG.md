@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.5](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.4...repaint-server-v1.3.5) (2023-10-01)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate firestore to 0.36.0 ([#187](https://github.com/after-school-garbage-squad/repaint-server/issues/187)) ([fb55c6f](https://github.com/after-school-garbage-squad/repaint-server/commit/fb55c6f6cf9479cee97c78ad140c9e893d5777e5))
+
 ## [1.3.4](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.3...repaint-server-v1.3.4) (2023-10-01)
 
 
