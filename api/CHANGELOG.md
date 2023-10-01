@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.3.5](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.4...repaint-server-v1.3.5) (2023-10-01)
+
+
+### Bug Fixes
+
+* fix file path to license.html ([#192](https://github.com/after-school-garbage-squad/repaint-server/issues/192)) ([52689b7](https://github.com/after-school-garbage-squad/repaint-server/commit/52689b70afedb9db25c10983bb451123f5142825))
+* fix initialize sentry instance ([#190](https://github.com/after-school-garbage-squad/repaint-server/issues/190)) ([4a7ec68](https://github.com/after-school-garbage-squad/repaint-server/commit/4a7ec68894f0e2c9b0cad3f2f0a495a0525ee8a0))
+
 ## [1.3.4](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.3...repaint-server-v1.3.4) (2023-10-01)
 
 
