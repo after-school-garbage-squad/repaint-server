@@ -1,5 +1,3 @@
-use std::fs::read_to_string;
-
 use axum::http::StatusCode;
 use axum::response::{Html, IntoResponse};
 use axum::routing::get;
@@ -12,7 +10,7 @@ pub fn license() -> Router {
 }
 
 async fn license_handler() -> Result<impl IntoResponse, Error> {
-    let html = read_to_string("./licenses.txt").expect("failed to read licenses.txt");
+    let html = include_str!("./licenses.txt");
 
     Ok((StatusCode::OK, Html(html)))
 }
