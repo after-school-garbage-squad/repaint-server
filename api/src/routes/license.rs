@@ -6,7 +6,7 @@ use axum::Router;
 use crate::routes::recover::Error;
 
 pub fn license() -> Router {
-    Router::new().route("/", get(license_handler))
+    Router::new().route("/license", get(license_handler))
 }
 
 async fn license_handler() -> Result<impl IntoResponse, Error> {

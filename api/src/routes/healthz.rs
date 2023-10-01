@@ -6,7 +6,7 @@ use axum::Router;
 use crate::routes::recover::Error;
 
 pub fn healthz() -> Router {
-    Router::new().route("/", get(hc))
+    Router::new().route("/healthz", get(hc))
 }
 
 async fn hc() -> Result<impl IntoResponse, Error> {

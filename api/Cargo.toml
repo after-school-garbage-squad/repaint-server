@@ -12,6 +12,7 @@ cfg-if = "1.0.0"
 dotenvy = "0.15.7"
 hyper = { version = "0.14.27", features = ["full"] }
 jsonwebtoken = "8.3.0"
+metrics = "0.21.1"
 repaint-server-core = { path = "../core" }
 repaint-server-fcm = { path = "../fcm" }
 repaint-server-firestore = { path = "../firestore" }
@@ -28,30 +29,20 @@ static_assertions = "1.1.0"
 teloc = "0.2.0"
 tower-http = { version = "0.4.4", features = ["fs", "trace", "catch-panic"] }
 tracing = "0.1.37"
-tracing-subscriber = "0.3.17"
+metrics-exporter-prometheus = "0.12.1"
 
 [dependencies.reqwest]
 version = "0.11.20"
 default-features = false
 features = ["rustls-tls"]
 
-[dependencies.sentry]
-version = "0.31.7"
-default-features = false
-features = [
-  "backtrace",
-  "contexts",
-  "debug-images",
-  "panic",
-  "tower-axum-matched-path",
-  "tracing",
-  "reqwest",
-  "rustls",
-]
-
 [dependencies.tokio]
 version = "1.32.0"
 features = ["macros", "rt", "rt-multi-thread", "signal", "sync", "time"]
+
+[dependencies.tracing-subscriber]
+version = "0.3.17"
+features = ["fmt", "std", "json", "env-filter"]
 
 [features]
 default = ["email_sg"]
