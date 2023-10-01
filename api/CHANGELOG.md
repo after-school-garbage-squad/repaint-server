@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.4](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.3...repaint-server-v1.3.4) (2023-10-01)
+
+
+### Bug Fixes
+
+* remove sentry-trace crate and impl catch panic layer to Service ([#188](https://github.com/after-school-garbage-squad/repaint-server/issues/188)) ([14c1701](https://github.com/after-school-garbage-squad/repaint-server/commit/14c1701e303eda8717264046d8e130adcb8b5ce7))
+
 ## [1.3.3](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.2...repaint-server-v1.3.3) (2023-09-30)
 
 
