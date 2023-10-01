@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.6](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.5...repaint-server-v1.3.6) (2023-10-01)
+
+
+### Miscellaneous Chores
+
+* pre-reelase ([a0255da](https://github.com/after-school-garbage-squad/repaint-server/commit/a0255dad83de12a719433b29c2ff58db1c08a97b))
+
 ## [1.3.5](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.4...repaint-server-v1.3.5) (2023-10-01)
 
 
