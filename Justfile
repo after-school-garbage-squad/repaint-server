@@ -28,4 +28,4 @@ test: start
       docker compose down
 
 license:
-      cargo about generate about.hbs > api/asset/license.html
+      cargo about generate about.hbs > api/src/routes/licenses.txt
