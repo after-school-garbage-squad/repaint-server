@@ -2,6 +2,13 @@
 
 
 
+## [1.4.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.6...repaint-server-v1.4.0) (2023-10-01)
+
+
+### Features
+
+* impl prometheus endpoint ([#196](https://github.com/after-school-garbage-squad/repaint-server/issues/196)) ([782b152](https://github.com/after-school-garbage-squad/repaint-server/commit/782b152eb4bbc191d7f213372bc3de7e58974320))
+
 ## [1.3.6](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.6...repaint-server-v1.3.6) (2023-10-01)
 
 
