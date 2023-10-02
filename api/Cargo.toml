@@ -27,7 +27,6 @@ serde = "1.0.188"
 serde_json = "1.0.107"
 static_assertions = "1.1.0"
 teloc = "0.2.0"
-tower-http = { version = "0.4.4", features = ["fs", "trace", "catch-panic"] }
 tracing = "0.1.37"
 metrics-exporter-prometheus = "0.12.1"
 
@@ -39,6 +38,10 @@ features = ["rustls-tls"]
 [dependencies.tokio]
 version = "1.32.0"
 features = ["macros", "rt", "rt-multi-thread", "signal", "sync", "time"]
+
+[dependencies.tower-http]
+version = "0.4.4"
+features = ["cors", "fs", "trace"]
 
 [dependencies.tracing-subscriber]
 version = "0.3.17"
