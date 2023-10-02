@@ -1,6 +1,7 @@
 use std::net::{SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
+use axum::http::{header, HeaderValue, Method};
 use axum::Router;
 use cfg_if::cfg_if;
 use repaint_server_core::SeaOrm;
@@ -19,6 +20,7 @@ use repaint_server_usecase::usecase::visitor::VisitorUsecaseImpl;
 use teloc::{Resolver, ServiceProvider};
 use tokio::signal;
 use tokio::sync::oneshot;
+use tower_http::cors::CorsLayer;
 use tracing_subscriber::fmt;
 
 use crate::routes::admin::admin;
@@ -96,7 +98,22 @@ async fn main() {
         .merge(healthz())
         .merge(version())
         .merge(license())
-        .merge(metrics());
+        .merge(metrics())
+        .layer(
+            CorsLayer::new()
+                .allow_headers(vec![header::CONTENT_TYPE, header::AUTHORIZATION])
+                .allow_methods(vec![
+                    Method::GET,
+                    Method::POST,
+                    Method::PATCH,
+                    Method::DELETE,
+                ])
+                .allow_origin(
+                    envvar_str("CORS_ALLOW_ORIGIN", "http://localhost:3000")
+                        .parse::<HeaderValue>()
+                        .expect("invalid CORS_ALLOW_ORIGIN"),
+                ),
+        );
 
     tracing::info!("staring server at {addr}");
 
