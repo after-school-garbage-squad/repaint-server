@@ -2,6 +2,13 @@
 
 
 
+## [1.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.4.0...repaint-server-v1.5.0) (2023-10-02)
+
+
+### Features
+
+* impl CORS ([#200](https://github.com/after-school-garbage-squad/repaint-server/issues/200)) ([e734ba0](https://github.com/after-school-garbage-squad/repaint-server/commit/e734ba06a567bd369bb25c041b7a3de9568d7b4b))
+
 ## [1.4.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.6...repaint-server-v1.4.0) (2023-10-01)
 
 
