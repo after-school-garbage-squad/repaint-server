@@ -2567,6 +2567,7 @@ dependencies = [
  "repaint-server-usecase",
  "reqwest",
  "teloc",
+ "tracing",
 ]
 
 [[package]]

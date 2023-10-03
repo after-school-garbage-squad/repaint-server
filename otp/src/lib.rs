@@ -11,6 +11,7 @@ use repaint_server_usecase::infra::otp::ImageOtp;
 use repaint_server_usecase::model::otp::Token;
 use reqwest::{Client, Error};
 use teloc::dev::DependencyClone;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct Otp {
@@ -21,6 +22,7 @@ pub struct Otp {
 
 impl Otp {
     pub fn new(bucket: String, origin: String) -> Self {
+        info!("initialized OTP client");
         Self {
             client: Client::new(),
             gcs_url: format!("gs://{}", bucket),
@@ -51,6 +53,7 @@ impl ImageOtp for Otp {
             .await?
             .json::<Token>()
             .await?;
+        info!("verified current image: {:?}", res);
 
         Ok(res)
     }
@@ -70,6 +73,7 @@ impl ImageOtp for Otp {
             .await?
             .json::<Token>()
             .await?;
+        info!("verified event image: {:?}", res);
 
         Ok(res)
     }
