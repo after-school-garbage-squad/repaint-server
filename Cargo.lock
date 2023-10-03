@@ -2493,6 +2493,7 @@ dependencies = [
  "reqwest",
  "serde_json",
  "teloc",
+ "tracing",
 ]
 
 [[package]]

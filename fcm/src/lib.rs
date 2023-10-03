@@ -9,6 +9,7 @@ use repaint_server_usecase::infra::fcm::FirebaseCloudMessaging;
 use reqwest::{header::HeaderMap, Client, ClientBuilder, Error};
 use serde_json::json;
 use teloc::dev::DependencyClone;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct Fcm {
@@ -40,6 +41,7 @@ impl Fcm {
             "Authorization",
             bearer_token.parse().expect("failed to parse bearer token"),
         );
+        info!("initialized FCM client");
 
         Self {
             client: ClientBuilder::new()
@@ -58,7 +60,7 @@ impl FirebaseCloudMessaging for Fcm {
     type Error = Error;
 
     async fn send(&self, registeration_id: String, spot_name: String) -> Result<(), Self::Error> {
-        let _ = self.client
+        match self.client
             .post(format!(
                 "https://fcm.googleapis.com/v1/projects/{}/messages:send",
                 self.project_id
@@ -75,7 +77,10 @@ impl FirebaseCloudMessaging for Fcm {
                 }
             ))
             .send()
-            .await?;
+            .await {
+                Ok(_) => info!("sent notification to {}", registeration_id),
+                Err(e) => return Err(e),
+            }
 
         Ok(())
     }
