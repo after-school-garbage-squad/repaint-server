@@ -10,6 +10,7 @@ use lettre::transport::smtp::Error;
 use lettre::{Message, SmtpTransport, Transport};
 use repaint_server_usecase::infra::email::EmailSender;
 use teloc::dev::DependencyClone;
+use tracing::info;
 
 #[derive(Clone)]
 pub struct Gmail {
@@ -26,6 +27,7 @@ impl Gmail {
             .expect("failed to relay smtp.gmail.com")
             .credentials(cred)
             .build();
+        info!("initialized Gmail client");
 
         Self {
             client,
@@ -53,7 +55,10 @@ impl EmailSender for Gmail {
                 TOKEN = token
             ))
             .expect("failed to build message");
-        self.client.send(&mail)?;
+        match self.client.send(&mail) {
+            Ok(_) => info!("sent email"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }

@@ -2493,6 +2493,7 @@ dependencies = [
  "reqwest",
  "serde_json",
  "teloc",
+ "tracing",
 ]
 
 [[package]]
@@ -2509,6 +2510,7 @@ dependencies = [
  "serde",
  "teloc",
  "tokio-stream",
+ "tracing",
 ]
 
 [[package]]
@@ -2520,6 +2522,7 @@ dependencies = [
  "repaint-server-model",
  "repaint-server-usecase",
  "teloc",
+ "tracing",
 ]
 
 [[package]]
@@ -2531,6 +2534,7 @@ dependencies = [
  "lettre",
  "repaint-server-usecase",
  "teloc",
+ "tracing",
 ]
 
 [[package]]
@@ -2563,6 +2567,7 @@ dependencies = [
  "repaint-server-usecase",
  "reqwest",
  "teloc",
+ "tracing",
 ]
 
 [[package]]
@@ -2578,6 +2583,7 @@ dependencies = [
  "serde_json",
  "teloc",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -2589,6 +2595,7 @@ dependencies = [
  "repaint-server-usecase",
  "sendgrid",
  "teloc",
+ "tracing",
 ]
 
 [[package]]

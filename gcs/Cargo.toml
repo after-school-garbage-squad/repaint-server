@@ -11,6 +11,7 @@ async-trait = "0.1.73"
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
 teloc = "0.2.0"
+tracing = "0.1.37"
 
 [dependencies.google-cloud-storage]
 version = "0.13.1"
