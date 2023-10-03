@@ -21,6 +21,7 @@ use serde::Deserialize;
 use structure::TrafficLogStructure;
 use teloc::dev::DependencyClone;
 use tokio_stream::StreamExt;
+use tracing::info;
 
 use crate::structure::{
     AdminStructure, InitializeLogStructure, PaletteStructure, RegisterLogStructure,
@@ -39,6 +40,7 @@ impl Firestore {
         let client = FirestoreDb::new(&project_id)
             .await
             .expect("Failed to create Firestore client");
+        info!("initialized Firestore client");
 
         Self { client }
     }
@@ -62,7 +64,7 @@ impl FirestoreInfra for Firestore {
             palette_id: Some(palette_id),
             palettes_ids: None,
         };
-        let _ = self
+        match self
             .client
             .fluent()
             .update()
@@ -72,8 +74,12 @@ impl FirestoreInfra for Firestore {
             .object(&PaletteStructure {
                 ..structure.clone()
             })
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed palette"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -90,7 +96,7 @@ impl FirestoreInfra for Firestore {
             palette_id: None,
             palettes_ids: Some(palette_ids),
         };
-        let _ = self
+        match self
             .client
             .fluent()
             .update()
@@ -100,8 +106,12 @@ impl FirestoreInfra for Firestore {
             .object(&PaletteStructure {
                 ..structure.clone()
             })
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed palettes"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -125,6 +135,7 @@ impl FirestoreInfra for Firestore {
             return Ok(None);
         };
         let palette_id = res.palette_id;
+        info!("got palette: {:?}", palette_id);
 
         Ok(palette_id)
     }
@@ -148,6 +159,7 @@ impl FirestoreInfra for Firestore {
             return Ok(None);
         };
         let palette_ids = res.palettes_ids;
+        info!("got palettes: {:?}", palette_ids);
 
         Ok(palette_ids)
     }
@@ -159,14 +171,18 @@ impl FirestoreInfra for Firestore {
     ) -> Result<(), Self::Error> {
         let collection = format!("spot_{}", event_id);
         let document = spot_id.to_string();
-        let _ = self
+        match self
             .client
             .fluent()
             .delete()
             .from(collection.as_str())
             .document_id(document)
             .execute()
-            .await?;
+            .await
+        {
+            Ok(_) => info!("deleted spot"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -180,7 +196,7 @@ impl FirestoreInfra for Firestore {
         let collection = format!("visitor_{}", event_id);
         let document = visitor_id.to_string();
         let structure = VisitorStructure { spot_id };
-        let _ = self
+        match self
             .client
             .fluent()
             .update()
@@ -190,8 +206,12 @@ impl FirestoreInfra for Firestore {
             .object(&VisitorStructure {
                 ..structure.clone()
             })
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed visitor"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -222,6 +242,7 @@ impl FirestoreInfra for Firestore {
             .into_iter()
             .map(|v| Id::<Visitor>::from_str(v.document.as_str()).unwrap())
             .collect::<Vec<_>>();
+        info!("got visitors: {:?}", res);
 
         Ok(res)
     }
@@ -232,7 +253,7 @@ impl FirestoreInfra for Firestore {
         let structure = AdminStructure {
             event_id: Some(event_id),
         };
-        let _ = self
+        match self
             .client
             .fluent()
             .update()
@@ -242,8 +263,12 @@ impl FirestoreInfra for Firestore {
             .object(&AdminStructure {
                 ..structure.clone()
             })
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("set event id"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -263,6 +288,7 @@ impl FirestoreInfra for Firestore {
             return Ok(None);
         };
         let event_id = res.event_id;
+        info!("got event id: {:?}", event_id);
 
         Ok(event_id)
     }
@@ -292,15 +318,19 @@ impl FirestoreInfra for Firestore {
             palettes_length,
             took_photo,
         };
-        let _ = self
+        match self
             .client
             .fluent()
             .insert()
             .into(collection.as_str())
             .document_id(document)
             .object(&structure)
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed visitor log"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -326,15 +356,19 @@ impl FirestoreInfra for Firestore {
             spot_id,
             head_count,
         };
-        let _ = self
+        match self
             .client
             .fluent()
             .insert()
             .into(collection.as_str())
             .document_id(document)
             .object(&structure)
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed spot log"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -357,15 +391,19 @@ impl FirestoreInfra for Firestore {
         let collection = format!("event_log_{}", event_id);
         let document = format!("traffic_log_{}_{}", Utc::now().timestamp(), s);
         let structure = TrafficLogStructure { from, to };
-        let _ = self
+        match self
             .client
             .fluent()
             .insert()
             .into(collection.as_str())
             .document_id(document)
             .object(&structure)
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed traffic log"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -387,15 +425,19 @@ impl FirestoreInfra for Firestore {
         let collection = format!("event_log_{}", event_id);
         let document = format!("register_log_{}_{}", Utc::now().timestamp(), s);
         let structure = RegisterLogStructure { visitor_id };
-        let _ = self
+        match self
             .client
             .fluent()
             .insert()
             .into(collection.as_str())
             .document_id(document)
             .object(&structure)
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed register log"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -417,15 +459,19 @@ impl FirestoreInfra for Firestore {
         let collection = format!("event_log_{}", event_id);
         let document = format!("initialize_log_{}_{}", Utc::now().timestamp(), s);
         let structure = InitializeLogStructure { visitor_id };
-        let _ = self
+        match self
             .client
             .fluent()
             .insert()
             .into(collection.as_str())
             .document_id(document)
             .object(&structure)
-            .execute()
-            .await?;
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed initialize log"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -450,6 +496,7 @@ impl FirestoreInfra for Firestore {
                 .execute()
                 .await?;
         }
+        info!("deleted event log");
 
         Ok(())
     }

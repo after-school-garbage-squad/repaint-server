@@ -2510,6 +2510,7 @@ dependencies = [
  "serde",
  "teloc",
  "tokio-stream",
+ "tracing",
 ]
 
 [[package]]
