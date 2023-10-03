@@ -2534,6 +2534,7 @@ dependencies = [
  "lettre",
  "repaint-server-usecase",
  "teloc",
+ "tracing",
 ]
 
 [[package]]
