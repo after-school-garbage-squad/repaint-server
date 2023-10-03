@@ -42,7 +42,7 @@ impl GoogleCloudStorage for Gcs {
         image_id: Id<EventImage>,
     ) -> Result<(), Self::Error> {
         let upload_type = UploadType::Simple(Media::new(format!(
-            "{}/image/${}_original.png",
+            "{}/image/{}_original.png",
             event_id, image_id
         )));
         let _ = self
@@ -67,7 +67,7 @@ impl GoogleCloudStorage for Gcs {
         image_id: Id<VisitorImage>,
     ) -> Result<(), Self::Error> {
         let upload_type = UploadType::Simple(Media::new(format!(
-            "{}/image/${}_original.png",
+            "{}/image/{}_original.png",
             event_id, image_id
         )));
         let _ = self
