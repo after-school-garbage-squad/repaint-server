@@ -354,18 +354,15 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
-        let structure = TrafficLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("traffic_log_{}_{}", Utc::now().timestamp(), s),
-            from,
-            to,
-        };
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("traffic_log_{}_{}", Utc::now().timestamp(), s);
+        let structure = TrafficLogStructure { from, to };
         let _ = self
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;

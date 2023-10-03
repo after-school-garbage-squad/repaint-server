@@ -35,8 +35,6 @@ pub(crate) struct SpotLogStructure {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct TrafficLogStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) from: Id<EventSpot>,
     pub(crate) to: Id<EventSpot>,
 }
