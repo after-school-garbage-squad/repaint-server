@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.0.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.6...repaint-server-v2.0.0) (2023-10-03)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate reqwest to 0.11.21 ([#202](https://github.com/after-school-garbage-squad/repaint-server/issues/202)) ([4b4babc](https://github.com/after-school-garbage-squad/repaint-server/commit/4b4babcf075af7c9e87856cfb39782c4d3e9cd58))
+
+
+### Miscellaneous Chores
+
+* release 2.0.0 ([9d4e710](https://github.com/after-school-garbage-squad/repaint-server/commit/9d4e71044424645e7d018ac220fb3cc2266c2b4f))
+
 ## [1.3.6](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v1.3.3...repaint-server-v1.3.6) (2023-10-01)
 
 
