@@ -227,18 +227,18 @@ impl FirestoreInfra for Firestore {
     }
 
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error> {
+        let collection = "admin".to_string();
+        let document = token;
         let structure = AdminStructure {
-            collection: "admin".to_string(),
-            document: token,
             event_id: Some(event_id),
         };
         let _ = self
             .client
             .fluent()
             .update()
-            .fields(paths!(AdminStructure::{document, event_id}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .fields(vec!["document", "event_id"])
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&AdminStructure {
                 ..structure.clone()
             })
@@ -249,18 +249,15 @@ impl FirestoreInfra for Firestore {
     }
 
     async fn get_event_id(&self, token: String) -> Result<Option<i32>, Self::Error> {
-        let structure = AdminStructure {
-            collection: "admin".to_string(),
-            document: token,
-            event_id: None,
-        };
+        let collection = "admin".to_string();
+        let document = token;
         let Some(res) = self
             .client
             .fluent()
             .select()
-            .by_id_in(&structure.collection)
+            .by_id_in(collection.as_str())
             .obj::<AdminStructure>()
-            .one(&structure.document)
+            .one(document)
             .await?
         else {
             return Ok(None);

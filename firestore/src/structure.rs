@@ -16,8 +16,6 @@ pub(crate) struct VisitorStructure {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct AdminStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) event_id: Option<i32>,
 }
 
