@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 #[serde(rename_all = "camelCase")]
 pub struct DropRequest {
     pub event_id: Id<Event>,
-    pub spot_id: Id<EventSpot>,
+    pub hw_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

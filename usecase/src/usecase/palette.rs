@@ -24,7 +24,7 @@ pub trait PaletteUsecase: AsyncSafe {
     async fn drop_palette(
         &self,
         visitor_identification: VisitorIdentification,
-        spot_id: Id<EventSpot>,
+        hw_id: String,
     ) -> Result<(), Error>;
 
     async fn pick_palette(
@@ -67,7 +67,7 @@ where
     async fn drop_palette(
         &self,
         visitor_identification: VisitorIdentification,
-        spot_id: Id<EventSpot>,
+        hw_id: String,
     ) -> Result<(), Error> {
         let event = EventRepository::get(&self.repo, visitor_identification.event_id)
             .await?
@@ -112,13 +112,18 @@ where
         let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
             .await?
             .is_some();
-        let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot_id).await?;
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("No spots associated with {} have been registered", hw_id),
+            })?;
+        let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
 
         self.firestore
             .subscribe_visitor_log(
                 visitor_identification.event_id,
                 visitor_identification.visitor_id,
-                spot_id,
+                spot.spot_id,
                 palettes.len(),
                 took_photo,
             )
@@ -127,7 +132,7 @@ where
             .subscribe_visitor(
                 visitor_identification.event_id,
                 visitor_identification.visitor_id,
-                spot_id,
+                spot.spot_id,
             )
             .await?;
 
@@ -151,7 +156,7 @@ where
         if is_bonus {
             let palettes = self
                 .firestore
-                .get_palettes(visitor_identification.event_id, spot_id)
+                .get_palettes(visitor_identification.event_id, spot.spot_id)
                 .await?
                 .unwrap_or(palettes);
             let palettes = palettes
@@ -168,19 +173,19 @@ where
 
             let palettes = palettes.choose_multiple(&mut rng, 2).cloned().collect();
             self.firestore
-                .subscribe_palettes(visitor_identification.event_id, spot_id, palettes)
+                .subscribe_palettes(visitor_identification.event_id, spot.spot_id, palettes)
                 .await?;
         } else {
             let palette = self
                 .firestore
-                .get_palette(visitor_identification.event_id, spot_id)
+                .get_palette(visitor_identification.event_id, spot.spot_id)
                 .await?
                 .unwrap_or(palettes.choose(&mut rng).cloned().unwrap());
             let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
 
             let palette = palettes.choose(&mut rng).cloned().unwrap();
             self.firestore
-                .subscribe_palette(visitor_identification.event_id, spot_id, palette)
+                .subscribe_palette(visitor_identification.event_id, spot.spot_id, palette)
                 .await?;
         }
 
