@@ -34,7 +34,7 @@ async fn drop<U: PaletteUsecase>(
                 visitor_id,
                 event_id: req.event_id,
             },
-            req.spot_id,
+            req.hw_id,
         )
         .await?;
 
