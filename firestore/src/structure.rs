@@ -29,8 +29,6 @@ pub(crate) struct VisitorLogStructure {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct SpotLogStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) spot_id: Id<EventSpot>,
     pub(crate) head_count: usize,
 }
