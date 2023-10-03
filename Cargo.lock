@@ -2595,6 +2595,7 @@ dependencies = [
  "repaint-server-usecase",
  "sendgrid",
  "teloc",
+ "tracing",
 ]
 
 [[package]]

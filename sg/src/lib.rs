@@ -9,6 +9,7 @@ use repaint_server_usecase::infra::email::EmailSender;
 use sendgrid::error::SendgridError;
 use sendgrid::v3::{Content, Email, Message, Personalization, Sender};
 use teloc::dev::DependencyClone;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct SendGrid {
@@ -21,6 +22,7 @@ impl SendGrid {
     pub fn new(api_key: String, send_from: String, url: String) -> Self {
         let sender = Sender::new(api_key);
         let send_from = EmailAddress::from_str(send_from.as_str()).expect("invalid email address");
+        info!("initialized SendGrid client");
 
         Self {
             sender,
@@ -50,7 +52,10 @@ impl EmailSender for SendGrid {
                     )),
             )
             .add_personalization(personalization);
-        self.sender.send(&message).await?;
+        match self.sender.send(&message).await {
+            Ok(_) => info!("sent email"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
