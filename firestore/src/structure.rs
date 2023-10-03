@@ -41,8 +41,6 @@ pub(crate) struct TrafficLogStructure {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct RegisterLogStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) visitor_id: Id<Visitor>,
 }
 
