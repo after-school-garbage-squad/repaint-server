@@ -15,6 +15,7 @@ repaint-server-usecase = { path = "../usecase" }
 serde_json = "1.0.107"
 teloc = "0.2.0"
 tokio = "1.32.0"
+tracing = "0.1.37"
 
 [dependencies.google-cloud-pubsub]
 version = "0.20.0"

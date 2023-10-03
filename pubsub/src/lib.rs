@@ -13,6 +13,7 @@ use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_usecase::infra::pubsub::GoogleCloudPubSub;
 use teloc::dev::DependencyClone;
 use tokio::task::JoinHandle;
+use tracing::info;
 
 #[derive(Debug, Clone)]
 pub struct PubSub {
@@ -29,6 +30,7 @@ impl PubSub {
             .await
             .expect("failed to create config");
         let client = Client::new(config).await.expect("failed to create client");
+        info!("initialized PubSub client");
 
         Self {
             client,
@@ -79,7 +81,8 @@ impl GoogleCloudPubSub for PubSub {
             })
             .collect::<Vec<JoinHandle<Result<_, _>>>>();
         for task in tasks {
-            let _ = task.await.expect("failed to join");
+            let message_id = task.await.expect("failed to join")?;
+            info!("published clustering event image: {}", message_id);
         }
         let mut publisher = publisher;
         publisher.shutdown().await;
@@ -122,7 +125,8 @@ impl GoogleCloudPubSub for PubSub {
             })
             .collect::<Vec<JoinHandle<Result<_, _>>>>();
         for task in tasks {
-            let _ = task.await.expect("failed to join");
+            let message_id = task.await.expect("failed to join")?;
+            info!("published clustering visitor image: {}", message_id);
         }
         let mut publisher = publisher;
         publisher.shutdown().await;
@@ -166,7 +170,8 @@ impl GoogleCloudPubSub for PubSub {
             })
             .collect::<Vec<JoinHandle<Result<_, _>>>>();
         for task in tasks {
-            let _ = task.await.expect("failed to join");
+            let message_id = task.await.expect("failed to join")?;
+            info!("published merge current image: {}", message_id);
         }
         let mut publisher = publisher;
         publisher.shutdown().await;

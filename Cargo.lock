@@ -2583,6 +2583,7 @@ dependencies = [
  "serde_json",
  "teloc",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
