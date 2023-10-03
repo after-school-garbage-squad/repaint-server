@@ -12,6 +12,7 @@ use repaint_server_model::visitor::Visitor;
 use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_usecase::infra::pubsub::GoogleCloudPubSub;
 use teloc::dev::DependencyClone;
+use tokio::task::JoinHandle;
 
 #[derive(Debug, Clone)]
 pub struct PubSub {
@@ -53,20 +54,34 @@ impl GoogleCloudPubSub for PubSub {
         if !topic.exists(None).await? {
             topic.create(None, None).await?;
         }
-        let mut publisher = topic.new_publisher(None);
-        let msg = PubsubMessage {
-            data: serde_json::json!({
-                "event_id": event_id,
-                "visitor_id": None::<Id<Visitor>>,
-                "image_id": image_id,
-                "palette_max": self.cluster
+        let publisher = topic.new_publisher(None);
+        let tasks = (0..1)
+            .into_iter()
+            .map(|_i| {
+                let publisher = publisher.clone();
+                let cluster = self.cluster;
+                tokio::spawn(async move {
+                    let msg = PubsubMessage {
+                        data: serde_json::json!({
+                            "event_id": event_id,
+                            "visitor_id": None::<Id<Visitor>>,
+                            "image_id": image_id,
+                            "palette_max": cluster
+                        })
+                        .to_string()
+                        .into(),
+                        ..Default::default()
+                    };
+                    let awaiter = publisher.publish(msg).await;
+
+                    awaiter.get().await
+                })
             })
-            .to_string()
-            .into(),
-            ..Default::default()
-        };
-        let awaiter = publisher.publish(msg).await;
-        let _ = awaiter.get().await?;
+            .collect::<Vec<JoinHandle<Result<_, _>>>>();
+        for task in tasks {
+            let _ = task.await.expect("failed to join");
+        }
+        let mut publisher = publisher;
         publisher.shutdown().await;
 
         Ok(())
@@ -82,20 +97,34 @@ impl GoogleCloudPubSub for PubSub {
         if !topic.exists(None).await? {
             topic.create(None, None).await?;
         }
-        let mut publisher = topic.new_publisher(None);
-        let msg = PubsubMessage {
-            data: serde_json::json!({
-                "event_id": event_id,
-                "visitor_id": visitor_id,
-                "image_id": image_id,
-                "palette_max": self.cluster
+        let publisher = topic.new_publisher(None);
+        let tasks = (0..1)
+            .into_iter()
+            .map(|_i| {
+                let publisher = publisher.clone();
+                let cluster = self.cluster;
+                tokio::spawn(async move {
+                    let msg = PubsubMessage {
+                        data: serde_json::json!({
+                            "event_id": event_id,
+                            "visitor_id": visitor_id,
+                            "image_id": image_id,
+                            "palette_max": cluster
+                        })
+                        .to_string()
+                        .into(),
+                        ..Default::default()
+                    };
+                    let awaiter = publisher.publish(msg).await;
+
+                    awaiter.get().await
+                })
             })
-            .to_string()
-            .into(),
-            ..Default::default()
-        };
-        let awaiter = publisher.publish(msg).await;
-        let _ = awaiter.get().await?;
+            .collect::<Vec<JoinHandle<Result<_, _>>>>();
+        for task in tasks {
+            let _ = task.await.expect("failed to join");
+        }
+        let mut publisher = publisher;
         publisher.shutdown().await;
 
         Ok(())
@@ -112,20 +141,34 @@ impl GoogleCloudPubSub for PubSub {
         if !topic.exists(None).await? {
             topic.create(None, None).await?;
         }
-        let mut publisher = topic.new_publisher(None);
-        let msg = PubsubMessage {
-            data: serde_json::json!({
-                "event_id": event_id,
-                "visitor_id": visitor_id,
-                "image_id": image_id,
-                "palette_ids": palette_ids
+        let publisher = topic.new_publisher(None);
+        let tasks = (0..1)
+            .into_iter()
+            .map(|_i| {
+                let publisher = publisher.clone();
+                let palette_ids = palette_ids.clone();
+                tokio::spawn(async move {
+                    let msg = PubsubMessage {
+                        data: serde_json::json!({
+                            "event_id": event_id,
+                            "visitor_id": visitor_id,
+                            "image_id": image_id,
+                            "palette_ids": palette_ids
+                        })
+                        .to_string()
+                        .into(),
+                        ..Default::default()
+                    };
+                    let awaiter = publisher.publish(msg).await;
+
+                    awaiter.get().await
+                })
             })
-            .to_string()
-            .into(),
-            ..Default::default()
-        };
-        let awaiter = publisher.publish(msg).await;
-        let _ = awaiter.get().await?;
+            .collect::<Vec<JoinHandle<Result<_, _>>>>();
+        for task in tasks {
+            let _ = task.await.expect("failed to join");
+        }
+        let mut publisher = publisher;
         publisher.shutdown().await;
 
         Ok(())

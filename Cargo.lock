@@ -2577,6 +2577,7 @@ dependencies = [
  "repaint-server-usecase",
  "serde_json",
  "teloc",
+ "tokio",
 ]
 
 [[package]]
