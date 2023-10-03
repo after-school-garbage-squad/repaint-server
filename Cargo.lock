@@ -2427,7 +2427,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-api"
-version = "2.0.2"
+version = "2.0.3"
 dependencies = [
  "axum",
  "cfg-if",
@@ -2567,7 +2567,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-pubsub"
-version = "2.0.2"
+version = "2.0.3"
 dependencies = [
  "async-trait",
  "google-cloud-gax",

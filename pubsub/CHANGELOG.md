@@ -2,6 +2,13 @@
 
 
 
+## [2.0.3](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.0.2...repaint-server-v2.0.3) (2023-10-03)
+
+
+### Bug Fixes
+
+* fix logic of publish ([#212](https://github.com/after-school-garbage-squad/repaint-server/issues/212)) ([a848262](https://github.com/after-school-garbage-squad/repaint-server/commit/a84826216646f0b3801d8fed55f33d89717a75e3))
+
 ## [2.0.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.0.0...repaint-server-v2.0.1) (2023-10-03)
 
 
