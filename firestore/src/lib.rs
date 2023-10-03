@@ -17,6 +17,7 @@ use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::firestore::Firestore as FirestoreInfra;
+use serde::Deserialize;
 use structure::TrafficLogStructure;
 use teloc::dev::DependencyClone;
 use tokio_stream::StreamExt;
@@ -176,18 +177,16 @@ impl FirestoreInfra for Firestore {
         visitor_id: Id<Visitor>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Self::Error> {
-        let structure = VisitorStructure {
-            collection: format!("visitor_{}", event_id),
-            document: visitor_id.to_string(),
-            spot_id,
-        };
+        let collection = format!("visitor_{}", event_id);
+        let document = visitor_id.to_string();
+        let structure = VisitorStructure { spot_id };
         let _ = self
             .client
             .fluent()
             .update()
             .fields(paths!(VisitorStructure::{spot_id}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&VisitorStructure {
                 ..structure.clone()
             })
@@ -203,11 +202,15 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
     ) -> Result<Vec<Id<Visitor>>, Self::Error> {
         let collection = format!("visitor_{}", event_id);
-        let stream: BoxStream<FirestoreResult<VisitorStructure>> = self
+        #[derive(Debug, Deserialize)]
+        struct Res {
+            document: String,
+        }
+        let stream: BoxStream<FirestoreResult<Res>> = self
             .client
             .fluent()
             .select()
-            .fields(paths!(VisitorStructure::{document, spot_id}))
+            .fields(vec!["document", "spot_id"])
             .from(collection.as_str())
             .filter(|q| q.for_all([q.field(path!(VisitorStructure::spot_id)).eq(spot_id)]))
             .obj()

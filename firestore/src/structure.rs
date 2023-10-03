@@ -11,8 +11,6 @@ pub(crate) struct PaletteStructure {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct VisitorStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) spot_id: Id<EventSpot>,
 }
 
