@@ -46,7 +46,5 @@ pub(crate) struct RegisterLogStructure {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub(crate) struct InitializeLogStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) visitor_id: Id<Visitor>,
 }
