@@ -17,6 +17,7 @@ use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::firestore::Firestore as FirestoreInfra;
+use serde::Deserialize;
 use structure::TrafficLogStructure;
 use teloc::dev::DependencyClone;
 use tokio_stream::StreamExt;
@@ -55,9 +56,9 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
         palette_id: i32,
     ) -> Result<(), Self::Error> {
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
             palette_id: Some(palette_id),
             palettes_ids: None,
         };
@@ -66,8 +67,8 @@ impl FirestoreInfra for Firestore {
             .fluent()
             .update()
             .fields(paths!(PaletteStructure::{palette_id}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&PaletteStructure {
                 ..structure.clone()
             })
@@ -83,9 +84,9 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
         palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error> {
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
             palette_id: None,
             palettes_ids: Some(palette_ids),
         };
@@ -94,8 +95,8 @@ impl FirestoreInfra for Firestore {
             .fluent()
             .update()
             .fields(paths!(PaletteStructure::{palettes_ids}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&PaletteStructure {
                 ..structure.clone()
             })
@@ -110,19 +111,15 @@ impl FirestoreInfra for Firestore {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<i32>, Self::Error> {
-        let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
-            palette_id: None,
-            palettes_ids: None,
-        };
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let Some(res) = self
             .client
             .fluent()
             .select()
-            .by_id_in(&structure.collection)
+            .by_id_in(collection.as_str())
             .obj::<PaletteStructure>()
-            .one(&structure.document)
+            .one(document)
             .await?
         else {
             return Ok(None);
@@ -137,19 +134,15 @@ impl FirestoreInfra for Firestore {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<Vec<i32>>, Self::Error> {
-        let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
-            palette_id: None,
-            palettes_ids: None,
-        };
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let Some(res) = self
             .client
             .fluent()
             .select()
-            .by_id_in(&structure.collection)
+            .by_id_in(collection.as_str())
             .obj::<PaletteStructure>()
-            .one(&structure.document)
+            .one(document)
             .await?
         else {
             return Ok(None);
@@ -164,18 +157,14 @@ impl FirestoreInfra for Firestore {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Self::Error> {
-        let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
-            palette_id: None,
-            palettes_ids: None,
-        };
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let _ = self
             .client
             .fluent()
             .delete()
-            .from(&structure.collection)
-            .document_id(&structure.document)
+            .from(collection.as_str())
+            .document_id(document)
             .execute()
             .await?;
 
@@ -188,18 +177,16 @@ impl FirestoreInfra for Firestore {
         visitor_id: Id<Visitor>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Self::Error> {
-        let structure = VisitorStructure {
-            collection: format!("visitor_{}", event_id),
-            document: visitor_id.to_string(),
-            spot_id,
-        };
+        let collection = format!("visitor_{}", event_id);
+        let document = visitor_id.to_string();
+        let structure = VisitorStructure { spot_id };
         let _ = self
             .client
             .fluent()
             .update()
             .fields(paths!(VisitorStructure::{spot_id}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&VisitorStructure {
                 ..structure.clone()
             })
@@ -215,11 +202,15 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
     ) -> Result<Vec<Id<Visitor>>, Self::Error> {
         let collection = format!("visitor_{}", event_id);
-        let stream: BoxStream<FirestoreResult<VisitorStructure>> = self
+        #[derive(Debug, Deserialize)]
+        struct Res {
+            document: String,
+        }
+        let stream: BoxStream<FirestoreResult<Res>> = self
             .client
             .fluent()
             .select()
-            .fields(paths!(VisitorStructure::{document, spot_id}))
+            .fields(vec!["document", "spot_id"])
             .from(collection.as_str())
             .filter(|q| q.for_all([q.field(path!(VisitorStructure::spot_id)).eq(spot_id)]))
             .obj()
@@ -236,18 +227,18 @@ impl FirestoreInfra for Firestore {
     }
 
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error> {
+        let collection = "admin".to_string();
+        let document = token;
         let structure = AdminStructure {
-            collection: "admin".to_string(),
-            document: token,
             event_id: Some(event_id),
         };
         let _ = self
             .client
             .fluent()
             .update()
-            .fields(paths!(AdminStructure::{document, event_id}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .fields(vec!["document", "event_id"])
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&AdminStructure {
                 ..structure.clone()
             })
@@ -258,18 +249,15 @@ impl FirestoreInfra for Firestore {
     }
 
     async fn get_event_id(&self, token: String) -> Result<Option<i32>, Self::Error> {
-        let structure = AdminStructure {
-            collection: "admin".to_string(),
-            document: token,
-            event_id: None,
-        };
+        let collection = "admin".to_string();
+        let document = token;
         let Some(res) = self
             .client
             .fluent()
             .select()
-            .by_id_in(&structure.collection)
+            .by_id_in(collection.as_str())
             .obj::<AdminStructure>()
-            .one(&structure.document)
+            .one(document)
             .await?
         else {
             return Ok(None);
@@ -296,9 +284,9 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("visitor_log_{}_{}", Utc::now().timestamp(), s);
         let structure = VisitorLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("visitor_log_{}_{}", Utc::now().timestamp(), s),
             visitor_id,
             spot_id,
             palettes_length,
@@ -308,8 +296,8 @@ impl FirestoreInfra for Firestore {
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;
@@ -332,9 +320,9 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("spot_log_{}_{}", Utc::now().timestamp(), s);
         let structure = SpotLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("spot_log_{}_{}", Utc::now().timestamp(), s),
             spot_id,
             head_count,
         };
@@ -342,8 +330,8 @@ impl FirestoreInfra for Firestore {
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;
@@ -366,18 +354,15 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
-        let structure = TrafficLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("traffic_log_{}_{}", Utc::now().timestamp(), s),
-            from,
-            to,
-        };
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("traffic_log_{}_{}", Utc::now().timestamp(), s);
+        let structure = TrafficLogStructure { from, to };
         let _ = self
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;
@@ -399,17 +384,15 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
-        let structure = RegisterLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("register_log_{}_{}", Utc::now().timestamp(), s),
-            visitor_id,
-        };
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("register_log_{}_{}", Utc::now().timestamp(), s);
+        let structure = RegisterLogStructure { visitor_id };
         let _ = self
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;
@@ -431,17 +414,15 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
-        let structure = InitializeLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("initialize_log_{}_{}", Utc::now().timestamp(), s),
-            visitor_id,
-        };
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("initialize_log_{}_{}", Utc::now().timestamp(), s);
+        let structure = InitializeLogStructure { visitor_id };
         let _ = self
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;
