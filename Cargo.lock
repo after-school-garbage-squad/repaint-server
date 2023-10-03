@@ -2427,7 +2427,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-api"
-version = "2.0.3"
+version = "2.0.4"
 dependencies = [
  "axum",
  "cfg-if",
@@ -2484,7 +2484,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-fcm"
-version = "2.0.2"
+version = "2.0.3"
 dependencies = [
  "async-trait",
  "google-cloud-auth",
@@ -2556,7 +2556,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-otp"
-version = "2.0.2"
+version = "2.0.3"
 dependencies = [
  "async-trait",
  "repaint-server-model",
