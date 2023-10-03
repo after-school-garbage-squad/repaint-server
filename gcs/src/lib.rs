@@ -10,6 +10,7 @@ use repaint_server_model::id::Id;
 use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_usecase::infra::gcs::GoogleCloudStorage;
 use teloc::dev::DependencyClone;
+use tracing::info;
 
 #[derive(Clone)]
 pub struct Gcs {
@@ -24,6 +25,7 @@ impl Gcs {
             .await
             .expect("failed to create config");
         let client = Client::new(config);
+        info!("initialized GCS client");
 
         Self { client, bucket }
     }
@@ -45,7 +47,7 @@ impl GoogleCloudStorage for Gcs {
             "{}/image/{}_original.png",
             event_id, image_id
         )));
-        let _ = self
+        match self
             .client
             .upload_object(
                 &UploadObjectRequest {
@@ -55,7 +57,11 @@ impl GoogleCloudStorage for Gcs {
                 data,
                 &upload_type,
             )
-            .await?;
+            .await
+        {
+            Ok(_) => info!("uploaded event image"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
@@ -70,7 +76,7 @@ impl GoogleCloudStorage for Gcs {
             "{}/image/{}_original.png",
             event_id, image_id
         )));
-        let _ = self
+        match self
             .client
             .upload_object(
                 &UploadObjectRequest {
@@ -80,7 +86,11 @@ impl GoogleCloudStorage for Gcs {
                 data,
                 &upload_type,
             )
-            .await?;
+            .await
+        {
+            Ok(_) => info!("uploaded visitor image"),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
