@@ -2,6 +2,13 @@
 
 
 
+## [2.1.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.0.5...repaint-server-v2.1.0) (2023-10-03)
+
+
+### Features
+
+* add tracing ([#218](https://github.com/after-school-garbage-squad/repaint-server/issues/218)) ([539b380](https://github.com/after-school-garbage-squad/repaint-server/commit/539b380a56e28731a550c2c35dd0adc6771234cd))
+
 ## [2.0.5](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.0.2...repaint-server-v2.0.5) (2023-10-03)
 
 
