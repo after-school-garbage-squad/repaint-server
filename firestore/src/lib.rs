@@ -55,9 +55,9 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
         palette_id: i32,
     ) -> Result<(), Self::Error> {
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
             palette_id: Some(palette_id),
             palettes_ids: None,
         };
@@ -66,8 +66,8 @@ impl FirestoreInfra for Firestore {
             .fluent()
             .update()
             .fields(paths!(PaletteStructure::{palette_id}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&PaletteStructure {
                 ..structure.clone()
             })
@@ -83,9 +83,9 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
         palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error> {
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
             palette_id: None,
             palettes_ids: Some(palette_ids),
         };
@@ -94,8 +94,8 @@ impl FirestoreInfra for Firestore {
             .fluent()
             .update()
             .fields(paths!(PaletteStructure::{palettes_ids}))
-            .in_col(&structure.collection)
-            .document_id(&structure.document)
+            .in_col(collection.as_str())
+            .document_id(document)
             .object(&PaletteStructure {
                 ..structure.clone()
             })
@@ -110,19 +110,15 @@ impl FirestoreInfra for Firestore {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<i32>, Self::Error> {
-        let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
-            palette_id: None,
-            palettes_ids: None,
-        };
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let Some(res) = self
             .client
             .fluent()
             .select()
-            .by_id_in(&structure.collection)
+            .by_id_in(collection.as_str())
             .obj::<PaletteStructure>()
-            .one(&structure.document)
+            .one(document)
             .await?
         else {
             return Ok(None);
@@ -137,19 +133,15 @@ impl FirestoreInfra for Firestore {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<Vec<i32>>, Self::Error> {
-        let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
-            palette_id: None,
-            palettes_ids: None,
-        };
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let Some(res) = self
             .client
             .fluent()
             .select()
-            .by_id_in(&structure.collection)
+            .by_id_in(collection.as_str())
             .obj::<PaletteStructure>()
-            .one(&structure.document)
+            .one(document)
             .await?
         else {
             return Ok(None);
@@ -164,18 +156,14 @@ impl FirestoreInfra for Firestore {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Self::Error> {
-        let structure = PaletteStructure {
-            collection: format!("spot_{}", event_id),
-            document: spot_id.to_string(),
-            palette_id: None,
-            palettes_ids: None,
-        };
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
         let _ = self
             .client
             .fluent()
             .delete()
-            .from(&structure.collection)
-            .document_id(&structure.document)
+            .from(collection.as_str())
+            .document_id(document)
             .execute()
             .await?;
 
