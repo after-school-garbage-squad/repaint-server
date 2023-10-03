@@ -284,9 +284,9 @@ impl FirestoreInfra for Firestore {
             .take(8)
             .map(char::from)
             .collect::<String>();
+        let collection = format!("event_log_{}", event_id);
+        let document = format!("visitor_log_{}_{}", Utc::now().timestamp(), s);
         let structure = VisitorLogStructure {
-            collection: format!("event_log_{}", event_id),
-            document: format!("visitor_log_{}_{}", Utc::now().timestamp(), s),
             visitor_id,
             spot_id,
             palettes_length,
@@ -296,8 +296,8 @@ impl FirestoreInfra for Firestore {
             .client
             .fluent()
             .insert()
-            .into(&structure.collection)
-            .document_id(&structure.document)
+            .into(collection.as_str())
+            .document_id(document)
             .object(&structure)
             .execute()
             .await?;

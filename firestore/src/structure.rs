@@ -21,8 +21,6 @@ pub(crate) struct AdminStructure {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct VisitorLogStructure {
-    pub(crate) collection: String,
-    pub(crate) document: String,
     pub(crate) visitor_id: Id<Visitor>,
     pub(crate) spot_id: Id<EventSpot>,
     pub(crate) palettes_length: usize,
