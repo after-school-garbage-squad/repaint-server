@@ -13,6 +13,10 @@ use crate::infra::gcs::GoogleCloudStorage;
 use crate::infra::otp::ImageOtp;
 use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, ImageRepository, PaletteRepository, VisitorRepository};
+use crate::model::image::{
+    CheckUpdateResponse, CheckVisitorImageExistResponse, GetCurrentImageResponse,
+    ListImageResponse, ProxyCurrentImageResponse, ProxyEventImageResponse,
+};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
 
@@ -37,7 +41,7 @@ pub trait ImageUsecase: AsyncSafe {
         subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
-    ) -> Result<Option<Id<VisitorImage>>, Error>;
+    ) -> Result<CheckVisitorImageExistResponse, Error>;
 
     async fn upload_visitor_image(
         &self,
@@ -50,12 +54,12 @@ pub trait ImageUsecase: AsyncSafe {
     async fn list_image(
         &self,
         visitor_identification: VisitorIdentification,
-    ) -> Result<Vec<Id<VisitorImage>>, Error>;
+    ) -> Result<ListImageResponse, Error>;
 
     async fn get_current_image(
         &self,
         visitor_identification: VisitorIdentification,
-    ) -> Result<Id<CurrentImage>, Error>;
+    ) -> Result<GetCurrentImageResponse, Error>;
 
     async fn set_current_image(
         &self,
@@ -68,7 +72,7 @@ pub trait ImageUsecase: AsyncSafe {
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
-    ) -> Result<String, Error>;
+    ) -> Result<ProxyCurrentImageResponse, Error>;
 
     async fn set_update(&self, event_id: Id<Event>, visitor_id: Id<Visitor>) -> Result<(), Error>;
 
@@ -76,13 +80,13 @@ pub trait ImageUsecase: AsyncSafe {
         &self,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
-    ) -> Result<bool, Error>;
+    ) -> Result<CheckUpdateResponse, Error>;
 
     async fn proxy_event_image(
         &self,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
-    ) -> Result<String, Error>;
+    ) -> Result<ProxyEventImageResponse, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -161,7 +165,7 @@ where
         subject: String,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
-    ) -> Result<Option<Id<VisitorImage>>, Error> {
+    ) -> Result<CheckVisitorImageExistResponse, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
@@ -172,7 +176,7 @@ where
             })?;
         let image = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
 
-        Ok(image)
+        Ok(CheckVisitorImageExistResponse { image_id: image })
     }
 
     async fn upload_visitor_image(
@@ -207,7 +211,7 @@ where
     async fn list_image(
         &self,
         visitor_identification: VisitorIdentification,
-    ) -> Result<Vec<Id<VisitorImage>>, Error> {
+    ) -> Result<ListImageResponse, Error> {
         let event = EventRepository::get(&self.repo, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
@@ -229,13 +233,13 @@ where
             images.push(visitor);
         };
 
-        Ok(images)
+        Ok(ListImageResponse { images })
     }
 
     async fn get_current_image(
         &self,
         visitor_identification: VisitorIdentification,
-    ) -> Result<Id<CurrentImage>, Error> {
+    ) -> Result<GetCurrentImageResponse, Error> {
         let event = EventRepository::get(&self.repo, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
@@ -268,7 +272,9 @@ where
             }
         };
 
-        Ok(current_image_id)
+        Ok(GetCurrentImageResponse {
+            image_id: current_image_id,
+        })
     }
 
     async fn set_current_image(
@@ -302,13 +308,13 @@ where
         event_id: Id<Event>,
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
-    ) -> Result<String, Error> {
+    ) -> Result<ProxyCurrentImageResponse, Error> {
         let token = self
             .otp
             .verify_current(event_id, image_id, visitor_id)
             .await?;
 
-        Ok(token.full)
+        Ok(ProxyCurrentImageResponse { url: token.full })
     }
 
     async fn set_update(&self, event_id: Id<Event>, visitor_id: Id<Visitor>) -> Result<(), Error> {
@@ -332,7 +338,7 @@ where
         &self,
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
-    ) -> Result<bool, Error> {
+    ) -> Result<CheckUpdateResponse, Error> {
         let event = EventRepository::get(&self.repo, event_id)
             .await?
             .ok_or(Error::BadRequest {
@@ -345,16 +351,16 @@ where
             })?;
         let is_updated = ImageRepository::check_update(&self.repo, visitor.id).await?;
 
-        Ok(is_updated)
+        Ok(CheckUpdateResponse { is_updated })
     }
 
     async fn proxy_event_image(
         &self,
         event_id: Id<Event>,
         image_id: Id<EventImage>,
-    ) -> Result<String, Error> {
+    ) -> Result<ProxyEventImageResponse, Error> {
         let token = self.otp.verify_event(event_id, image_id).await?;
 
-        Ok(token.full)
+        Ok(ProxyEventImageResponse { url: token.full })
     }
 }

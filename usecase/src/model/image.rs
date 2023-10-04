@@ -26,6 +26,42 @@ pub struct SetCurrentRequest {
     pub image_id: Id<VisitorImage>,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckVisitorImageExistResponse {
+    pub image_id: Option<Id<VisitorImage>>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListImageResponse {
+    pub images: Vec<Id<VisitorImage>>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetCurrentImageResponse {
+    pub image_id: Id<CurrentImage>,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProxyCurrentImageResponse {
+    pub url: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckUpdateResponse {
+    pub is_updated: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProxyEventImageResponse {
+    pub url: String,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckVisitorQuery {
