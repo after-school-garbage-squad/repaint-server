@@ -46,7 +46,7 @@ impl ImageOtp for Otp {
         let res = self
             .client
             .post(format!(
-                "{}/token?url={}/{}/image/${}_current_{}.png",
+                "{}/token?url={}/{}/image/{}_current_{}.png",
                 self.origin, self.gcs_url, event_id, image_id, visitor_id
             ))
             .send()
@@ -66,7 +66,7 @@ impl ImageOtp for Otp {
         let res = self
             .client
             .post(format!(
-                "{}/token?url={}/{}/image/${}_origin.png",
+                "{}/token?url={}/{}/image/{}_origin.png",
                 self.origin, self.gcs_url, event_id, image_id
             ))
             .send()
