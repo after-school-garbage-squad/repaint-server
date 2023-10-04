@@ -15,3 +15,9 @@ pub struct ControllTrafficRequest {
     pub from: Id<EventSpot>,
     pub to: Id<EventSpot>,
 }
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetTrafficStatusResponse {
+    pub traffics: Vec<TrafficStatus>,
+}

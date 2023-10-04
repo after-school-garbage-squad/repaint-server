@@ -12,7 +12,7 @@ use teloc::inject;
 use crate::infra::fcm::FirebaseCloudMessaging;
 use crate::infra::firestore::Firestore;
 use crate::infra::repo::{EventRepository, SpotRepository, VisitorRepository};
-use crate::model::traffic::TrafficStatus;
+use crate::model::traffic::{GetTrafficStatusResponse, TrafficStatus};
 use crate::usecase::error::Error;
 
 #[async_trait]
@@ -21,7 +21,7 @@ pub trait TrafficUsecase: AsyncSafe {
         &self,
         subject: String,
         event_id: Id<Event>,
-    ) -> Result<Vec<TrafficStatus>, Error>;
+    ) -> Result<GetTrafficStatusResponse, Error>;
 
     async fn controll_traffic(
         &self,
@@ -66,7 +66,7 @@ where
         &self,
         subject: String,
         event_id: Id<Event>,
-    ) -> Result<Vec<TrafficStatus>, Error> {
+    ) -> Result<GetTrafficStatusResponse, Error> {
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
@@ -90,14 +90,16 @@ where
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
 
-        Ok(spots
-            .into_iter()
-            .zip(visitors)
-            .map(|(s, v)| TrafficStatus {
-                spot_id: s.spot_id,
-                head_count: v.len(),
-            })
-            .collect())
+        Ok(GetTrafficStatusResponse {
+            traffics: spots
+                .into_iter()
+                .zip(visitors)
+                .map(|(s, v)| TrafficStatus {
+                    spot_id: s.spot_id,
+                    head_count: v.len(),
+                })
+                .collect(),
+        })
     }
 
     async fn controll_traffic(
