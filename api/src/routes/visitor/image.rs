@@ -65,7 +65,7 @@ async fn proxy<U: ImageUsecase>(
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
-        .proxy_current_image(q.event_id, q.image_id, visitor_id)
+        .proxy_current_image(q.event_id, q.visitor_image_id, visitor_id)
         .await?;
 
     Ok((StatusCode::OK, Json(res)))
