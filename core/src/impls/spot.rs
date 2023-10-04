@@ -221,7 +221,7 @@ mod test {
                 is_pick: Set(false),
                 bonus: Set(false),
                 hw_id: Set(hw_id),
-                service_uuid: Set("c974fe40-aa94-4e".into()),
+                service_uuid: Set("CD:10:41:68:73:D6".into()),
                 ..Default::default()
             }
             .insert(self.orm().con())
@@ -298,7 +298,7 @@ mod test {
                 is_pick: true,
                 bonus: false,
                 hw_id: spot.hw_id,
-                service_uuid: "c974fe40-aa94-4e".into(),
+                service_uuid: "CD:10:41:68:73:D6".into(),
             })
         );
     }

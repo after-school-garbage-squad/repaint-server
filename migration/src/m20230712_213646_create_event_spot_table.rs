@@ -18,7 +18,7 @@ impl Migration {
             .col(ColumnDef::new(EventSpots::IsPick).boolean().not_null().default(false))
             .col(ColumnDef::new(EventSpots::Bonus).boolean().not_null().default(false))
             .col(ColumnDef::new(EventSpots::HwId).char_len(10).not_null().unique_key())
-            .col(ColumnDef::new(EventSpots::ServiceUuid).char_len(16).not_null())
+            .col(ColumnDef::new(EventSpots::ServiceUuid).char_len(17).not_null())
             .col(ColumnDef::new(EventSpots::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(EventSpots::UpdatedAt).date_time())
             .foreign_key(foreign_key!(EventSpots::EventID to Events::Id Cascade))
@@ -104,7 +104,7 @@ mod tests {
                 r#""is_pick" bool NOT NULL DEFAULT FALSE,"#,
                 r#""bonus" bool NOT NULL DEFAULT FALSE,"#,
                 r#""hw_id" char(10) NOT NULL UNIQUE,"#,
-                r#""service_uuid" char(16) NOT NULL,"#,
+                r#""service_uuid" char(17) NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
