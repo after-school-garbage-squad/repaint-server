@@ -16,16 +16,17 @@ use tracing::info;
 #[derive(Debug, Clone)]
 pub struct Otp {
     client: Client,
-    gcs_url: String,
+    url: String,
     origin: String,
 }
 
 impl Otp {
-    pub fn new(bucket: String, origin: String) -> Self {
+    pub fn new(url: String, origin: String) -> Self {
         info!("initialized OTP client");
+
         Self {
             client: Client::new(),
-            gcs_url: format!("gs://{}", bucket),
+            url,
             origin,
         }
     }
@@ -47,7 +48,7 @@ impl ImageOtp for Otp {
             .client
             .post(format!(
                 "{}/token?url={}/{}/image/{}_current_{}.png",
-                self.origin, self.gcs_url, event_id, image_id, visitor_id
+                self.origin, self.url, event_id, image_id, visitor_id
             ))
             .send()
             .await?
@@ -67,7 +68,7 @@ impl ImageOtp for Otp {
             .client
             .post(format!(
                 "{}/token?url={}/{}/image/{}_origin.png",
-                self.origin, self.gcs_url, event_id, image_id
+                self.origin, self.url, event_id, image_id
             ))
             .send()
             .await?
