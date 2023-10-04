@@ -1,7 +1,9 @@
+use repaint_server_model::event::Event;
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::id::Id;
+use repaint_server_model::visitor::Visitor;
+use repaint_server_model::visitor_image::CurrentImage;
 use repaint_server_model::visitor_image::Image as VisitorImage;
-use repaint_server_model::{event::Event, visitor_image::CurrentImage};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -22,4 +24,28 @@ pub struct ProxyCurrentQuery {
 pub struct SetCurrentRequest {
     pub event_id: Id<Event>,
     pub image_id: Id<VisitorImage>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckVisitorQuery {
+    pub visitor_id: Id<Visitor>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProxyEventQuery {
+    pub event_image_id: Id<EventImage>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GetCurrentQuery {
+    pub event_id: Id<Event>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ListQuery {
+    pub event_id: Id<Event>,
 }

@@ -5,10 +5,11 @@ use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::{Json, Router};
-use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
-use repaint_server_usecase::model::image::{ProxyCurrentQuery, SetCurrentRequest};
+use repaint_server_usecase::model::image::{
+    GetCurrentQuery, ListQuery, ProxyCurrentQuery, SetCurrentRequest,
+};
 use repaint_server_usecase::model::visitor::VisitorIdentification;
 use repaint_server_usecase::usecase::image::ImageUsecase;
 
@@ -28,13 +29,13 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
 async fn get_current<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
-    Query(event_id): Query<Id<Event>>,
+    Query(q): Query<GetCurrentQuery>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
         .get_current_image(VisitorIdentification {
             visitor_id,
-            event_id: event_id,
+            event_id: q.event_id,
         })
         .await?;
 
@@ -44,13 +45,13 @@ async fn get_current<U: ImageUsecase>(
 async fn list<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
-    Query(event_id): Query<Id<Event>>,
+    Query(q): Query<ListQuery>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
         .list_image(VisitorIdentification {
             visitor_id,
-            event_id,
+            event_id: q.event_id,
         })
         .await?;
 
