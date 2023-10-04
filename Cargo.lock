@@ -2427,7 +2427,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-api"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "axum",
  "cfg-if",
@@ -2459,7 +2459,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-core"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "cfg-if",
@@ -2484,7 +2484,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-fcm"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "google-cloud-auth",
@@ -2498,7 +2498,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-firestore"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "chrono",
@@ -2515,7 +2515,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-gcs"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "google-cloud-storage",
@@ -2527,7 +2527,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-gmail"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "email_address",
@@ -2560,7 +2560,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-otp"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "repaint-server-model",
@@ -2572,7 +2572,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-pubsub"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "google-cloud-gax",
@@ -2588,7 +2588,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-sg"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "async-trait",
  "email_address",
@@ -2600,7 +2600,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-usecase"
-version = "2.1.3"
+version = "2.1.4"
 dependencies = [
  "anyhow",
  "async-trait",
