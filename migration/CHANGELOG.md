@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.1...repaint-server-v2.2.0) (2023-10-04)
+
+
+### Features
+
+* update spot schema ([#225](https://github.com/after-school-garbage-squad/repaint-server/issues/225)) ([831255f](https://github.com/after-school-garbage-squad/repaint-server/commit/831255f705b75082ef9146dd405f9f0512c1aaa2))
+
 ## [2.1.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.0.5...repaint-server-v2.1.1) (2023-10-04)
 
 
