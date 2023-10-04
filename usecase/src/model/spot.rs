@@ -40,3 +40,15 @@ pub struct UpdateRequest {
     pub name: String,
     pub is_pick: bool,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckByBeaconQuery {
+    pub hw_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckByQrQuery {
+    pub spot_id: Id<EventSpot>,
+}

@@ -7,10 +7,11 @@ use axum::response::IntoResponse;
 use axum::routing::{delete, get, post};
 use axum::{middleware, Extension, Json, Router};
 use repaint_server_model::event::Event;
-use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
-use repaint_server_usecase::model::image::DeleteDefaultRequest;
+use repaint_server_usecase::model::image::{
+    CheckVisitorQuery, DeleteDefaultRequest, ProxyEventQuery,
+};
 use repaint_server_usecase::usecase::error::Error as UsecaseError;
 use repaint_server_usecase::usecase::image::ImageUsecase;
 
@@ -34,11 +35,11 @@ async fn check_visitor<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
-    Query(visitor_id): Query<Id<Visitor>>,
+    Query(q): Query<CheckVisitorQuery>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
-        .check_visitor_image_exist(subject, event_id, visitor_id)
+        .check_visitor_image_exist(subject, event_id, q.visitor_id)
         .await?;
 
     Ok((StatusCode::OK, Json(res)))
@@ -120,10 +121,12 @@ async fn upload_visitor<U: ImageUsecase>(
 async fn proxy<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(event_id): Path<Id<Event>>,
-    Query(image_id): Query<Id<EventImage>>,
+    Query(q): Query<ProxyEventQuery>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
-    let res = usecase.proxy_event_image(event_id, image_id).await?;
+    let res = usecase
+        .proxy_event_image(event_id, q.event_image_id)
+        .await?;
 
     Ok((StatusCode::OK, Json(res)))
 }
