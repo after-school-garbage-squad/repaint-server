@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.3](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.2...repaint-server-v2.1.3) (2023-10-04)
+
+
+### Bug Fixes
+
+* update usecase response ([#228](https://github.com/after-school-garbage-squad/repaint-server/issues/228)) ([86ccd82](https://github.com/after-school-garbage-squad/repaint-server/commit/86ccd8221541c7989ee2c7d0423b514c33d0baca))
+
 ## [2.1.2](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.1...repaint-server-v2.1.2) (2023-10-04)
 
 
