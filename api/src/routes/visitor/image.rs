@@ -1,15 +1,14 @@
 use std::sync::Arc;
 
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{get, post};
 use axum::{Json, Router};
+use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
-use repaint_server_usecase::model::image::{
-    GetCurrentRequest, ListRequest, ProxyCurrentRequest, SetCurrentRequest,
-};
+use repaint_server_usecase::model::image::{ProxyCurrentQuery, SetCurrentRequest};
 use repaint_server_usecase::model::visitor::VisitorIdentification;
 use repaint_server_usecase::usecase::image::ImageUsecase;
 
@@ -29,13 +28,13 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
 async fn get_current<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
-    Json(req): Json<GetCurrentRequest>,
+    Query(event_id): Query<Id<Event>>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
         .get_current_image(VisitorIdentification {
             visitor_id,
-            event_id: req.event_id,
+            event_id: event_id,
         })
         .await?;
 
@@ -45,13 +44,13 @@ async fn get_current<U: ImageUsecase>(
 async fn list<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
-    Json(req): Json<ListRequest>,
+    Query(event_id): Query<Id<Event>>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
         .list_image(VisitorIdentification {
             visitor_id,
-            event_id: req.event_id,
+            event_id,
         })
         .await?;
 
@@ -61,11 +60,11 @@ async fn list<U: ImageUsecase>(
 async fn proxy<U: ImageUsecase>(
     State(usecase): State<Arc<U>>,
     Path(visitor_id): Path<Id<Visitor>>,
-    Json(req): Json<ProxyCurrentRequest>,
+    Query(q): Query<ProxyCurrentQuery>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
-        .proxy_current_image(req.event_id, req.image_id, visitor_id)
+        .proxy_current_image(q.event_id, q.image_id, visitor_id)
         .await?;
 
     Ok((StatusCode::OK, Json(res)))

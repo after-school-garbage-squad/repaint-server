@@ -1,15 +1,14 @@
 use std::sync::Arc;
 
-use axum::extract::{Path, State};
+use axum::extract::{Path, Query, State};
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
 use axum::routing::{delete as delete_handler, get, patch, post};
 use axum::{middleware, Extension, Json, Router};
 use repaint_server_model::event::Event;
+use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
-use repaint_server_usecase::model::spot::{
-    Beacon, CheckByBeaconRequest, CheckByQrRequest, DeleteRequest, RegisterRequest, UpdateRequest,
-};
+use repaint_server_usecase::model::spot::{Beacon, DeleteRequest, RegisterRequest, UpdateRequest};
 use repaint_server_usecase::usecase::spot::SpotUsecase;
 
 use crate::middleware::auth::auth;
@@ -33,11 +32,11 @@ async fn check_by_beacon<U: SpotUsecase>(
     State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
-    Json(req): Json<CheckByBeaconRequest>,
+    Query(hw_id): Query<String>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
-        .check_status_by_beacon(subject, event_id, req.hw_id)
+        .check_status_by_beacon(subject, event_id, hw_id)
         .await?;
 
     Ok((StatusCode::OK, Json(res)))
@@ -47,11 +46,11 @@ async fn check_by_qr<U: SpotUsecase>(
     State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
-    Json(req): Json<CheckByQrRequest>,
+    Query(spot_id): Query<Id<EventSpot>>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase
-        .check_status_by_qr(subject, event_id, req.spot_id)
+        .check_status_by_qr(subject, event_id, spot_id)
         .await?;
 
     Ok((StatusCode::OK, Json(res)))

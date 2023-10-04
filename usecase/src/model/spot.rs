@@ -21,18 +21,6 @@ pub struct Beacon {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CheckByBeaconRequest {
-    pub hw_id: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct CheckByQrRequest {
-    pub spot_id: Id<EventSpot>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
 pub struct DeleteRequest {
     pub spot_id: Id<EventSpot>,
 }
