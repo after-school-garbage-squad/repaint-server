@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.1.5](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.4...repaint-server-v2.1.5) (2023-10-04)
+
+
+### Bug Fixes
+
+* remove unneeded serde and camelCase serialize ([#233](https://github.com/after-school-garbage-squad/repaint-server/issues/233)) ([6d9d53f](https://github.com/after-school-garbage-squad/repaint-server/commit/6d9d53ff1ba373cb9148a7913ee107455f3082bd))
+
 ## [2.1.4](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.3...repaint-server-v2.1.4) (2023-10-04)
 
 
