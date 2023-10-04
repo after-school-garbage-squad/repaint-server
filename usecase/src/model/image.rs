@@ -16,7 +16,7 @@ pub struct DeleteDefaultRequest {
 #[serde(rename_all = "camelCase")]
 pub struct ProxyCurrentQuery {
     pub event_id: Id<Event>,
-    pub image_id: Id<CurrentImage>,
+    pub visitor_image_id: Id<CurrentImage>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
