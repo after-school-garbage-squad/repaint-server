@@ -8,7 +8,7 @@ use axum::{Json, Router};
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::model::image::{
-    GetCurrentQuery, ListQuery, ProxyCurrentQuery, SetCurrentRequest,
+    CheckUpdateQuery, GetCurrentQuery, ListQuery, ProxyCurrentQuery, SetCurrentRequest,
 };
 use repaint_server_usecase::model::visitor::VisitorIdentification;
 use repaint_server_usecase::usecase::image::ImageUsecase;
@@ -23,6 +23,7 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
         .route("/list", get(list))
         .route("/proxy", get(proxy))
         .route("/set-current", post(set_current))
+        .route("/check-update", get(check_update))
         .with_state(usecase)
 }
 
@@ -88,4 +89,15 @@ async fn set_current<U: ImageUsecase>(
         .await;
 
     Ok(StatusCode::NO_CONTENT)
+}
+
+async fn check_update<U: ImageUsecase>(
+    State(usecase): State<Arc<U>>,
+    Path(visitor_id): Path<Id<Visitor>>,
+    Query(q): Query<CheckUpdateQuery>,
+) -> Result<impl IntoResponse, Error> {
+    let usecase = Arc::clone(&usecase);
+    let res = usecase.check_update(q.event_id, visitor_id).await?;
+
+    Ok((StatusCode::OK, Json(res)))
 }
