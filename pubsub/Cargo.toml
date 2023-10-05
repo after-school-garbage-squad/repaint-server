@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-pubsub"
-version = "2.2.6"
+version = "2.2.7"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
