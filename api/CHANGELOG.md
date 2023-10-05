@@ -20,6 +20,13 @@
 
 
 
+## [2.5.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.5.0...repaint-server-v2.5.1) (2023-10-05)
+
+
+### Bug Fixes
+
+* throw unauthorized status when token was expired ([#259](https://github.com/after-school-garbage-squad/repaint-server/issues/259)) ([46df0b5](https://github.com/after-school-garbage-squad/repaint-server/commit/46df0b5bd2fe7a205bbbe63643fe5ef4af983715))
+
 ## [2.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.4.1...repaint-server-v2.5.0) (2023-10-05)
 
 
