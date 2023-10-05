@@ -14,6 +14,12 @@ pub struct DeleteDefaultRequest {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct UpdateNotificationRequest {
+    pub visitor_id: Id<Visitor>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ProxyCurrentQuery {
     pub event_id: Id<Event>,
     pub visitor_image_id: Id<CurrentImage>,
@@ -83,5 +89,11 @@ pub struct GetCurrentQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListQuery {
+    pub event_id: Id<Event>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckUpdateQuery {
     pub event_id: Id<Event>,
 }

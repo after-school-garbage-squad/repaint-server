@@ -10,7 +10,7 @@ use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::model::image::{
-    CheckVisitorQuery, DeleteDefaultRequest, ProxyEventQuery,
+    CheckVisitorQuery, DeleteDefaultRequest, ProxyEventQuery, UpdateNotificationRequest,
 };
 use repaint_server_usecase::usecase::error::Error as UsecaseError;
 use repaint_server_usecase::usecase::image::ImageUsecase;
@@ -27,6 +27,7 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
         .route("/register-default", post(register_default))
         .route("/upload-visitor", post(upload_visitor))
         .route("/proxy", get(proxy))
+        .route("/update-notification", post(update_notification))
         .layer(middleware::from_fn(auth))
         .with_state(usecase)
 }
@@ -129,4 +130,15 @@ async fn proxy<U: ImageUsecase>(
         .await?;
 
     Ok((StatusCode::OK, Json(res)))
+}
+
+async fn update_notification<U: ImageUsecase>(
+    State(usecase): State<Arc<U>>,
+    Path(event_id): Path<Id<Event>>,
+    Json(req): Json<UpdateNotificationRequest>,
+) -> Result<impl IntoResponse, Error> {
+    let usecase = Arc::clone(&usecase);
+    let _ = usecase.set_update(event_id, req.visitor_id).await?;
+
+    Ok(StatusCode::NO_CONTENT)
 }
