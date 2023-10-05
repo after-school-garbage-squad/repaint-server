@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.7](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.6...repaint-server-v2.2.7) (2023-10-05)
+
+
+### Bug Fixes
+
+* fix typo ([#243](https://github.com/after-school-garbage-squad/repaint-server/issues/243)) ([ca75143](https://github.com/after-school-garbage-squad/repaint-server/commit/ca75143a05a824b8537e1d326d7b5d8d27203f71))
+
 ## [2.2.6](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.0...repaint-server-v2.2.6) (2023-10-05)
 
 
