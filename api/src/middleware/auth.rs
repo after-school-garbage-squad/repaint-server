@@ -145,10 +145,13 @@ fn dec_jwt(rsa: &RSAKeyParameters, jwt: &str) -> Result<Claims, (StatusCode, Jso
     ) {
         Ok(c) => Ok(c.claims),
         Err(e) => Err((
-            StatusCode::INTERNAL_SERVER_ERROR,
+            StatusCode::UNAUTHORIZED,
             Json(ErrorResponse {
                 status: "fail",
-                message: format!("Failed to decoding JWT: {:?}", e),
+                message: format!(
+                    "Failed to decoding JWT or token is already expired: {:?}",
+                    e
+                ),
             }),
         )),
     }
