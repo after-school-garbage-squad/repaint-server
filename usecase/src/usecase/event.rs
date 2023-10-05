@@ -6,7 +6,9 @@ use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::firestore::Firestore;
-use crate::infra::repo::{AdminRepository, EventRepository, ImageRepository, SpotRepository};
+use crate::infra::repo::{
+    AdminRepository, EventRepository, ImageRepository, SpotRepository, VisitorRepository,
+};
 use crate::model::event::{CreateEventResponse, EventResponse, UpdateEventResponse};
 use crate::usecase::error::Error;
 
@@ -32,6 +34,8 @@ pub trait EventUsecase: AsyncSafe {
         hp_url: String,
         contact: Contact,
     ) -> Result<UpdateEventResponse, Error>;
+
+    async fn finish_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error>;
 }
 
 #[derive(Debug)]
@@ -43,7 +47,7 @@ pub struct EventUsecaseImpl<R, F> {
 #[inject]
 impl<R, F> EventUsecaseImpl<R, F>
 where
-    R: EventRepository + AdminRepository + SpotRepository + ImageRepository,
+    R: EventRepository + AdminRepository + SpotRepository + ImageRepository + VisitorRepository,
     F: Firestore,
 {
     pub fn new(repo: R, firestore: F) -> Self {
@@ -54,7 +58,7 @@ where
 #[async_trait]
 impl<R, F> EventUsecase for EventUsecaseImpl<R, F>
 where
-    R: EventRepository + AdminRepository + SpotRepository + ImageRepository,
+    R: EventRepository + AdminRepository + SpotRepository + ImageRepository + VisitorRepository,
     F: Firestore,
 {
     async fn create_event(
@@ -211,5 +215,21 @@ where
             hp_url: event.hp_url,
             contact: event.contact,
         })
+    }
+
+    async fn finish_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+        let visitors = VisitorRepository::list(&self.repo, event.id).await?;
+        let f = visitors
+            .iter()
+            .map(|v| ImageRepository::set_download(&self.repo, v.id));
+        let _ = join_all(f)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(())
     }
 }
