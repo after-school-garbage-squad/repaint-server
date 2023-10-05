@@ -23,6 +23,7 @@ repaint-server-pubsub = { path = "../pubsub" }
 repaint-server-sg = { path = "../sg", optional = true }
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
+repaint-server-util = { path = "../util" }
 serde = "1.0.188"
 serde_json = "1.0.107"
 static_assertions = "1.1.0"
