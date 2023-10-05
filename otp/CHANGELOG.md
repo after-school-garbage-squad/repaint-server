@@ -14,6 +14,13 @@
 
 
 
+## [2.2.8](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.7...repaint-server-v2.2.8) (2023-10-05)
+
+
+### Bug Fixes
+
+* add bucket to otp url ([#245](https://github.com/after-school-garbage-squad/repaint-server/issues/245)) ([ef04a8c](https://github.com/after-school-garbage-squad/repaint-server/commit/ef04a8ce3a1c5c5a32e2319c61de0a71ce1e10eb))
+
 ## [2.2.6](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.0...repaint-server-v2.2.6) (2023-10-05)
 
 
