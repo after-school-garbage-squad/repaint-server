@@ -168,14 +168,15 @@ impl ImageRepository for SeaOrm {
     }
 
     async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error> {
-        let image = visitors::Entity::find_by_id(visitor_id)
+        let image = match visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_images::Entity)
             .one(self.con())
             .await?
             .and_then(|(_, i)| i)
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(
-                "visitor_images".into(),
-            )))?;
+        {
+            Some(i) => i,
+            None => return Ok(false),
+        };
 
         Ok(image.is_updated)
     }
