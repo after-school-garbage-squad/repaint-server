@@ -12,6 +12,19 @@
 
 
 
+## [2.2.6](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.0...repaint-server-v2.2.6) (2023-10-05)
+
+
+### Features
+
+* change image url ([#235](https://github.com/after-school-garbage-squad/repaint-server/issues/235)) ([a79b544](https://github.com/after-school-garbage-squad/repaint-server/commit/a79b5448ad150e149e99c38743b0dc137e493dc3))
+
+
+### Miscellaneous Chores
+
+* release 2.1.3 ([66708c6](https://github.com/after-school-garbage-squad/repaint-server/commit/66708c6c31e3f803695962c928fa3e1556c9a919))
+* release 2.2.6 ([39cb15e](https://github.com/after-school-garbage-squad/repaint-server/commit/39cb15e5a346d8e8c48fabccb6eb140c99c0d8ee))
+
 ## [2.2.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.3...repaint-server-v2.2.0) (2023-10-05)
 
 

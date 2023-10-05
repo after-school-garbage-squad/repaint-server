@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-gmail"
-version = "2.1.6"
+version = "2.2.6"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
