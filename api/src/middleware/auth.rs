@@ -4,10 +4,9 @@ use axum::response::IntoResponse;
 use axum::Json;
 use jsonwebtoken::jwk::{AlgorithmParameters, JwkSet, RSAKeyParameters};
 use jsonwebtoken::{decode, decode_header, Algorithm, DecodingKey, Validation};
+use repaint_server_util::envvar_str;
 use reqwest::{Client, Error as ReqwestError};
 use serde::{Deserialize, Serialize};
-
-use crate::utils::envvar_str;
 
 #[derive(Debug, Serialize)]
 pub struct ErrorResponse {
