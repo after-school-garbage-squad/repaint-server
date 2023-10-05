@@ -18,6 +18,13 @@
 
 
 
+## [2.4.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.3.1...repaint-server-v2.4.0) (2023-10-05)
+
+
+### Features
+
+* add publisher to join-visitor usecase ([#255](https://github.com/after-school-garbage-squad/repaint-server/issues/255)) ([c1e9ae9](https://github.com/after-school-garbage-squad/repaint-server/commit/c1e9ae9188050d684dd49c26262de5168d493211))
+
 ## [2.3.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.3.1...repaint-server-v2.3.1) (2023-10-05)
 
 
