@@ -14,6 +14,13 @@
 
 
 
+## [2.2.9](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.8...repaint-server-v2.2.9) (2023-10-05)
+
+
+### Bug Fixes
+
+* fix forget bucket ([#247](https://github.com/after-school-garbage-squad/repaint-server/issues/247)) ([506eb2d](https://github.com/after-school-garbage-squad/repaint-server/commit/506eb2d6588dd9f084fd1cf438b671aad76f457d))
+
 ## [2.2.8](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.7...repaint-server-v2.2.8) (2023-10-05)
 
 

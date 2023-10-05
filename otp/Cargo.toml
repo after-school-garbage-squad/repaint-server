@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-otp"
-version = "2.2.8"
+version = "2.2.9"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
