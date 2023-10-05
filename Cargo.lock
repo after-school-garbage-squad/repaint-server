@@ -2427,7 +2427,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-api"
-version = "2.5.0"
+version = "2.5.1"
 dependencies = [
  "axum",
  "cfg-if",
