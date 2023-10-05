@@ -18,6 +18,7 @@ use repaint_server_usecase::usecase::palette::PaletteUsecaseImpl;
 use repaint_server_usecase::usecase::spot::SpotUsecaseImpl;
 use repaint_server_usecase::usecase::traffic::TrafficUsecaseImpl;
 use repaint_server_usecase::usecase::visitor::VisitorUsecaseImpl;
+use repaint_server_util::{envvar, envvar_str};
 use teloc::{Resolver, ServiceProvider};
 use tokio::signal;
 use tokio::sync::oneshot;
@@ -30,11 +31,9 @@ use crate::routes::license::license;
 use crate::routes::metrics::metrics;
 use crate::routes::version::version;
 use crate::routes::visitor::visitor;
-use crate::utils::{envvar, envvar_str};
 
 mod middleware;
 mod routes;
-mod utils;
 
 #[tokio::main]
 async fn main() {

@@ -68,6 +68,12 @@ pub struct ProxyEventImageResponse {
     pub url: String,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckDownloadResponse {
+    pub is_downloadable: bool,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckVisitorQuery {
@@ -95,5 +101,11 @@ pub struct ListQuery {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CheckUpdateQuery {
+    pub event_id: Id<Event>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckDownloadQuery {
     pub event_id: Id<Event>,
 }

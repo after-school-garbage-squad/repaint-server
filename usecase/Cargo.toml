@@ -13,6 +13,7 @@ email_address = "0.2.4"
 futures = "0.3.28"
 rand = "0.8.5"
 repaint-server-model = { path = "../model" }
+repaint-server-util = { path = "../util" }
 serde = { version = "1.0.188", features = ["derive"] }
 teloc = "0.2.0"
 thiserror = "1.0.49"

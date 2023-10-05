@@ -2446,6 +2446,7 @@ dependencies = [
  "repaint-server-pubsub",
  "repaint-server-sg",
  "repaint-server-usecase",
+ "repaint-server-util",
  "reqwest",
  "serde",
  "serde_json",
@@ -2608,9 +2609,17 @@ dependencies = [
  "futures",
  "rand",
  "repaint-server-model",
+ "repaint-server-util",
  "serde",
  "teloc",
  "thiserror",
+]
+
+[[package]]
+name = "repaint-server-util"
+version = "0.1.0"
+dependencies = [
+ "tracing",
 ]
 
 [[package]]
