@@ -20,6 +20,13 @@
 
 
 
+## [2.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.5.1...repaint-server-v2.6.0) (2023-10-05)
+
+
+### Features
+
+* update body limit to 128MB ([#261](https://github.com/after-school-garbage-squad/repaint-server/issues/261)) ([c4e3d24](https://github.com/after-school-garbage-squad/repaint-server/commit/c4e3d24b57d05fe1aa31c8141ca0f4717a69b5c0))
+
 ## [2.5.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.5.0...repaint-server-v2.5.1) (2023-10-05)
 
 
