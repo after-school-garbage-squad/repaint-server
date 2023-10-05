@@ -63,7 +63,7 @@ async fn main() {
         .add_transient::<PaletteUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_transient::<SpotUsecaseImpl<SeaOrm, FirestoreProvider>>()
         .add_transient::<TrafficUsecaseImpl<SeaOrm, FirestoreProvider, FcmProvider>>()
-        .add_transient::<VisitorUsecaseImpl<SeaOrm, FirestoreProvider>>()
+        .add_transient::<VisitorUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_instance(db)
         .add_instance(fcm_provider().await)
         .add_instance(firestore_provider().await)
@@ -78,7 +78,7 @@ async fn main() {
     let palette_usecase: PaletteUsecaseImpl<_, _, _> = container.resolve();
     let spot_usecase: SpotUsecaseImpl<_, _> = container.resolve();
     let traffic_usecase: TrafficUsecaseImpl<_, _, _> = container.resolve();
-    let visitor_usecase: VisitorUsecaseImpl<_, _> = container.resolve();
+    let visitor_usecase: VisitorUsecaseImpl<_, _, _> = container.resolve();
 
     let app = Router::new()
         .nest(
