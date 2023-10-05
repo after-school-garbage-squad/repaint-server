@@ -4,10 +4,12 @@ use async_trait::async_trait;
 use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor_image::CurrentImage;
+use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::firestore::Firestore;
+use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
@@ -36,27 +38,34 @@ pub trait VisitorUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct VisitorUsecaseImpl<R, F> {
+pub struct VisitorUsecaseImpl<R, F, P> {
     repo: R,
     firestore: F,
+    pubsub: P,
 }
 
 #[inject]
-impl<R, F> VisitorUsecaseImpl<R, F>
+impl<R, F, P> VisitorUsecaseImpl<R, F, P>
 where
     R: VisitorRepository + EventRepository + SpotRepository + ImageRepository + PaletteRepository,
     F: Firestore,
+    P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, firestore: F) -> Self {
-        Self { repo, firestore }
+    pub fn new(repo: R, firestore: F, pubsub: P) -> Self {
+        Self {
+            repo,
+            firestore,
+            pubsub,
+        }
     }
 }
 
 #[async_trait]
-impl<R, F> VisitorUsecase for VisitorUsecaseImpl<R, F>
+impl<R, F, P> VisitorUsecase for VisitorUsecaseImpl<R, F, P>
 where
     R: VisitorRepository + EventRepository + SpotRepository + ImageRepository + PaletteRepository,
     F: Firestore,
+    P: GoogleCloudPubSub,
 {
     async fn join_event(
         &self,
@@ -78,10 +87,38 @@ where
         let images = ImageRepository::list_default_image(&self.repo, event.id).await?;
         let visitor =
             VisitorRepository::create(&self.repo, event.id, registration_id.clone()).await?;
-        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
+            Some(i) => i,
+            None => {
+                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+                let current_image_id = default
+                    .first()
+                    .ok_or(Error::BadRequest {
+                        message: "default image is empty".to_string(),
+                    })?
+                    .clone();
 
-        self.firestore
+                Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
+                    .ok()
+                    .ok_or(Error::BadRequest {
+                        message: "failed to parse default image id to current image id".to_string(),
+                    })?
+            }
+        };
+        let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
+        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let _ = self
+            .firestore
             .subscribe_register_log(event_id, visitor.visitor_id)
+            .await?;
+        let _ = self
+            .pubsub
+            .publish_merge_current_image(
+                event.event_id,
+                visitor.visitor_id,
+                image_id,
+                palettes.clone(),
+            )
             .await?;
 
         Ok((
