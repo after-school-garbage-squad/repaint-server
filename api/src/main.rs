@@ -185,10 +185,11 @@ async fn gcs_provider() -> GcsProvider {
 }
 
 fn otp_provider() -> OtpProvider {
-    let url = envvar_str("IMAGE_URL", None);
     let origin = envvar_str("ORIGIN", None);
+    let url = envvar_str("IMAGE_URL", None);
+    let bucket = envvar_str("BUCKET", None);
 
-    Otp::new(url, origin)
+    Otp::new(origin, url, bucket)
 }
 
 async fn pubsub_provider() -> PubSubProvider {
