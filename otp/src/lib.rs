@@ -69,8 +69,8 @@ impl ImageOtp for Otp {
         let res = self
             .client
             .post(format!(
-                "{}/token?url={}/{}/image/{}_origin.png",
-                self.origin, self.url, event_id, image_id
+                "{}/token?url={}/{}/{}/image/{}_origin.png",
+                self.origin, self.url, self.bucket, event_id, image_id
             ))
             .send()
             .await?
