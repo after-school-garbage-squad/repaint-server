@@ -1,6 +1,7 @@
 use std::net::{SocketAddr, SocketAddrV4};
 use std::time::Duration;
 
+use axum::extract::DefaultBodyLimit;
 use axum::http::{header, HeaderValue, Method};
 use axum::Router;
 use cfg_if::cfg_if;
@@ -113,7 +114,8 @@ async fn main() {
                         .parse::<HeaderValue>()
                         .expect("invalid CORS_ALLOW_ORIGIN"),
                 ),
-        );
+        )
+        .layer(DefaultBodyLimit::max(128 * 1024 * 1024)); // 128MB
 
     tracing::info!("staring server at {addr}");
 
