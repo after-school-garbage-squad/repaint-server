@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-api"
-version = "2.3.1"
+version = "2.4.0"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
