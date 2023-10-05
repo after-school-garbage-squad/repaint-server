@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.2.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.5...repaint-server-v2.2.0) (2023-10-05)
+
+
+### Features
+
+* change id field type to Option&lt;T&gt; ([#239](https://github.com/after-school-garbage-squad/repaint-server/issues/239)) ([d365e63](https://github.com/after-school-garbage-squad/repaint-server/commit/d365e6329a540457bf96b3f5f8d4a20d357c3c7d))
+
 ## [2.1.5](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.1.4...repaint-server-v2.1.5) (2023-10-04)
 
 
