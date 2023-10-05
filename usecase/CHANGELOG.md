@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.7...repaint-server-v2.3.0) (2023-10-05)
+
+
+### Features
+
+* impl update-notificaton adn check-update endpoints ([#249](https://github.com/after-school-garbage-squad/repaint-server/issues/249)) ([349466a](https://github.com/after-school-garbage-squad/repaint-server/commit/349466a6c23ed073882ad46fe12b1ad39eda322d))
+
 ## [2.2.7](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.2.6...repaint-server-v2.2.7) (2023-10-05)
 
 
