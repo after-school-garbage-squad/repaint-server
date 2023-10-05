@@ -9,6 +9,7 @@ use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::AsyncSafe;
+use repaint_server_util::envvar;
 use teloc::inject;
 
 use crate::infra::firestore::Firestore;
@@ -166,10 +167,14 @@ where
             let p = palettes
                 .iter()
                 .map(|&p| PaletteRepository::set(&self.repo, visitor.id, p));
-            join_all(p)
+            let _ = join_all(p)
                 .await
                 .into_iter()
                 .collect::<Result<Vec<_>, _>>()?;
+            let p = PaletteRepository::get(&self.repo, visitor.id).await?;
+            if p.len() == envvar("CLUSTER", None) {
+                let _ = ImageRepository::set_download(&self.repo, visitor.id).await?;
+            }
 
             let palettes = palettes.choose_multiple(&mut rng, 2).cloned().collect();
             self.firestore
@@ -182,6 +187,10 @@ where
                 .await?
                 .unwrap_or(palettes.choose(&mut rng).cloned().unwrap());
             let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
+            let p = PaletteRepository::get(&self.repo, visitor.id).await?;
+            if p.len() == envvar("CLUSTER", None) {
+                let _ = ImageRepository::set_download(&self.repo, visitor.id).await?;
+            }
 
             let palette = palettes.choose(&mut rng).cloned().unwrap();
             self.firestore
@@ -274,6 +283,10 @@ where
         while let Some(&palette) = palettes.choose(&mut rng) {
             if !visitor_palettes.contains(&palette) {
                 let _ = PaletteRepository::set(&self.repo, visitor.id, palette);
+                let p = PaletteRepository::get(&self.repo, visitor.id).await?;
+                if p.len() == envvar("CLUSTER", None) {
+                    let _ = ImageRepository::set_download(&self.repo, visitor.id).await?;
+                }
                 break;
             }
         }
