@@ -18,6 +18,13 @@
 
 
 
+## [2.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.3.1...repaint-server-v2.5.0) (2023-10-05)
+
+
+### Miscellaneous Chores
+
+* release 2.5.0 ([d7465e8](https://github.com/after-school-garbage-squad/repaint-server/commit/d7465e88fe2707c2d70a23972b72a82e1c2901d2))
+
 ## [2.3.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.3.2...repaint-server-v2.3.1) (2023-10-05)
 
 
