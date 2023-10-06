@@ -20,6 +20,18 @@
 
 
 
+## [2.7.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.6.0...repaint-server-v2.7.0) (2023-10-06)
+
+
+### Features
+
+* impl download flag ([#265](https://github.com/after-school-garbage-squad/repaint-server/issues/265)) ([bb535bb](https://github.com/after-school-garbage-squad/repaint-server/commit/bb535bb72708232ef806c71d5d56e1a6d50bebe9))
+
+
+### Bug Fixes
+
+* fix unneeded auth layer and feed body limit ([#268](https://github.com/after-school-garbage-squad/repaint-server/issues/268)) ([8b0b868](https://github.com/after-school-garbage-squad/repaint-server/commit/8b0b868625f3fcc1a4414576575d0dbdb74f7fba))
+
 ## [2.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.5.1...repaint-server-v2.6.0) (2023-10-05)
 
 
