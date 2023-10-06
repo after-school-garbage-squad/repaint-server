@@ -22,6 +22,18 @@
 
 
 
+## [2.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.5.1...repaint-server-v2.6.0) (2023-10-06)
+
+
+### Features
+
+* impl download flag ([#265](https://github.com/after-school-garbage-squad/repaint-server/issues/265)) ([bb535bb](https://github.com/after-school-garbage-squad/repaint-server/commit/bb535bb72708232ef806c71d5d56e1a6d50bebe9))
+
+
+### Bug Fixes
+
+* fix usecase ([#263](https://github.com/after-school-garbage-squad/repaint-server/issues/263)) ([a3c3a98](https://github.com/after-school-garbage-squad/repaint-server/commit/a3c3a989d663f75b01f7241297709fc905ff7d1e))
+
 ## [2.5.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.5.0...repaint-server-v2.5.1) (2023-10-05)
 
 
