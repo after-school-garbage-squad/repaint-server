@@ -16,6 +16,7 @@
 !sg/**
 !src/main.rs
 !usecase/**
+!util/**
 !Cargo.lock
 !Cargo.toml
 !rust-toolchain.toml
