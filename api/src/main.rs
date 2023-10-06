@@ -114,7 +114,7 @@ async fn main() {
                         .expect("invalid CORS_ALLOW_ORIGIN"),
                 ),
         )
-        .layer(DefaultBodyLimit::max(128 * 1024 * 1024)); // 128MB
+        .layer(DefaultBodyLimit::max(envvar("BODY_LIMIT", 2 * 1024 * 1024)));
 
     tracing::info!("staring server at {addr}");
 
