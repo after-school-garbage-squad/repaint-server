@@ -22,13 +22,24 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
     let usecase = Arc::new(usecase);
 
     Router::new()
-        .route("/check_visitor", get(check_visitor))
-        .route("/delete-default", delete(delete_default))
-        .route("/register-default", post(register_default))
-        .route("/upload-visitor", post(upload_visitor))
+        .route(
+            "/check_visitor",
+            get(check_visitor).route_layer(middleware::from_fn(auth)),
+        )
+        .route(
+            "/delete-default",
+            delete(delete_default).route_layer(middleware::from_fn(auth)),
+        )
+        .route(
+            "/register-default",
+            post(register_default).route_layer(middleware::from_fn(auth)),
+        )
+        .route(
+            "/upload-visitor",
+            post(upload_visitor).route_layer(middleware::from_fn(auth)),
+        )
         .route("/proxy", get(proxy))
         .route("/update-notification", post(update_notification))
-        .layer(middleware::from_fn(auth))
         .with_state(usecase)
 }
 
