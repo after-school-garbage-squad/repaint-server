@@ -48,7 +48,10 @@ impl ImageRepository for SeaOrm {
             .one(&tx)
             .await?
             .and_then(|(_, i)| i)
-            .expect("image not found");
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "event_image doesn't found with {}",
+                image_id
+            ))))?;
         let res = image.delete(&tx).await;
         tx.commit().await?;
 
@@ -137,9 +140,10 @@ impl ImageRepository for SeaOrm {
             .one(&tx)
             .await?
             .and_then(|(_, i)| i)
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(
-                "visitor_images".into(),
-            )))?
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "visitor_image doesn't found with {}",
+                visitor_id
+            ))))?
             .into();
         image.current_image_id = Set(current_image_id.dty());
         let res = image.update(&tx).await;

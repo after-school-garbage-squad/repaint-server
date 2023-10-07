@@ -37,8 +37,6 @@ impl SpotRepository for SeaOrm {
             event_id: Set(event_id),
             spot_id: Set(Id::new().dty()),
             name: Set(name),
-            is_pick: Set(false),
-            bonus: Set(false),
             hw_id: Set(hw_id),
             service_uuid: Set(service_uuid),
             ..Default::default()
@@ -139,7 +137,10 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("event_spots".into())))?;
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "event_spot doesn't found with {}",
+                spot_id
+            ))))?;
         let res = spot.delete(&tx).await;
         tx.commit().await?;
 
@@ -159,7 +160,10 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("event_spots".into())))
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "event_spot doesn't found with {}",
+                spot_id
+            ))))
             .map(to_model)?
             .and_then(|s| Ok(s.bonus))
     }
@@ -180,7 +184,10 @@ impl SpotRepository for SeaOrm {
             .map(|(_, s)| s)
             .flatten()
             .find(|s| s.spot_id == spot_id.dty())
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("event_spots".into())))?
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "event_spot doesn't found with {}",
+                spot_id
+            ))))?
             .into();
         spot.bonus = Set(is_bonus);
         let res = spot.update(&tx).await;

@@ -76,7 +76,10 @@ impl EventRepository for SeaOrm {
             .filter(events_admins::Column::EventId.eq(event_id))
             .one(&tx)
             .await?
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("events_admins".into())))?;
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "event_admin doesn't found with {}",
+                event_id
+            ))))?;
 
         e.delete(&tx).await?;
         let res = events::Entity::delete_by_id(event_id).exec(&tx).await;

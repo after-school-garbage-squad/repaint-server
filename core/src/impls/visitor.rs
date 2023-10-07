@@ -78,7 +78,10 @@ impl VisitorRepository for SeaOrm {
         let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .one(&tx)
             .await?
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("visitors".into())))?
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "visitor doesn't found with {}",
+                visitor_id
+            ))))?
             .into();
         visitor.is_updated = Set(true);
         let res = visitor.update(&tx).await;
@@ -105,7 +108,10 @@ impl VisitorRepository for SeaOrm {
         let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .one(&tx)
             .await?
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound("visitors".into())))?
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "visitor doesn't found with {}",
+                visitor_id
+            ))))?
             .into();
         visitor.is_downloadable = Set(true);
         let res = visitor.update(&tx).await;
