@@ -173,7 +173,7 @@ where
                 .collect::<Result<Vec<_>, _>>()?;
             let p = PaletteRepository::get(&self.repo, visitor.id).await?;
             if p.len() == envvar("CLUSTER", None) {
-                let _ = ImageRepository::set_download(&self.repo, visitor.id).await?;
+                let _ = VisitorRepository::set_download(&self.repo, visitor.id).await?;
             }
 
             let palettes = palettes.choose_multiple(&mut rng, 2).cloned().collect();
@@ -189,7 +189,7 @@ where
             let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
             let p = PaletteRepository::get(&self.repo, visitor.id).await?;
             if p.len() == envvar("CLUSTER", None) {
-                let _ = ImageRepository::set_download(&self.repo, visitor.id).await?;
+                let _ = VisitorRepository::set_download(&self.repo, visitor.id).await?;
             }
 
             let palette = palettes.choose(&mut rng).cloned().unwrap();
@@ -285,7 +285,7 @@ where
                 let _ = PaletteRepository::set(&self.repo, visitor.id, palette);
                 let p = PaletteRepository::get(&self.repo, visitor.id).await?;
                 if p.len() == envvar("CLUSTER", None) {
-                    let _ = ImageRepository::set_download(&self.repo, visitor.id).await?;
+                    let _ = VisitorRepository::set_download(&self.repo, visitor.id).await?;
                 }
                 break;
             }

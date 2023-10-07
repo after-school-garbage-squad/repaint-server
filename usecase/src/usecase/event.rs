@@ -224,7 +224,7 @@ where
         let visitors = VisitorRepository::list(&self.repo, event.id).await?;
         let f = visitors
             .iter()
-            .map(|v| ImageRepository::set_download(&self.repo, v.id));
+            .map(|v| VisitorRepository::set_download(&self.repo, v.id));
         let _ = join_all(f)
             .await
             .into_iter()
