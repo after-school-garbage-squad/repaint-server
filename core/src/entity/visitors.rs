@@ -15,6 +15,8 @@ pub struct Model {
     #[sea_orm(unique)]
     pub visitor_id: AsString<Id<Visitor>>,
     pub registration_id: String,
+    pub is_updated: bool,
+    pub is_downloadable: bool,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
