@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.9.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.8.1...repaint-server-v2.9.0) (2023-10-07)
+
+
+### Features
+
+* **refactor:** fix visitor state bug with moving logic and table to visitor ([#280](https://github.com/after-school-garbage-squad/repaint-server/issues/280)) ([62fc7cf](https://github.com/after-school-garbage-squad/repaint-server/commit/62fc7cfa538dd32a71e9c8c4d67773dffff9c152))
+
 ## [2.8.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.8.0...repaint-server-v2.8.1) (2023-10-06)
 
 
