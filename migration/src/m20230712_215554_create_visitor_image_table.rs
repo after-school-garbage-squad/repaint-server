@@ -15,8 +15,6 @@ impl Migration {
             .col(ColumnDef::new(VisitorImages::VisitorId).integer().not_null())
             .col(ColumnDef::new(VisitorImages::ImageId).char_len(26).not_null())
             .col(ColumnDef::new(VisitorImages::CurrentImageID).char_len(26).not_null())
-            .col(ColumnDef::new(VisitorImages::IsUpdated).boolean().not_null().default(false))
-            .col(ColumnDef::new(VisitorImages::IsDownload).boolean().not_null().default(false))
             .col(ColumnDef::new(VisitorImages::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(VisitorImages::UpdatedAt).date_time())
             .foreign_key(foreign_key!(VisitorImages::VisitorId to Visitors::Id Cascade))
@@ -60,8 +58,6 @@ enum VisitorImages {
     VisitorId,
     ImageId,
     CurrentImageID,
-    IsUpdated,
-    IsDownload,
     CreatedAt,
     UpdatedAt,
 }
@@ -97,8 +93,6 @@ mod tests {
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""image_id" char(26) NOT NULL,"#,
                 r#""current_image_id" char(26) NOT NULL,"#,
-                r#""is_updated" bool NOT NULL DEFAULT FALSE,"#,
-                r#""is_download" bool NOT NULL DEFAULT FALSE,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,

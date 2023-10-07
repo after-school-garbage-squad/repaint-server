@@ -335,7 +335,7 @@ where
                 message: format!("{} is invalid id", visitor_id),
             })?;
 
-        let _ = ImageRepository::set_update(&self.repo, visitor.id).await?;
+        let _ = VisitorRepository::set_update(&self.repo, visitor.id).await?;
 
         Ok(())
     }
@@ -355,7 +355,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_id),
             })?;
-        let is_updated = ImageRepository::check_update(&self.repo, visitor.id).await?;
+        let is_updated = VisitorRepository::check_update(&self.repo, visitor.id).await?;
 
         Ok(CheckUpdateResponse { is_updated })
     }
@@ -385,7 +385,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_id),
             })?;
-        let is_downloadable = ImageRepository::check_download(&self.repo, visitor.id).await?;
+        let is_downloadable = VisitorRepository::check_download(&self.repo, visitor.id).await?;
 
         Ok(CheckDownloadResponse { is_downloadable })
     }

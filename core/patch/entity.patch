@@ -126,7 +126,6 @@ index 02c0672..8c84609 100644
 -    pub current_image_id: String,
 +    pub image_id: AsString<Id<Image>>,
 +    pub current_image_id: AsString<Id<CurrentImage>>,
-     pub is_updated: bool,
      pub created_at: DateTime,
      pub updated_at: Option<DateTime>,
  }

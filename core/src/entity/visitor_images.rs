@@ -14,8 +14,6 @@ pub struct Model {
     pub visitor_id: i32,
     pub image_id: AsString<Id<Image>>,
     pub current_image_id: AsString<Id<CurrentImage>>,
-    pub is_updated: bool,
-    pub is_download: bool,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
