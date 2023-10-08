@@ -119,6 +119,17 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
+        let size = self.firestore.size_traffic_queue(event.event_id).await?;
+        if size >= 4 {
+            let spot_id = self
+                .firestore
+                .pop_traffic_queue(event.event_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("traffic queue is empty"),
+                })?;
+            let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot_id, false).await?;
+        }
 
         let visitors_in_from = self.firestore.get_visitors(event.event_id, from).await?;
         let visitors_in_to = self.firestore.get_visitors(event.event_id, to).await?;
@@ -157,6 +168,9 @@ where
             .collect::<Result<Vec<_>, _>>()?;
 
         let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to, true).await?;
+        self.firestore
+            .push_traffic_queue(event.event_id, to)
+            .await?;
 
         self.firestore
             .subscribe_traffic_log(event.event_id, from, to)
@@ -176,6 +190,9 @@ where
             .ok_or(Error::UnAuthorized)?;
 
         let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot_id, false).await?;
+        self.firestore
+            .remove_traffic_queue(event.event_id, spot_id)
+            .await?;
 
         Ok(())
     }

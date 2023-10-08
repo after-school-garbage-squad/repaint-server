@@ -71,6 +71,12 @@ pub trait Firestore: AsyncSafe {
         event_id: Id<Event>,
     ) -> Result<Option<Id<EventSpot>>, Self::Error>;
 
+    async fn remove_traffic_queue(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Self::Error>;
+
     async fn subscribe_visitor_log(
         &self,
         event_id: Id<Event>,

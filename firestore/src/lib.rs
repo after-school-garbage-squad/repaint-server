@@ -389,6 +389,29 @@ impl FirestoreInfra for Firestore {
         }
     }
 
+    async fn remove_traffic_queue(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Self::Error> {
+        let collection = format!("traffic_{}", event_id);
+        let document = spot_id.to_string();
+        match self
+            .client
+            .fluent()
+            .delete()
+            .from(collection.as_str())
+            .document_id(document)
+            .execute()
+            .await
+        {
+            Ok(_) => info!("removed traffic queue"),
+            Err(e) => return Err(e),
+        }
+
+        Ok(())
+    }
+
     async fn subscribe_visitor_log(
         &self,
         event_id: Id<Event>,
