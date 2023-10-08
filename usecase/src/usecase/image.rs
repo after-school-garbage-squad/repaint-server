@@ -18,7 +18,6 @@ use crate::model::image::{
     CheckDownloadResponse, CheckUpdateResponse, CheckVisitorImageExistResponse,
     GetCurrentImageResponse, ListImageResponse, ProxyCurrentImageResponse, ProxyEventImageResponse,
 };
-use crate::model::palette;
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
 
