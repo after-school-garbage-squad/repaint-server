@@ -11,7 +11,7 @@ pub struct TrafficStatus {
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ControllTrafficRequest {
+pub struct EnableBonusRequest {
     pub from: Id<EventSpot>,
     pub to: Id<EventSpot>,
 }

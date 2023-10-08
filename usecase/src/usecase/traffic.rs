@@ -23,7 +23,7 @@ pub trait TrafficUsecase: AsyncSafe {
         event_id: Id<Event>,
     ) -> Result<GetTrafficStatusResponse, Error>;
 
-    async fn controll_traffic(
+    async fn enable_bonus(
         &self,
         subject: String,
         event_id: Id<Event>,
@@ -102,7 +102,7 @@ where
         })
     }
 
-    async fn controll_traffic(
+    async fn enable_bonus(
         &self,
         subject: String,
         event_id: Id<Event>,

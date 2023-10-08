@@ -7,7 +7,7 @@ use axum::routing::{get, post};
 use axum::{middleware, Extension, Json, Router};
 use repaint_server_model::event::Event;
 use repaint_server_model::id::Id;
-use repaint_server_usecase::model::traffic::ControllTrafficRequest;
+use repaint_server_usecase::model::traffic::EnableBonusRequest;
 use repaint_server_usecase::usecase::traffic::TrafficUsecase;
 
 use crate::middleware::auth::auth;
@@ -17,21 +17,21 @@ pub fn traffic(usecase: impl TrafficUsecase) -> Router {
     let usecase = Arc::new(usecase);
 
     Router::new()
-        .route("/control", post(control))
+        .route("/enable-bonus", post(enable_bonus))
         .route("/get-status", get(get_status))
         .layer(middleware::from_fn(auth))
         .with_state(usecase)
 }
 
-async fn control<U: TrafficUsecase>(
+async fn enable_bonus<U: TrafficUsecase>(
     State(usecase): State<Arc<U>>,
     Extension(subject): Extension<String>,
     Path(event_id): Path<Id<Event>>,
-    Json(req): Json<ControllTrafficRequest>,
+    Json(req): Json<EnableBonusRequest>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let _ = usecase
-        .controll_traffic(subject, event_id, req.from, req.to)
+        .enable_bonus(subject, event_id, req.from, req.to)
         .await?;
 
     Ok(StatusCode::NO_CONTENT)
