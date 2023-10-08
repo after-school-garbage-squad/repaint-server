@@ -1,3 +1,4 @@
+use std::cmp::max;
 use std::str::FromStr;
 
 use async_trait::async_trait;
@@ -96,7 +97,24 @@ where
             else {
                 unreachable!("traffic timestamp is not set")
             };
-            if Utc::now() - timestamp >= Duration::minutes(30) {
+            let visitors_now = self
+                .firestore
+                .get_visitors(event.event_id, spot.spot_id)
+                .await?;
+            let Some(visitors_start) = self
+                .firestore
+                .get_traffic_hc(event.event_id, spot.spot_id)
+                .await?
+            else {
+                unreachable!("traffic hc is not set")
+            };
+            if Utc::now() - timestamp >= Duration::minutes(30)
+                || visitors_now.len()
+                    > max(
+                        ((visitors_start.hc_from as f32) * 0.4) as usize,
+                        ((max(visitors_start.hc_to, 5) as f32) * 1.5) as usize,
+                    )
+            {
                 let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot.spot_id, false)
                     .await?;
                 self.firestore
