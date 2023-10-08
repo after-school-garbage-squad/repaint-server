@@ -169,7 +169,12 @@ where
 
         let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to, true).await?;
         self.firestore
-            .push_traffic_queue(event.event_id, to)
+            .push_traffic_queue(
+                event.event_id,
+                to,
+                visitors_in_from.len(),
+                visitors_in_to.len(),
+            )
             .await?;
 
         self.firestore

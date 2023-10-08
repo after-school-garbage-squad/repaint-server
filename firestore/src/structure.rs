@@ -22,6 +22,8 @@ pub(crate) struct AdminStructure {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct TrafficStructure {
+    pub(crate) hc_from: usize,
+    pub(crate) hc_to: usize,
     pub(crate) timestamp: FirestoreTimestamp,
 }
 

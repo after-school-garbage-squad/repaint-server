@@ -6,6 +6,8 @@ use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_model::{AsyncSafe, StaticError};
 
+use crate::model::traffic::StartHeadCount;
+
 #[async_trait]
 pub trait Firestore: AsyncSafe {
     type Error: StaticError;
@@ -65,6 +67,8 @@ pub trait Firestore: AsyncSafe {
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
+        hc_from: usize,
+        hc_to: usize,
     ) -> Result<(), Self::Error>;
 
     async fn pop_traffic_queue(
@@ -83,6 +87,12 @@ pub trait Firestore: AsyncSafe {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<DateTime<Utc>>, Self::Error>;
+
+    async fn get_traffic_hc(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<Option<StartHeadCount>, Self::Error>;
 
     async fn subscribe_visitor_log(
         &self,

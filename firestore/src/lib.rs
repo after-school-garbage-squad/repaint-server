@@ -19,6 +19,7 @@ use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::firestore::Firestore as FirestoreInfra;
+use repaint_server_usecase::model::traffic::StartHeadCount;
 use serde::Deserialize;
 use teloc::dev::DependencyClone;
 use tokio_stream::StreamExt;
@@ -313,10 +314,14 @@ impl FirestoreInfra for Firestore {
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
+        hc_from: usize,
+        hc_to: usize,
     ) -> Result<(), Self::Error> {
         let collection = format!("traffic_{}", event_id);
         let document = spot_id.to_string();
         let structure = TrafficStructure {
+            hc_from,
+            hc_to,
             timestamp: FirestoreTimestamp(Utc::now()),
         };
         match self
@@ -432,6 +437,31 @@ impl FirestoreInfra for Firestore {
         };
 
         Ok(Some(res.timestamp.0))
+    }
+
+    async fn get_traffic_hc(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<Option<StartHeadCount>, Self::Error> {
+        let collection = format!("traffic_{}", event_id);
+        let document = spot_id.to_string();
+        let Some(res) = self
+            .client
+            .fluent()
+            .select()
+            .by_id_in(collection.as_str())
+            .obj::<TrafficStructure>()
+            .one(document)
+            .await?
+        else {
+            return Ok(None);
+        };
+        let hc_from = res.hc_from;
+        let hc_to = res.hc_to;
+        info!("got traffic hc: {:?} -> {:?}", hc_from, hc_to);
+
+        Ok(Some(StartHeadCount { hc_from, hc_to }))
     }
 
     async fn subscribe_visitor_log(
