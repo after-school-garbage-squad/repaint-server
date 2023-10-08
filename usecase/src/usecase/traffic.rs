@@ -30,6 +30,13 @@ pub trait TrafficUsecase: AsyncSafe {
         from: Id<EventSpot>,
         to: Id<EventSpot>,
     ) -> Result<(), Error>;
+
+    async fn disable_bonus(
+        &self,
+        subject: String,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Error>;
 }
 
 #[derive(Debug)]
@@ -154,6 +161,21 @@ where
         self.firestore
             .subscribe_traffic_log(event.event_id, from, to)
             .await?;
+
+        Ok(())
+    }
+
+    async fn disable_bonus(
+        &self,
+        subject: String,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Error> {
+        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
+            .await?
+            .ok_or(Error::UnAuthorized)?;
+
+        let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot_id, false).await?;
 
         Ok(())
     }

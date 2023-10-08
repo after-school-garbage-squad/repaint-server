@@ -16,6 +16,12 @@ pub struct EnableBonusRequest {
     pub to: Id<EventSpot>,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisableBonusRequest {
+    pub spot_id: Id<EventSpot>,
+}
+
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GetTrafficStatusResponse {
