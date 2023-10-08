@@ -94,9 +94,7 @@ where
                 .get_traffic_timestamp(event.event_id, spot.spot_id)
                 .await?
             else {
-                return Err(Error::BadRequest {
-                    message: format!("{} isn't bonus", spot.spot_id),
-                });
+                unreachable!("traffic timestamp is not set")
             };
             if Utc::now() - timestamp >= Duration::minutes(30) {
                 let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot.spot_id, false)
