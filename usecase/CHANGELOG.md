@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.9.0...repaint-server-v2.10.0) (2023-10-08)
+
+
+### Features
+
+* update traffic logic ([#285](https://github.com/after-school-garbage-squad/repaint-server/issues/285)) ([19dbcb8](https://github.com/after-school-garbage-squad/repaint-server/commit/19dbcb8c18cd6c788eb77696256f08c4a3a4c0c3))
+
 ## [2.9.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.8.1...repaint-server-v2.9.0) (2023-10-07)
 
 
