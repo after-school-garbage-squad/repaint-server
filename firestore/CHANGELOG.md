@@ -26,6 +26,24 @@
 
 
 
+## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.8.1...repaint-server-v2.10.0) (2023-10-08)
+
+
+### Features
+
+* update traffic logic ([#285](https://github.com/after-school-garbage-squad/repaint-server/issues/285)) ([19dbcb8](https://github.com/after-school-garbage-squad/repaint-server/commit/19dbcb8c18cd6c788eb77696256f08c4a3a4c0c3))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate firestore to 0.37.1 ([#283](https://github.com/after-school-garbage-squad/repaint-server/issues/283)) ([5708b17](https://github.com/after-school-garbage-squad/repaint-server/commit/5708b176687ba58077a9152d073cdd78ea858954))
+* **deps:** update rust crate firestore to 0.37.2 ([#287](https://github.com/after-school-garbage-squad/repaint-server/issues/287)) ([a66d357](https://github.com/after-school-garbage-squad/repaint-server/commit/a66d357ea954dc69926a2f907e8dc17a3aa916f7))
+
+
+### Miscellaneous Chores
+
+* release 2.10.0 ([8b2fb2b](https://github.com/after-school-garbage-squad/repaint-server/commit/8b2fb2b172fdaf19597b261a4de03ecd31a6bc3e))
+
 ## [2.8.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.8.2...repaint-server-v2.8.1) (2023-10-08)
 
 
