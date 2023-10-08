@@ -58,6 +58,19 @@ pub trait Firestore: AsyncSafe {
 
     async fn get_event_id(&self, token: String) -> Result<Option<i32>, Self::Error>;
 
+    async fn size_traffic_queue(&self, event_id: Id<Event>) -> Result<usize, Self::Error>;
+
+    async fn push_traffic_queue(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Self::Error>;
+
+    async fn pop_traffic_queue(
+        &self,
+        event_id: Id<Event>,
+    ) -> Result<Option<Id<EventSpot>>, Self::Error>;
+
     async fn subscribe_visitor_log(
         &self,
         event_id: Id<Event>,

@@ -1,3 +1,4 @@
+use firestore::FirestoreTimestamp;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
@@ -17,6 +18,11 @@ pub(crate) struct VisitorStructure {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct AdminStructure {
     pub(crate) event_id: Option<i32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub(crate) struct TrafficStructure {
+    pub(crate) timestamp: FirestoreTimestamp,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

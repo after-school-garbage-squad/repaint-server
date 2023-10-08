@@ -6,7 +6,9 @@ use std::str::FromStr;
 use async_trait::async_trait;
 use chrono::Utc;
 use firestore::errors::FirestoreError;
-use firestore::{path, paths, FirestoreDb, FirestoreResult};
+use firestore::{
+    path, paths, FirestoreDb, FirestoreQueryDirection, FirestoreResult, FirestoreTimestamp,
+};
 use futures::stream::BoxStream;
 use futures::TryStreamExt;
 use rand::distributions::Alphanumeric;
@@ -18,14 +20,13 @@ use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::firestore::Firestore as FirestoreInfra;
 use serde::Deserialize;
-use structure::TrafficLogStructure;
 use teloc::dev::DependencyClone;
 use tokio_stream::StreamExt;
 use tracing::info;
 
 use crate::structure::{
     AdminStructure, InitializeLogStructure, PaletteStructure, RegisterLogStructure,
-    SpotLogStructure, VisitorLogStructure, VisitorStructure,
+    SpotLogStructure, TrafficLogStructure, TrafficStructure, VisitorLogStructure, VisitorStructure,
 };
 
 mod structure;
@@ -256,9 +257,8 @@ impl FirestoreInfra for Firestore {
         match self
             .client
             .fluent()
-            .update()
-            .fields(vec!["document", "event_id"])
-            .in_col(collection.as_str())
+            .insert()
+            .into(collection.as_str())
             .document_id(document)
             .object(&AdminStructure {
                 ..structure.clone()
@@ -291,6 +291,102 @@ impl FirestoreInfra for Firestore {
         info!("got event id: {:?}", event_id);
 
         Ok(event_id)
+    }
+
+    async fn size_traffic_queue(&self, event_id: Id<Event>) -> Result<usize, Self::Error> {
+        let collection = format!("traffic_{}", event_id);
+        let stream: BoxStream<_> = self
+            .client
+            .fluent()
+            .list()
+            .from(&collection)
+            .stream_all()
+            .await?;
+        let docs = stream.collect::<Vec<_>>().await;
+        let size = docs.len();
+        info!("got traffic queue size: {:?}", size);
+
+        Ok(size)
+    }
+
+    async fn push_traffic_queue(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<(), Self::Error> {
+        let collection = format!("traffic_{}", event_id);
+        let document = spot_id.to_string();
+        let structure = TrafficStructure {
+            timestamp: FirestoreTimestamp(Utc::now()),
+        };
+        match self
+            .client
+            .fluent()
+            .update()
+            .fields(vec!["timestamp"])
+            .in_col(collection.as_str())
+            .document_id(document)
+            .object(&TrafficStructure {
+                ..structure.clone()
+            })
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("pushed traffic queue"),
+            Err(e) => return Err(e),
+        }
+
+        Ok(())
+    }
+
+    async fn pop_traffic_queue(
+        &self,
+        event_id: Id<Event>,
+    ) -> Result<Option<Id<EventSpot>>, Self::Error> {
+        let collection = format!("traffic_{}", event_id);
+        #[derive(Debug, Deserialize)]
+        struct Res {
+            document: String,
+        }
+        let stream: BoxStream<FirestoreResult<Res>> = self
+            .client
+            .fluent()
+            .select()
+            .fields(vec!["document", "timestamp"])
+            .from(collection.as_str())
+            .order_by([(
+                path!(TrafficStructure::timestamp),
+                FirestoreQueryDirection::Ascending,
+            )])
+            .obj()
+            .stream_query_with_errors()
+            .await?;
+        let res = stream
+            .try_collect::<Vec<_>>()
+            .await?
+            .into_iter()
+            .map(|v| Id::<EventSpot>::from_str(v.document.as_str()).unwrap())
+            .collect::<Vec<_>>();
+        match res.first() {
+            Some(spot_id) => {
+                let _ = self
+                    .client
+                    .fluent()
+                    .delete()
+                    .from(collection.as_str())
+                    .document_id(spot_id.to_string())
+                    .execute()
+                    .await?;
+                info!("popped traffic queue: {:?}", spot_id);
+
+                Ok(Some(spot_id.clone()))
+            }
+            None => {
+                info!("popped traffic queue: None");
+
+                Ok(None)
+            }
+        }
     }
 
     async fn subscribe_visitor_log(
