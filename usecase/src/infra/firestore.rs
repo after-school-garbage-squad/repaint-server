@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -76,6 +77,12 @@ pub trait Firestore: AsyncSafe {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Self::Error>;
+
+    async fn get_traffic_timestamp(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<Option<DateTime<Utc>>, Self::Error>;
 
     async fn subscribe_visitor_log(
         &self,

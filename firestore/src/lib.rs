@@ -4,7 +4,7 @@
 use std::str::FromStr;
 
 use async_trait::async_trait;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use firestore::errors::FirestoreError;
 use firestore::{
     path, paths, FirestoreDb, FirestoreQueryDirection, FirestoreResult, FirestoreTimestamp,
@@ -410,6 +410,28 @@ impl FirestoreInfra for Firestore {
         }
 
         Ok(())
+    }
+
+    async fn get_traffic_timestamp(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+    ) -> Result<Option<DateTime<Utc>>, Self::Error> {
+        let collection = format!("traffic_{}", event_id);
+        let document = spot_id.to_string();
+        let Some(res) = self
+            .client
+            .fluent()
+            .select()
+            .by_id_in(collection.as_str())
+            .obj::<TrafficStructure>()
+            .one(document)
+            .await?
+        else {
+            return Ok(None);
+        };
+
+        Ok(Some(res.timestamp.0))
     }
 
     async fn subscribe_visitor_log(
