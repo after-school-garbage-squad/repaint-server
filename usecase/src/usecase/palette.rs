@@ -1,6 +1,8 @@
+use std::cmp::max;
 use std::str::FromStr;
 
 use async_trait::async_trait;
+use chrono::{Duration, Utc};
 use futures::future::join_all;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
@@ -81,6 +83,45 @@ where
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("No spots associated with {} have been registered", hw_id),
+            })?;
+        let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
+        if is_bonus {
+            let Some(timestamp) = self
+                .firestore
+                .get_traffic_timestamp(event.event_id, spot.spot_id)
+                .await?
+            else {
+                unreachable!("traffic timestamp is not set")
+            };
+            let visitors_now = self
+                .firestore
+                .get_visitors(event.event_id, spot.spot_id)
+                .await?;
+            let Some(visitors_start) = self
+                .firestore
+                .get_traffic_hc(event.event_id, spot.spot_id)
+                .await?
+            else {
+                unreachable!("traffic hc is not set")
+            };
+            if Utc::now() - timestamp >= Duration::minutes(30)
+                || visitors_now.len()
+                    > max(
+                        ((visitors_start.hc_from as f32) * 0.4) as usize,
+                        ((max(visitors_start.hc_to, 5) as f32) * 1.5) as usize,
+                    )
+            {
+                let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot.spot_id, false)
+                    .await?;
+                self.firestore
+                    .remove_traffic_queue(event.event_id, spot.spot_id)
+                    .await?;
+            }
+        }
         let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
         let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
             Some(i) => i,
@@ -113,11 +154,6 @@ where
         let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
             .await?
             .is_some();
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
-            .await?
-            .ok_or(Error::BadRequest {
-                message: format!("No spots associated with {} have been registered", hw_id),
-            })?;
         let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
 
         self.firestore

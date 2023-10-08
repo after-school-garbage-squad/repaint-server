@@ -9,11 +9,24 @@ pub struct TrafficStatus {
     pub head_count: usize,
 }
 
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StartHeadCount {
+    pub hc_from: usize,
+    pub hc_to: usize,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct ControllTrafficRequest {
+pub struct EnableBonusRequest {
     pub from: Id<EventSpot>,
     pub to: Id<EventSpot>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DisableBonusRequest {
+    pub spot_id: Id<EventSpot>,
 }
 
 #[derive(Debug, Serialize)]
