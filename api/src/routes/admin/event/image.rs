@@ -14,6 +14,7 @@ use repaint_server_usecase::model::image::{
 };
 use repaint_server_usecase::usecase::error::Error as UsecaseError;
 use repaint_server_usecase::usecase::image::ImageUsecase;
+use tracing::info;
 
 use crate::middleware::auth::auth;
 use crate::routes::recover::Error;
@@ -83,6 +84,14 @@ async fn register_default<U: ImageUsecase>(
         .await
         .map_err(|e| UsecaseError::InternalServerError(e.into()))?
     {
+        match field.file_name().unwrap().ends_with(".png") {
+            true => info!("Valid file ext"),
+            false => {
+                return Err(Error(UsecaseError::BadRequest {
+                    message: "Invalid file ext".to_string(),
+                }))
+            }
+        };
         let data = field
             .bytes()
             .await
