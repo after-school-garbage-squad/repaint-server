@@ -24,6 +24,8 @@
 
 
 
+
+
 ## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.9.1...repaint-server-v2.10.0) (2023-10-08)
 
 

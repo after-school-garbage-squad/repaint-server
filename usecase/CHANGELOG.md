@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.11.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.11.0) (2023-10-08)
+
+
+### Features
+
+* impl pubsub to listing images for visitor ([#291](https://github.com/after-school-garbage-squad/repaint-server/issues/291)) ([591099a](https://github.com/after-school-garbage-squad/repaint-server/commit/591099af6ea6018851325136845ff7db8c7ff7e9))
+
 ## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.10.0) (2023-10-08)
 
 
