@@ -1,6 +1,7 @@
 use std::str::FromStr;
 
 use async_trait::async_trait;
+use futures::future::join_all;
 use repaint_server_model::event::Event;
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::id::Id;
@@ -230,14 +231,27 @@ where
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
         let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
-        let visitor = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
+        let vi = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
         let mut images = default
             .iter()
             .filter_map(|&i| Id::<VisitorImage>::from_str(i.to_string().as_str()).ok())
             .collect::<Vec<_>>();
-        if let Some(visitor) = visitor {
-            images.push(visitor);
+        if let Some(vi) = vi {
+            images.push(vi);
         };
+        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let p = images.clone().into_iter().map(|i| {
+            self.pubsub.publish_merge_current_image(
+                event.event_id,
+                visitor.visitor_id,
+                i,
+                palettes.clone(),
+            )
+        });
+        let _ = join_all(p)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
 
         Ok(ListImageResponse { images })
     }
