@@ -3,9 +3,7 @@ use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
-};
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 
 use crate::entity::{admins, events, events_admins};
 use crate::ty::json::AsJson;
@@ -70,22 +68,11 @@ impl EventRepository for SeaOrm {
     }
 
     async fn delete(&self, event_id: i32) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
-        let e = events_admins::Entity::find()
+        events_admins::Entity::delete_many()
             .filter(events_admins::Column::EventId.eq(event_id))
-            .one(&tx)
-            .await?
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
-                "event_admin doesn't found with {}",
-                event_id
-            ))))?;
-
-        e.delete(&tx).await?;
-        let res = events::Entity::delete_by_id(event_id).exec(&tx).await;
-        tx.commit().await?;
-
-        res.to_is_updated()
+            .exec(self.con())
+            .await
+            .to_is_updated()
     }
 
     async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error> {
@@ -289,7 +276,9 @@ pub(crate) mod test {
     async fn test_delete() {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
+        let event = orm.make_test_event().await;
         let mut events = Vec::new();
+        let mut admins = Vec::new();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
             let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
@@ -301,15 +290,36 @@ pub(crate) mod test {
             .unwrap();
             events.push(e);
         }
+        for _ in 0..3 {
+            let a = orm.make_test_admin().await;
+            let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
+                orm.orm(),
+                a.id,
+                event.id,
+            )
+            .await
+            .unwrap();
+            admins.push(a);
+        }
+        events.push(event.clone());
         let _ = EventRepository::delete(orm.orm(), events[1].id)
             .await
             .unwrap();
         events.remove(1);
-
-        let res = EventRepository::list(orm.orm(), admin.subject.clone())
+        let res1 = EventRepository::list(orm.orm(), admin.subject.clone())
             .await
             .unwrap();
+        let res2 = EventRepository::list(orm.orm(), admins[0].subject.clone())
+            .await
+            .unwrap();
+        let _ = EventRepository::delete(orm.orm(), event.id).await.unwrap();
+        let res3 = EventRepository::list(orm.orm(), admin.subject.clone())
+            .await
+            .unwrap();
+        events.remove(2);
 
-        self::assert_eq!(res, events);
+        self::assert_eq!(res1, events);
+        self::assert_eq!(res2, [event]);
+        self::assert_eq!(res3, events);
     }
 }
