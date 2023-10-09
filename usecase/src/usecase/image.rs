@@ -239,18 +239,13 @@ where
         if let Some(vi) = vi {
             images.push(vi);
         };
-        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
-        let p = images.clone().into_iter().map(|i| {
-            self.pubsub.publish_merge_current_image(
-                event.event_id,
-                visitor.visitor_id,
-                i,
-                palettes.clone(),
-            )
-        });
-        let _ = join_all(p)
+        let t = images
+            .into_iter()
+            .map(|i| self.otp.verify_gray(event.event_id, i));
+        let images = join_all(t)
             .await
             .into_iter()
+            .map(|res| res.map(|t| t.full))
             .collect::<Result<Vec<_>, _>>()?;
 
         Ok(ListImageResponse { images })
