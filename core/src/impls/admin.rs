@@ -58,6 +58,9 @@ impl AdminRepository for SeaOrm {
 #[cfg(test)]
 pub(crate) mod test {
     use pretty_assertions::*;
+    use rand::distributions::Alphanumeric;
+    use rand::rngs::StdRng;
+    use rand::{Rng, SeedableRng};
 
     use crate::TestingSeaOrm;
 
@@ -65,9 +68,18 @@ pub(crate) mod test {
 
     impl TestingSeaOrm {
         pub(crate) async fn make_test_admin(&self) -> Admin {
+            let rng = {
+                let rng = rand::thread_rng();
+                StdRng::from_rng(rng).unwrap()
+            };
+            let c = rng
+                .sample_iter(&Alphanumeric)
+                .take(23)
+                .map(char::from)
+                .collect::<String>();
             let admin = crate::entity::admins::ActiveModel {
                 admin_id: Set(Id::new().dty()),
-                subject: Set("auth0|abcdefghijkmno123456789".into()),
+                subject: Set(format!("auth0|{}", c).into()),
                 ..Default::default()
             }
             .insert(self.orm().con())
