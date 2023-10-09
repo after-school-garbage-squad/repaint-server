@@ -6,7 +6,7 @@ use repaint_server_model::event::Event;
 use repaint_server_model::event_image::Image as EventImage;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
-use repaint_server_model::visitor_image::CurrentImage;
+use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_usecase::infra::otp::ImageOtp;
 use repaint_server_usecase::model::otp::Token;
 use reqwest::{Client, Error};
@@ -77,6 +77,26 @@ impl ImageOtp for Otp {
             .json::<Token>()
             .await?;
         info!("verified event image: {:?}", res);
+
+        Ok(res)
+    }
+
+    async fn verify_gray(
+        &self,
+        event_id: Id<Event>,
+        image_id: Id<VisitorImage>,
+    ) -> Result<Token, Self::Error> {
+        let res = self
+            .client
+            .post(format!(
+                "{}/token?url={}/{}/{}/image/{}_gray.png",
+                self.origin, self.url, self.bucket, event_id, image_id
+            ))
+            .send()
+            .await?
+            .json::<Token>()
+            .await?;
+        info!("verified gray image: {:?}", res);
 
         Ok(res)
     }
