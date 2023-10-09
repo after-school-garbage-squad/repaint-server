@@ -26,6 +26,13 @@
 
 
 
+## [2.14.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.13.0...repaint-server-v2.14.0) (2023-10-09)
+
+
+### Features
+
+* update event delete query ([#300](https://github.com/after-school-garbage-squad/repaint-server/issues/300)) ([2a5a0cd](https://github.com/after-school-garbage-squad/repaint-server/commit/2a5a0cdb061923c86eed4a2be42ed6c10e6edd4f))
+
 ## [2.13.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.12.0...repaint-server-v2.13.0) (2023-10-09)
 
 
