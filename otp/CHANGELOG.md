@@ -26,6 +26,18 @@
 
 
 
+## [2.12.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.12.0) (2023-10-09)
+
+
+### Features
+
+* impl verify gray scale image ([2b0956a](https://github.com/after-school-garbage-squad/repaint-server/commit/2b0956a9464d0c2f9ba97b02bee2ded4402b95b1))
+
+
+### Miscellaneous Chores
+
+* 2.12.0 ([27e2b30](https://github.com/after-school-garbage-squad/repaint-server/commit/27e2b301c782efd59201c55ac135e84f19432bfa))
+
 ## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.1...repaint-server-v2.10.0) (2023-10-09)
 
 

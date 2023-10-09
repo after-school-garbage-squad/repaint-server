@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.12.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.12.0) (2023-10-09)
+
+
+### Miscellaneous Chores
+
+* 2.12.0 ([27e2b30](https://github.com/after-school-garbage-squad/repaint-server/commit/27e2b301c782efd59201c55ac135e84f19432bfa))
+
 ## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.8.1...repaint-server-v2.10.0) (2023-10-08)
 
 
