@@ -1,5 +1,14 @@
 # Changelog
 
+## [2.12.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.11.0...repaint-server-v2.12.0) (2023-10-09)
+
+
+### Features
+
+* impl gray scale otp to usecase ([#295](https://github.com/after-school-garbage-squad/repaint-server/issues/295)) ([7c16a32](https://github.com/after-school-garbage-squad/repaint-server/commit/7c16a32ed3ad819706a890d0539df59b5757db6c))
+* impl verify gray scale image ([2b0956a](https://github.com/after-school-garbage-squad/repaint-server/commit/2b0956a9464d0c2f9ba97b02bee2ded4402b95b1))
+* refactor visitor image list usecase ([adad127](https://github.com/after-school-garbage-squad/repaint-server/commit/adad1274b653daace866e07f8fb7aa930f7b1ff6))
+
 ## [2.11.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.11.0) (2023-10-08)
 
 
