@@ -26,6 +26,18 @@
 
 
 
+## [2.12.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.12.0) (2023-10-09)
+
+
+### Bug Fixes
+
+* add ext filter to uploading default image ([#289](https://github.com/after-school-garbage-squad/repaint-server/issues/289)) ([c774777](https://github.com/after-school-garbage-squad/repaint-server/commit/c774777be6166550cac11974bc2e5e5f917af24a))
+
+
+### Miscellaneous Chores
+
+* 2.12.0 ([27e2b30](https://github.com/after-school-garbage-squad/repaint-server/commit/27e2b301c782efd59201c55ac135e84f19432bfa))
+
 ## [2.10.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.2...repaint-server-v2.10.0) (2023-10-09)
 
 
