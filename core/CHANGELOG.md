@@ -26,6 +26,13 @@
 
 
 
+## [2.13.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.12.0...repaint-server-v2.13.0) (2023-10-09)
+
+
+### Features
+
+* fix hw_id ([#297](https://github.com/after-school-garbage-squad/repaint-server/issues/297)) ([cb248fd](https://github.com/after-school-garbage-squad/repaint-server/commit/cb248fde556ef0decbccf329c7dc60aaa13dcc71))
+
 ## [2.12.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.10.0...repaint-server-v2.12.0) (2023-10-09)
 
 
