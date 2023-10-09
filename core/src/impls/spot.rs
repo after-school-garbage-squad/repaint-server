@@ -37,7 +37,7 @@ impl SpotRepository for SeaOrm {
             event_id: Set(event_id),
             spot_id: Set(Id::new().dty()),
             name: Set(name),
-            hw_id: Set(hw_id),
+            hw_id: Set(format!("{}-{}", event_id, hw_id)),
             service_uuid: Set(service_uuid),
             ..Default::default()
         }
