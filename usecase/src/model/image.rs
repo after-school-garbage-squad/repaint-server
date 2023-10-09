@@ -41,7 +41,7 @@ pub struct CheckVisitorImageExistResponse {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct ListImageResponse {
-    pub images: Vec<String>,
+    pub images: Vec<Id<VisitorImage>>,
 }
 
 #[derive(Debug, Serialize)]
