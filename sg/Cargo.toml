@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-sg"
-version = "2.14.0"
+version = "2.16.0"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
