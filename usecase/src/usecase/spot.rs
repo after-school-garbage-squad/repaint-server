@@ -140,7 +140,7 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-        let h = format!("{}-{}", event.event_id, hw_id);
+        let h = format!("{}-{}", event.id, hw_id);
         let spot = SpotRepository::get_by_beacon(&self.repo, event.id, h)
             .await?
             .ok_or(Error::BadRequest {
