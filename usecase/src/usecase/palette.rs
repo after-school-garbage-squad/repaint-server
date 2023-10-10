@@ -123,34 +123,34 @@ where
             }
         }
         let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
-        let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
-            Some(i) => i,
-            None => {
-                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
-                let current_image_id = default
-                    .first()
-                    .ok_or(Error::BadRequest {
-                        message: "default image is empty".to_string(),
-                    })?
-                    .clone();
-
-                Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
-                    .ok()
-                    .ok_or(Error::BadRequest {
-                        message: "failed to parse default image id to current image id".to_string(),
-                    })?
-            }
-        };
-        let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
-        let _ = self
-            .pubsub
-            .publish_merge_current_image(
-                event.event_id,
-                visitor.visitor_id,
-                image_id,
-                palettes.clone(),
-            )
-            .await?;
+        //let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
+        //    Some(i) => i,
+        //    None => {
+        //        let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+        //        let current_image_id = default
+        //            .first()
+        //            .ok_or(Error::BadRequest {
+        //                message: "default image is empty".to_string(),
+        //            })?
+        //            .clone();
+        //
+        //        Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
+        //            .ok()
+        //            .ok_or(Error::BadRequest {
+        //                message: "failed to parse default image id to current image id".to_string(),
+        //            })?
+        //    }
+        //};
+        //let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
+        //let _ = self
+        //    .pubsub
+        //    .publish_merge_current_image(
+        //        event.event_id,
+        //        visitor.visitor_id,
+        //        image_id,
+        //        palettes.clone(),
+        //    )
+        //    .await?;
         let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
             .await?
             .is_some();
