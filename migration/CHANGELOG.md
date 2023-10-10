@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.14.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.14.1) (2023-10-10)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate tokio to 1.33.0 ([#303](https://github.com/after-school-garbage-squad/repaint-server/issues/303)) ([bf1da4b](https://github.com/after-school-garbage-squad/repaint-server/commit/bf1da4be4772ae5b190b355b04e51918053f1dd3))
+
 ## [2.14.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.13.0...repaint-server-v2.14.0) (2023-10-09)
 
 

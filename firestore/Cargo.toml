@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-firestore"
-version = "2.14.0"
+version = "2.14.1"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true

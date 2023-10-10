@@ -1,5 +1,17 @@
 # Changelog
 
+## [2.15.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.15.0) (2023-10-10)
+
+
+### Features
+
+* refactor listing visitor images ([#306](https://github.com/after-school-garbage-squad/repaint-server/issues/306)) ([bf3b56f](https://github.com/after-school-garbage-squad/repaint-server/commit/bf3b56f9bff220498b9fd1177ad42466bfef6526))
+
+
+### Bug Fixes
+
+* fix hw_id logic ([#304](https://github.com/after-school-garbage-squad/repaint-server/issues/304)) ([54effb3](https://github.com/after-school-garbage-squad/repaint-server/commit/54effb38d269badbf2b6dbf18ed0733d3b1069dc))
+
 ## [2.14.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.12.0...repaint-server-v2.14.0) (2023-10-09)
 
 
