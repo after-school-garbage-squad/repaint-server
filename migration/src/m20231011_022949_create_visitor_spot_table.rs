@@ -14,6 +14,7 @@ impl Migration {
             .col(ColumnDef::new(VisitorSpots::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(VisitorSpots::VisitorId).integer().not_null())
             .col(ColumnDef::new(VisitorSpots::LastScannedAt).date_time().not_null())
+            .col(ColumnDef::new(VisitorSpots::LastPickedAt).date_time())
             .col(ColumnDef::new(VisitorSpots::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
             .col(ColumnDef::new(VisitorSpots::UpdatedAt).date_time())
             .foreign_key(foreign_key!(VisitorSpots::VisitorId to Visitors::Id Cascade))
@@ -56,6 +57,7 @@ enum VisitorSpots {
     Id,
     VisitorId,
     LastScannedAt,
+    LastPickedAt,
     CreatedAt,
     UpdatedAt,
 }
@@ -90,6 +92,7 @@ mod test {
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
                 r#""last_scanned_at" timestamp without time zone NOT NULL,"#,
+                r#""last_picked_at" timestamp without time zone,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,

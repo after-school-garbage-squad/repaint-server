@@ -19,6 +19,7 @@ impl Migration {
             .col(ColumnDef::new(Visitors::IsUpdated).boolean().not_null().default(false))
             .col(ColumnDef::new(Visitors::IsDownloadable).boolean().not_null().default(false))
             .col(ColumnDef::new(Visitors::LastScannedAt).date_time())
+            .col(ColumnDef::new(Visitors::LastDropedAt).date_time())
             .col(ColumnDef::new(Visitors::LastScannedSpot).integer())
             .col(ColumnDef::new(Visitors::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(Visitors::UpdatedAt).date_time())
@@ -67,6 +68,7 @@ pub enum Visitors {
     IsUpdated,
     IsDownloadable,
     LastScannedAt,
+    LastDropedAt,
     LastScannedSpot,
     CreatedAt,
     UpdatedAt,
@@ -106,6 +108,7 @@ mod tests {
                 r#""is_updated" bool NOT NULL DEFAULT FALSE,"#,
                 r#""is_downloadable" bool NOT NULL DEFAULT FALSE,"#,
                 r#""last_scanned_at" timestamp without time zone,"#,
+                r#""last_droped_at" timestamp without time zone,"#,
                 r#""last_scanned_spot" integer,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
