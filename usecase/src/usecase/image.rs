@@ -334,10 +334,21 @@ where
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
     ) -> Result<ProxyCurrentImageResponse, Error> {
+        let event = EventRepository::get(&self.repo, event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", event_id),
+            })?;
+        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_id),
+            })?;
         let token = self
             .otp
             .verify_current(event_id, image_id, visitor_id)
             .await?;
+        let _ = VisitorRepository::unset_update(&self.repo, visitor.id).await?;
 
         Ok(ProxyCurrentImageResponse { url: token.full })
     }

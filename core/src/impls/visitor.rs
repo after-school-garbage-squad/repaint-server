@@ -90,6 +90,24 @@ impl VisitorRepository for SeaOrm {
         res.to_is_updated()
     }
 
+    async fn unset_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
+        let tx = self.con().begin().await?;
+
+        let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
+            .one(&tx)
+            .await?
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "visitor doesn't found with {}",
+                visitor_id
+            ))))?
+            .into();
+        visitor.is_updated = Set(false);
+        let res = visitor.update(&tx).await;
+        tx.commit().await?;
+
+        res.to_is_updated()
+    }
+
     async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error> {
         let visitor = match visitors::Entity::find_by_id(visitor_id)
             .one(self.con())
@@ -209,7 +227,7 @@ pub(crate) mod test {
     }
 
     #[test_log::test(tokio::test)]
-    async fn test_set_get_update() {
+    async fn test_set_get_unset_update() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
         let visitor = orm.make_test_visitor(event.id).await;
@@ -226,8 +244,17 @@ pub(crate) mod test {
             .await
             .unwrap();
 
+        let _ = VisitorRepository::unset_update(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
+        let res3 = VisitorRepository::check_update(orm.orm(), visitor.id)
+            .await
+            .unwrap();
+
         self::assert_eq!(res1, false);
         self::assert_eq!(res2, true);
+        self::assert_eq!(res3, false);
     }
 
     #[test_log::test(tokio::test)]
