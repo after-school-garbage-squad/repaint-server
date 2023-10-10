@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.15.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.15.0...repaint-server-v2.15.1) (2023-10-10)
+
+
+### Bug Fixes
+
+* **refactor:** fix hw-id logic ([#316](https://github.com/after-school-garbage-squad/repaint-server/issues/316)) ([2f22b36](https://github.com/after-school-garbage-squad/repaint-server/commit/2f22b368977821e3659ce257aa99aaaa14f06e6b))
+
 ## [2.15.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.15.0) (2023-10-10)
 
 
