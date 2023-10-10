@@ -96,9 +96,18 @@ async fn register_default<U: ImageUsecase>(
             .bytes()
             .await
             .map_err(|e| UsecaseError::InternalServerError(e.into()))?;
-        let _ = usecase
-            .add_default_image(subject.clone(), event_id, data.into())
-            .await?;
+        match data.len() >= 8 && data[0..8] == [137, 80, 78, 71, 13, 10, 26, 10] {
+            true => {
+                let _ = usecase
+                    .add_default_image(subject.clone(), event_id, data.into())
+                    .await?;
+            }
+            false => {
+                return Err(Error(UsecaseError::BadRequest {
+                    message: "Invalid file".to_string(),
+                }))
+            }
+        }
     }
 
     Ok(StatusCode::NO_CONTENT)
@@ -131,9 +140,18 @@ async fn upload_visitor<U: ImageUsecase>(
             .bytes()
             .await
             .map_err(|e| UsecaseError::InternalServerError(e.into()))?;
-        let _ = usecase
-            .upload_visitor_image(subject.clone(), event_id, visitor_id, data.into())
-            .await?;
+        match data.len() >= 8 && data[0..8] == [137, 80, 78, 71, 13, 10, 26, 10] {
+            true => {
+                let _ = usecase
+                    .upload_visitor_image(subject.clone(), event_id, visitor_id, data.into())
+                    .await?;
+            }
+            false => {
+                return Err(Error(UsecaseError::BadRequest {
+                    message: "Invalid file".to_string(),
+                }))
+            }
+        }
     }
 
     Ok(StatusCode::NO_CONTENT)
