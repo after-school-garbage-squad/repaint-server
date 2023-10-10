@@ -26,6 +26,13 @@
 
 
 
+## [2.14.2](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.1...repaint-server-v2.14.2) (2023-10-10)
+
+
+### Bug Fixes
+
+* add unset update to repository and usecase ([#308](https://github.com/after-school-garbage-squad/repaint-server/issues/308)) ([1b2a558](https://github.com/after-school-garbage-squad/repaint-server/commit/1b2a558a4989d49288aadde478cff97e698e8d6e))
+
 ## [2.14.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.14.1) (2023-10-10)
 
 
