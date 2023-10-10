@@ -16,7 +16,8 @@ use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, ImageRepository, PaletteRepository, VisitorRepository};
 use crate::model::image::{
     CheckDownloadResponse, CheckUpdateResponse, CheckVisitorImageExistResponse,
-    GetCurrentImageResponse, ListImageResponse, ProxyCurrentImageResponse, ProxyEventImageResponse,
+    GetCurrentImageResponse, ListImageItem, ListImageResponse, ProxyCurrentImageResponse,
+    ProxyEventImageResponse,
 };
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -232,21 +233,30 @@ where
                 })?;
         let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
         let vi = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
-        let mut images = default
+        let mut image_ids = default
             .iter()
             .filter_map(|&i| Id::<VisitorImage>::from_str(i.to_string().as_str()).ok())
             .collect::<Vec<_>>();
         if let Some(vi) = vi {
-            images.push(vi);
+            image_ids.push(vi);
         };
-        let t = images
+        let t = image_ids
+            .clone()
             .into_iter()
             .map(|i| self.otp.verify_gray(event.event_id, i));
-        let images = join_all(t)
+        let urls = join_all(t)
             .await
             .into_iter()
             .map(|res| res.map(|t| t.full))
             .collect::<Result<Vec<_>, _>>()?;
+        let images = image_ids
+            .into_iter()
+            .zip(urls.into_iter())
+            .map(|(i, u)| ListImageItem {
+                image_id: i,
+                url: u,
+            })
+            .collect();
 
         Ok(ListImageResponse { images })
     }
