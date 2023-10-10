@@ -32,6 +32,23 @@
 
 
 
+## [2.16.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.16.0) (2023-10-10)
+
+
+### Features
+
+* add filtering with binary head ([#314](https://github.com/after-school-garbage-squad/repaint-server/issues/314)) ([ef67900](https://github.com/after-school-garbage-squad/repaint-server/commit/ef679009d38149c5feecaae9cc77be870fc56c00))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate tokio to 1.33.0 ([#303](https://github.com/after-school-garbage-squad/repaint-server/issues/303)) ([bf1da4b](https://github.com/after-school-garbage-squad/repaint-server/commit/bf1da4be4772ae5b190b355b04e51918053f1dd3))
+
+
+### Miscellaneous Chores
+
+* release 2.16.0 ([3d97c7e](https://github.com/after-school-garbage-squad/repaint-server/commit/3d97c7e7b9b02e1eba25c442627342886c6a3af3))
+
 ## [2.14.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.3...repaint-server-v2.14.0) (2023-10-10)
 
 

@@ -28,6 +28,20 @@
 
 
 
+## [2.16.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.16.0) (2023-10-10)
+
+
+### Bug Fixes
+
+* add unset update to repository and usecase ([#308](https://github.com/after-school-garbage-squad/repaint-server/issues/308)) ([1b2a558](https://github.com/after-school-garbage-squad/repaint-server/commit/1b2a558a4989d49288aadde478cff97e698e8d6e))
+* **deps:** update rust crate tokio to 1.33.0 ([#303](https://github.com/after-school-garbage-squad/repaint-server/issues/303)) ([bf1da4b](https://github.com/after-school-garbage-squad/repaint-server/commit/bf1da4be4772ae5b190b355b04e51918053f1dd3))
+* **refactor:** fix hw-id logic ([#316](https://github.com/after-school-garbage-squad/repaint-server/issues/316)) ([2f22b36](https://github.com/after-school-garbage-squad/repaint-server/commit/2f22b368977821e3659ce257aa99aaaa14f06e6b))
+
+
+### Miscellaneous Chores
+
+* release 2.16.0 ([3d97c7e](https://github.com/after-school-garbage-squad/repaint-server/commit/3d97c7e7b9b02e1eba25c442627342886c6a3af3))
+
 ## [2.14.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.3...repaint-server-v2.14.0) (2023-10-10)
 
 
