@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-fcm"
-version = "2.14.2"
+version = "2.14.3"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
