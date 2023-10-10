@@ -83,6 +83,7 @@ where
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
+        let hw_id = format!("{}-{}", event.event_id, hw_id);
         let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
             .await?
             .ok_or(Error::BadRequest {
