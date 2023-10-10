@@ -37,7 +37,7 @@ impl SpotRepository for SeaOrm {
             event_id: Set(event_id),
             spot_id: Set(Id::new().dty()),
             name: Set(name),
-            hw_id: Set(format!("{}-{}", event_id, hw_id)),
+            hw_id: Set(hw_id),
             service_uuid: Set(service_uuid),
             ..Default::default()
         }
@@ -200,9 +200,6 @@ impl SpotRepository for SeaOrm {
 #[cfg(test)]
 mod test {
     use pretty_assertions::*;
-    use rand::distributions::Alphanumeric;
-    use rand::rngs::StdRng;
-    use rand::{Rng, SeedableRng};
 
     use crate::TestingSeaOrm;
 
@@ -210,24 +207,13 @@ mod test {
 
     impl TestingSeaOrm {
         async fn make_test_spot(&self, event_id: i32) -> EventSpot {
-            let rng = {
-                let rng = rand::thread_rng();
-                StdRng::from_rng(rng).unwrap()
-            };
-
-            let hw_id: String = rng
-                .sample_iter(&Alphanumeric)
-                .take(10)
-                .map(char::from)
-                .collect();
-
             let spot = crate::entity::event_spots::ActiveModel {
                 event_id: Set(event_id),
                 spot_id: Set(Id::new().dty()),
                 name: Set("test".into()),
                 is_pick: Set(false),
                 bonus: Set(false),
-                hw_id: Set(hw_id),
+                hw_id: Set("000002B920".into()),
                 service_uuid: Set("CD:10:41:68:73:D6".into()),
                 ..Default::default()
             }
