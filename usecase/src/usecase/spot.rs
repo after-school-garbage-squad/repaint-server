@@ -105,25 +105,12 @@ where
             beacon_data.service_uuid,
         )
         .await?;
-        let hw_id = match spot
-            .hw_id
-            .starts_with(format!("{}-", event.event_id).as_str())
-        {
-            true => spot
-                .hw_id
-                .trim_start_matches(format!("{}-", event.event_id).as_str()),
-            false => {
-                return Err(Error::BadRequest {
-                    message: format!("{} is invalid", spot.hw_id),
-                })
-            }
-        };
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                hw_id: hw_id.into(),
+                hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
             is_pick: spot.is_pick,
@@ -140,8 +127,7 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-        let h = format!("{}-{}", event.id, hw_id);
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, h)
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
@@ -151,7 +137,7 @@ where
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                hw_id,
+                hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
             is_pick: spot.is_pick,
@@ -174,25 +160,12 @@ where
             .ok_or(Error::BadRequest {
                 message: "This QR code is invalid.".to_string(),
             })?;
-        let hw_id = match spot
-            .hw_id
-            .starts_with(format!("{}-", event.event_id).as_str())
-        {
-            true => spot
-                .hw_id
-                .trim_start_matches(format!("{}-", event.event_id).as_str()),
-            false => {
-                return Err(Error::BadRequest {
-                    message: format!("{} is invalid", spot.hw_id),
-                })
-            }
-        };
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                hw_id: hw_id.into(),
+                hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
             is_pick: spot.is_pick,
@@ -251,25 +224,12 @@ where
                 message: format!("{} is not found", spot_id),
             });
         };
-        let hw_id = match spot
-            .hw_id
-            .starts_with(format!("{}-", event.event_id).as_str())
-        {
-            true => spot
-                .hw_id
-                .trim_start_matches(format!("{}-", event.event_id).as_str()),
-            false => {
-                return Err(Error::BadRequest {
-                    message: format!("{} is invalid", spot.hw_id),
-                })
-            }
-        };
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
             name: spot.name,
             beacon: Beacon {
-                hw_id: hw_id.into(),
+                hw_id: spot.hw_id,
                 service_uuid: spot.service_uuid,
             },
             is_pick: spot.is_pick,
