@@ -17,23 +17,13 @@ pub struct Model {
     pub registration_id: String,
     pub is_updated: bool,
     pub is_downloadable: bool,
-    pub last_scanned_at: Option<DateTime>,
     pub last_droped_at: Option<DateTime>,
-    pub last_scanned_spot: Option<i32>,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(
-        belongs_to = "super::event_spots::Entity",
-        from = "Column::LastScannedSpot",
-        to = "super::event_spots::Column::Id",
-        on_update = "SetNull",
-        on_delete = "SetNull"
-    )]
-    EventSpots,
     #[sea_orm(
         belongs_to = "super::events::Entity",
         from = "Column::EventId",
@@ -48,12 +38,6 @@ pub enum Relation {
     VisitorPalettes,
     #[sea_orm(has_many = "super::visitor_spots::Entity")]
     VisitorSpots,
-}
-
-impl Related<super::event_spots::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::EventSpots.def()
-    }
 }
 
 impl Related<super::events::Entity> for Entity {

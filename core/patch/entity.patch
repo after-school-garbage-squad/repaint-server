@@ -152,5 +152,8 @@ index 15e7aeb..9e4ad65 100644
 -    pub visitor_id: String,
 +    pub visitor_id: AsString<Id<Visitor>>,
      pub registration_id: String,
+     pub is_updated: bool,
+     pub is_downloadable: bool,
+     pub last_droped_at: Option<DateTime>,
      pub created_at: DateTime,
      pub updated_at: Option<DateTime>,

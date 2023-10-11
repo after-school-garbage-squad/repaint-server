@@ -1,5 +1,6 @@
 use sea_orm_migration::prelude::*;
 
+use crate::m20230712_213646_create_event_spot_table::EventSpots;
 use crate::m20230712_215023_create_visitor_table::Visitors;
 
 #[derive(DeriveMigrationName)]
@@ -13,11 +14,13 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(VisitorSpots::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(VisitorSpots::VisitorId).integer().not_null())
+            .col(ColumnDef::new(VisitorSpots::SpotId).integer().not_null())
             .col(ColumnDef::new(VisitorSpots::LastScannedAt).date_time().not_null())
             .col(ColumnDef::new(VisitorSpots::LastPickedAt).date_time())
             .col(ColumnDef::new(VisitorSpots::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
             .col(ColumnDef::new(VisitorSpots::UpdatedAt).date_time())
             .foreign_key(foreign_key!(VisitorSpots::VisitorId to Visitors::Id Cascade))
+            .foreign_key(foreign_key!(VisitorSpots::SpotId to EventSpots::Id Cascade))
             .to_owned();
 
         visitor_spot
@@ -56,6 +59,7 @@ enum VisitorSpots {
     Table,
     Id,
     VisitorId,
+    SpotId,
     LastScannedAt,
     LastPickedAt,
     CreatedAt,
@@ -91,11 +95,13 @@ mod test {
                 r#"CREATE TABLE IF NOT EXISTS "visitor_spots" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""visitor_id" integer NOT NULL,"#,
+                r#""spot_id" integer NOT NULL,"#,
                 r#""last_scanned_at" timestamp without time zone NOT NULL,"#,
                 r#""last_picked_at" timestamp without time zone,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
-                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
+                r#"FOREIGN KEY ("visitor_id") REFERENCES "visitors" ("id") ON DELETE CASCADE ON UPDATE CASCADE,"#,
+                r#"FOREIGN KEY ("spot_id") REFERENCES "event_spots" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,
                 r#")"#
             ]
             .join(" ")
