@@ -3,7 +3,7 @@ use repaint_server_usecase::infra::repo::{IsUpdated, PaletteRepository};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, EntityTrait, TransactionTrait};
 
-use crate::entity::{visitor_palettes, visitors};
+use crate::entity::{events, visitor_palettes, visitors};
 use crate::{Error, SeaOrm};
 
 use super::IsUpdatedExt;
@@ -62,6 +62,13 @@ impl PaletteRepository for SeaOrm {
             }
         }
     }
+
+    async fn get_all(&self, event_id: i32) -> Result<Option<Vec<i32>>, Self::Error> {
+        Ok(events::Entity::find_by_id(event_id)
+            .one(self.con())
+            .await?
+            .map(|e| e.palettes))
+    }
 }
 
 #[cfg(test)]
@@ -94,5 +101,16 @@ mod test {
         self::assert_eq!(palette1, Vec::<i32>::new());
         self::assert_eq!(palette2, [1]);
         self::assert_eq!(palette3, [1, 2, 3, 4, 5]);
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_all() {
+        let orm = TestingSeaOrm::new().await;
+        let event = orm.make_test_event().await;
+        let res = PaletteRepository::get_all(orm.orm(), event.id)
+            .await
+            .unwrap();
+
+        self::assert_eq!(res, Some(vec![0, 0, 0]));
     }
 }

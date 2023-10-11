@@ -17,6 +17,7 @@ impl Migration {
             .col(ColumnDef::new(Visitors::RegistrationId).string_len(4096).not_null())
             .col(ColumnDef::new(Visitors::IsUpdated).boolean().not_null().default(false))
             .col(ColumnDef::new(Visitors::IsDownloadable).boolean().not_null().default(false))
+            .col(ColumnDef::new(Visitors::LastDropedAt).date_time())
             .col(ColumnDef::new(Visitors::CreatedAt).date_time().default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).not_null())
             .col(ColumnDef::new(Visitors::UpdatedAt).date_time())
             .foreign_key(foreign_key!(Visitors::EventId to Events::Id Cascade))
@@ -62,6 +63,7 @@ pub enum Visitors {
     RegistrationId,
     IsUpdated,
     IsDownloadable,
+    LastDropedAt,
     CreatedAt,
     UpdatedAt,
 }
@@ -99,6 +101,7 @@ mod tests {
                 r#""registration_id" varchar(4096) NOT NULL,"#,
                 r#""is_updated" bool NOT NULL DEFAULT FALSE,"#,
                 r#""is_downloadable" bool NOT NULL DEFAULT FALSE,"#,
+                r#""last_droped_at" timestamp without time zone,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
                 r#"FOREIGN KEY ("event_id") REFERENCES "events" ("id") ON DELETE CASCADE ON UPDATE CASCADE"#,

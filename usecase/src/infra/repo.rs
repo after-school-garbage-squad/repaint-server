@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::NaiveDateTime;
 use repaint_server_model::admin::Admin;
 use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::event_image::Image as EventImage;
@@ -57,6 +58,13 @@ pub trait SpotRepository: AsyncSafe {
         spot_id: Id<EventSpot>,
         is_bonus: bool,
     ) -> Result<IsUpdated, Self::Error>;
+
+    async fn scanned(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+        now: NaiveDateTime,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
@@ -107,6 +115,8 @@ pub trait PaletteRepository: AsyncSafe {
     async fn get(&self, visitor_id: i32) -> Result<Vec<i32>, Self::Error>;
 
     async fn set(&self, visitor_id: i32, palette: i32) -> Result<IsUpdated, Self::Error>;
+
+    async fn get_all(&self, event_id: i32) -> Result<Option<Vec<i32>>, Self::Error>;
 }
 
 #[async_trait]
@@ -177,6 +187,19 @@ pub trait VisitorRepository: AsyncSafe {
     async fn set_download(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
 
     async fn check_download(&self, visitor_id: i32) -> Result<bool, Self::Error>;
+
+    async fn get_last_droped_at(
+        &self,
+        visitor_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error>;
+
+    async fn get_last_picked_at(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error>;
+
+    async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error>;
 }
 
 #[derive(Debug)]

@@ -17,6 +17,7 @@ pub struct Model {
     pub name: String,
     pub hp_url: String,
     pub contact: AsJson<Contact>,
+    pub palettes: Vec<i32>,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }

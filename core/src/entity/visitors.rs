@@ -17,6 +17,7 @@ pub struct Model {
     pub registration_id: String,
     pub is_updated: bool,
     pub is_downloadable: bool,
+    pub last_droped_at: Option<DateTime>,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,
 }
@@ -35,6 +36,8 @@ pub enum Relation {
     VisitorImages,
     #[sea_orm(has_many = "super::visitor_palettes::Entity")]
     VisitorPalettes,
+    #[sea_orm(has_many = "super::visitor_spots::Entity")]
+    VisitorSpots,
 }
 
 impl Related<super::events::Entity> for Entity {
@@ -52,6 +55,12 @@ impl Related<super::visitor_images::Entity> for Entity {
 impl Related<super::visitor_palettes::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::VisitorPalettes.def()
+    }
+}
+
+impl Related<super::visitor_spots::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::VisitorSpots.def()
     }
 }
 

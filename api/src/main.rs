@@ -60,8 +60,8 @@ async fn main() {
         .add_transient::<AdminUsecaseImpl<SeaOrm, FirestoreProvider, EmailProvider>>()
         .add_transient::<EventUsecaseImpl<SeaOrm, FirestoreProvider>>()
         .add_transient::<ImageUsecaseImpl<SeaOrm, GcsProvider, OtpProvider, PubSubProvider>>()
-        .add_transient::<PaletteUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
-        .add_transient::<SpotUsecaseImpl<SeaOrm, FirestoreProvider>>()
+        .add_transient::<PaletteUsecaseImpl<SeaOrm, PubSubProvider>>()
+        .add_transient::<SpotUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_transient::<TrafficUsecaseImpl<SeaOrm, FirestoreProvider, FcmProvider>>()
         .add_transient::<VisitorUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_instance(db)
@@ -75,8 +75,8 @@ async fn main() {
     let admin_usecase: AdminUsecaseImpl<_, _, _> = container.resolve();
     let event_usecase: EventUsecaseImpl<_, _> = container.resolve();
     let image_usecase: ImageUsecaseImpl<_, _, _, _> = container.resolve();
-    let palette_usecase: PaletteUsecaseImpl<_, _, _> = container.resolve();
-    let spot_usecase: SpotUsecaseImpl<_, _> = container.resolve();
+    let palette_usecase: PaletteUsecaseImpl<_, _> = container.resolve();
+    let spot_usecase: SpotUsecaseImpl<_, _, _> = container.resolve();
     let traffic_usecase: TrafficUsecaseImpl<_, _, _> = container.resolve();
     let visitor_usecase: VisitorUsecaseImpl<_, _, _> = container.resolve();
 
@@ -87,13 +87,18 @@ async fn main() {
                 admin_usecase,
                 event_usecase,
                 traffic_usecase,
-                spot_usecase,
+                spot_usecase.clone(),
                 image_usecase.clone(),
             ),
         )
         .nest(
             "/visitor",
-            visitor(visitor_usecase, palette_usecase, image_usecase),
+            visitor(
+                visitor_usecase,
+                palette_usecase,
+                image_usecase,
+                spot_usecase,
+            ),
         )
         .merge(healthz())
         .merge(version())

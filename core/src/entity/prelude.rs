@@ -7,4 +7,5 @@ pub use super::events::Entity as Events;
 pub use super::events_admins::Entity as EventsAdmins;
 pub use super::visitor_images::Entity as VisitorImages;
 pub use super::visitor_palettes::Entity as VisitorPalettes;
+pub use super::visitor_spots::Entity as VisitorSpots;
 pub use super::visitors::Entity as Visitors;

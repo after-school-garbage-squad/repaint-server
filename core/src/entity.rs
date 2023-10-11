@@ -9,4 +9,5 @@ pub mod events;
 pub mod events_admins;
 pub mod visitor_images;
 pub mod visitor_palettes;
+pub mod visitor_spots;
 pub mod visitors;

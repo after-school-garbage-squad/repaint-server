@@ -5,6 +5,7 @@ use crate::id::Id;
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EventSpot {
+    pub id: i32,
     pub spot_id: Id<Self>,
     pub name: String,
     pub is_pick: bool,

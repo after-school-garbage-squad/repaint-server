@@ -12,23 +12,28 @@ use repaint_server_usecase::model::visitor::{
 };
 use repaint_server_usecase::usecase::image::ImageUsecase;
 use repaint_server_usecase::usecase::palette::PaletteUsecase;
+use repaint_server_usecase::usecase::spot::SpotUsecase;
 use repaint_server_usecase::usecase::visitor::VisitorUsecase;
 
 use crate::routes::recover::Error;
 
 use self::image::image;
 use self::palette::palette;
+use self::spot::spot;
 
 mod image;
 mod palette;
+mod spot;
 
 pub fn visitor(
     visitor_usecase: impl VisitorUsecase,
     palette_usecase: impl PaletteUsecase,
     image_usecase: impl ImageUsecase,
+    spot_usecase: impl SpotUsecase,
 ) -> Router {
     let palette = palette(palette_usecase);
     let image = image(image_usecase);
+    let spot = spot(spot_usecase);
     let usecase = Arc::new(visitor_usecase);
 
     Router::new()
@@ -38,6 +43,7 @@ pub fn visitor(
         .with_state(usecase)
         .nest("/:visitor_id/palette", palette)
         .nest("/:visitor_id/image", image)
+        .nest("/:visitor_id/spot", spot)
 }
 
 async fn delete<U: VisitorUsecase>(
