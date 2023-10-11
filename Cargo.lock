@@ -2427,7 +2427,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-api"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "axum",
  "cfg-if",
@@ -2460,7 +2460,7 @@ dependencies = [
 
 [[package]]
 name = "repaint-server-core"
-version = "3.0.0"
+version = "3.0.1"
 dependencies = [
  "async-trait",
  "cfg-if",
