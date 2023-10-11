@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
+use repaint_server_util::envvar;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
 
@@ -59,6 +60,7 @@ impl EventRepository for SeaOrm {
             name: Set(name),
             hp_url: Set(hp_url),
             contact: Set(AsJson(contact)),
+            palettes: Set(vec![0; envvar("CLUSTER", None)]),
             ..Default::default()
         }
         .insert(self.con())
