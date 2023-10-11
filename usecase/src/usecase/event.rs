@@ -34,8 +34,6 @@ pub trait EventUsecase: AsyncSafe {
         hp_url: String,
         contact: Contact,
     ) -> Result<UpdateEventResponse, Error>;
-
-    async fn finish_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error>;
 }
 
 #[derive(Debug)]
@@ -215,21 +213,5 @@ where
             hp_url: event.hp_url,
             contact: event.contact,
         })
-    }
-
-    async fn finish_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let visitors = VisitorRepository::list(&self.repo, event.id).await?;
-        let f = visitors
-            .iter()
-            .map(|v| VisitorRepository::set_download(&self.repo, v.id));
-        let _ = join_all(f)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
-
-        Ok(())
     }
 }

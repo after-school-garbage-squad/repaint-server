@@ -174,6 +174,8 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
 
+    async fn get_by_id(&self, visitor_id: i32) -> Result<Option<Visitor>, Self::Error>;
+
     async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
 
     async fn list(&self, event_id: i32) -> Result<Vec<Visitor>, Self::Error>;
@@ -183,10 +185,6 @@ pub trait VisitorRepository: AsyncSafe {
     async fn unset_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
 
     async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error>;
-
-    async fn set_download(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
-
-    async fn check_download(&self, visitor_id: i32) -> Result<bool, Self::Error>;
 
     async fn get_last_droped_at(
         &self,

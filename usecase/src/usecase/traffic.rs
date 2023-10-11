@@ -82,7 +82,7 @@ where
 
         let s = spots
             .iter()
-            .map(|s| self.firestore.get_visitors(event_id, s.spot_id));
+            .map(|s| VisitorRepository::get_visitors(&self.repo, s.id));
         let visitors = join_all(s)
             .await
             .into_iter()
@@ -92,7 +92,7 @@ where
             self.firestore
                 .subscribe_spot_log(event_id, s.spot_id, v.len())
         });
-        join_all(s)
+        let _ = join_all(s)
             .await
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
@@ -130,9 +130,18 @@ where
                 })?;
             let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot_id, false).await?;
         }
-
-        let visitors_in_from = self.firestore.get_visitors(event.event_id, from).await?;
-        let visitors_in_to = self.firestore.get_visitors(event.event_id, to).await?;
+        let from = SpotRepository::get_by_qr(&self.repo, event.id, from)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", from),
+            })?;
+        let to = SpotRepository::get_by_qr(&self.repo, event.id, to)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", to),
+            })?;
+        let visitors_in_from = VisitorRepository::get_visitors(&self.repo, from.id).await?;
+        let visitors_in_to = VisitorRepository::get_visitors(&self.repo, to.id).await?;
 
         let mut rng = {
             let rng = rand::thread_rng();
@@ -147,7 +156,7 @@ where
             .cloned()
             .collect::<Vec<_>>();
 
-        let spot = SpotRepository::get_by_qr(&self.repo, event.id, to)
+        let spot = SpotRepository::get_by_qr(&self.repo, event.id, to.spot_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("spot isn't found"),
@@ -155,7 +164,7 @@ where
 
         let v = visitors
             .iter()
-            .map(|&v| VisitorRepository::get(&self.repo, event.id, v));
+            .map(|&v| VisitorRepository::get_by_id(&self.repo, v));
         let visitors = join_all(v).await.into_iter().flatten().collect::<Vec<_>>();
 
         let m = visitors
@@ -167,18 +176,18 @@ where
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
 
-        let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to, true).await?;
+        let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to.spot_id, true).await?;
         self.firestore
             .push_traffic_queue(
                 event.event_id,
-                to,
+                to.spot_id,
                 visitors_in_from.len(),
                 visitors_in_to.len(),
             )
             .await?;
 
         self.firestore
-            .subscribe_traffic_log(event.event_id, from, to)
+            .subscribe_traffic_log(event.event_id, from.spot_id, to.spot_id)
             .await?;
 
         Ok(())

@@ -19,43 +19,11 @@ pub trait Firestore: AsyncSafe {
         palette_id: i32,
     ) -> Result<(), Self::Error>;
 
-    async fn subscribe_palettes(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-        palettes_ids: Vec<i32>,
-    ) -> Result<(), Self::Error>;
-
     async fn get_palette(
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<i32>, Self::Error>;
-
-    async fn get_palettes(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<Option<Vec<i32>>, Self::Error>;
-
-    async fn delete_spot(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<(), Self::Error>;
-
-    async fn subscribe_visitor(
-        &self,
-        event_id: Id<Event>,
-        visitor_id: Id<Visitor>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<(), Self::Error>;
-
-    async fn get_visitors(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<Vec<Id<Visitor>>, Self::Error>;
 
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error>;
 

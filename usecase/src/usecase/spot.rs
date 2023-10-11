@@ -273,7 +273,6 @@ where
             .ok_or(Error::UnAuthorized)?;
 
         let _ = SpotRepository::delete(&self.repo, event.id, spot_id).await?;
-        self.firestore.delete_spot(event.event_id, spot_id).await?;
 
         Ok(())
     }
@@ -381,13 +380,6 @@ where
                     spot.spot_id,
                     palettes.len(),
                     took_photo,
-                )
-                .await?;
-            self.firestore
-                .subscribe_visitor(
-                    visitor_identification.event_id,
-                    visitor_identification.visitor_id,
-                    spot.spot_id,
                 )
                 .await?;
             let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {

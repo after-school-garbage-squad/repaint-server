@@ -27,7 +27,7 @@ use tracing::info;
 
 use crate::structure::{
     AdminStructure, InitializeLogStructure, PaletteStructure, RegisterLogStructure,
-    SpotLogStructure, TrafficLogStructure, TrafficStructure, VisitorLogStructure, VisitorStructure,
+    SpotLogStructure, TrafficLogStructure, TrafficStructure, VisitorLogStructure,
 };
 
 mod structure;
@@ -86,38 +86,6 @@ impl FirestoreInfra for Firestore {
         Ok(())
     }
 
-    async fn subscribe_palettes(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-        palette_ids: Vec<i32>,
-    ) -> Result<(), Self::Error> {
-        let collection = format!("spot_{}", event_id);
-        let document = spot_id.to_string();
-        let structure = PaletteStructure {
-            palette_id: None,
-            palettes_ids: Some(palette_ids),
-        };
-        match self
-            .client
-            .fluent()
-            .update()
-            .fields(paths!(PaletteStructure::{palettes_ids}))
-            .in_col(collection.as_str())
-            .document_id(document)
-            .object(&PaletteStructure {
-                ..structure.clone()
-            })
-            .execute::<()>()
-            .await
-        {
-            Ok(_) => info!("subscribed palettes"),
-            Err(e) => return Err(e),
-        }
-
-        Ok(())
-    }
-
     async fn get_palette(
         &self,
         event_id: Id<Event>,
@@ -140,113 +108,6 @@ impl FirestoreInfra for Firestore {
         info!("got palette: {:?}", palette_id);
 
         Ok(palette_id)
-    }
-
-    async fn get_palettes(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<Option<Vec<i32>>, Self::Error> {
-        let collection = format!("spot_{}", event_id);
-        let document = spot_id.to_string();
-        let Some(res) = self
-            .client
-            .fluent()
-            .select()
-            .by_id_in(collection.as_str())
-            .obj::<PaletteStructure>()
-            .one(document)
-            .await?
-        else {
-            return Ok(None);
-        };
-        let palette_ids = res.palettes_ids;
-        info!("got palettes: {:?}", palette_ids);
-
-        Ok(palette_ids)
-    }
-
-    async fn delete_spot(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<(), Self::Error> {
-        let collection = format!("spot_{}", event_id);
-        let document = spot_id.to_string();
-        match self
-            .client
-            .fluent()
-            .delete()
-            .from(collection.as_str())
-            .document_id(document)
-            .execute()
-            .await
-        {
-            Ok(_) => info!("deleted spot"),
-            Err(e) => return Err(e),
-        }
-
-        Ok(())
-    }
-
-    async fn subscribe_visitor(
-        &self,
-        event_id: Id<Event>,
-        visitor_id: Id<Visitor>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<(), Self::Error> {
-        let collection = format!("visitor_{}", event_id);
-        let document = visitor_id.to_string();
-        let structure = VisitorStructure { spot_id };
-        match self
-            .client
-            .fluent()
-            .update()
-            .fields(paths!(VisitorStructure::{spot_id}))
-            .in_col(collection.as_str())
-            .document_id(document)
-            .object(&VisitorStructure {
-                ..structure.clone()
-            })
-            .execute::<()>()
-            .await
-        {
-            Ok(_) => info!("subscribed visitor"),
-            Err(e) => return Err(e),
-        }
-
-        Ok(())
-    }
-
-    async fn get_visitors(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<Vec<Id<Visitor>>, Self::Error> {
-        let collection = format!("visitor_{}", event_id);
-        #[derive(Debug, Deserialize)]
-        struct Res {
-            document: String,
-        }
-        let stream: BoxStream<FirestoreResult<Res>> = self
-            .client
-            .fluent()
-            .select()
-            .fields(vec!["document", "spot_id"])
-            .from(collection.as_str())
-            .filter(|q| q.for_all([q.field(path!(VisitorStructure::spot_id)).eq(spot_id)]))
-            .obj()
-            .stream_query_with_errors()
-            .await?;
-        let res = stream
-            .try_collect::<Vec<_>>()
-            .await?
-            .into_iter()
-            .map(|v| Id::<Visitor>::from_str(v.document.as_str()).unwrap())
-            .collect::<Vec<_>>();
-        info!("got visitors: {:?}", res);
-
-        Ok(res)
     }
 
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error> {
