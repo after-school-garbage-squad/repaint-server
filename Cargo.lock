@@ -2471,6 +2471,7 @@ dependencies = [
  "repaint-server-migration",
  "repaint-server-model",
  "repaint-server-usecase",
+ "repaint-server-util",
  "sea-orm",
  "serde",
  "serde_json",

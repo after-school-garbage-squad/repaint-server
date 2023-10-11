@@ -193,6 +193,12 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
+    async fn get_last_picked_at(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error>;
+
     async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error>;
 }
 
