@@ -1,11 +1,14 @@
 use async_trait::async_trait;
+use chrono::Utc;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, ModelTrait, TransactionTrait};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+};
 
-use crate::entity::{event_spots, events};
+use crate::entity::{event_spots, events, visitor_spots, visitors};
 use crate::ty::string::ToDatabaseType;
 use crate::{Error, SeaOrm};
 
@@ -13,6 +16,7 @@ use super::IsUpdatedExt;
 
 pub fn to_model(m: event_spots::Model) -> Result<EventSpot, Error> {
     Ok(EventSpot {
+        id: m.id,
         spot_id: m.spot_id.model(),
         name: m.name,
         is_pick: m.is_pick,
@@ -195,6 +199,37 @@ impl SpotRepository for SeaOrm {
 
         res.to_is_updated()
     }
+
+    async fn scanned(&self, visitor_id: i32, spot_id: i32) -> Result<IsUpdated, Self::Error> {
+        let now = Utc::now().naive_utc();
+        let tx = self.con().begin().await?;
+        let visitor_spot = visitors::Entity::find_by_id(visitor_id)
+            .find_also_related(visitor_spots::Entity)
+            .filter(visitor_spots::Column::SpotId.eq(spot_id))
+            .one(&tx)
+            .await?
+            .and_then(|(_, s)| s);
+        match visitor_spot {
+            Some(s) => {
+                let mut visitor_spot: visitor_spots::ActiveModel = s.into();
+                visitor_spot.last_scanned_at = Set(now);
+                let res = visitor_spot.update(&tx).await;
+                tx.commit().await?;
+                res.to_is_updated()
+            }
+            None => {
+                let visitor_spot = visitor_spots::ActiveModel {
+                    visitor_id: Set(visitor_id),
+                    spot_id: Set(spot_id),
+                    last_scanned_at: Set(now),
+                    ..Default::default()
+                };
+                let res = visitor_spot.insert(&tx).await;
+                tx.commit().await?;
+                res.to_is_updated()
+            }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -286,6 +321,7 @@ mod test {
         self::assert_eq!(
             res,
             Some(EventSpot {
+                id: spot.id,
                 spot_id: spot.spot_id,
                 name: "test2".into(),
                 is_pick: true,

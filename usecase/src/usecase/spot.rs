@@ -6,8 +6,9 @@ use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::firestore::Firestore;
-use crate::infra::repo::{EventRepository, SpotRepository};
+use crate::infra::repo::{EventRepository, SpotRepository, VisitorRepository};
 use crate::model::spot::{Beacon, SpotResponse};
+use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
 
 #[async_trait]
@@ -55,6 +56,12 @@ pub trait SpotUsecase: AsyncSafe {
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Error>;
+
+    async fn scanned(
+        &self,
+        visitor_identification: VisitorIdentification,
+        hw_id: String,
+    ) -> Result<(), Error>;
 }
 
 #[derive(Debug)]
@@ -66,7 +73,7 @@ pub struct SpotUsecaseImpl<R, F> {
 #[inject]
 impl<R, F> SpotUsecaseImpl<R, F>
 where
-    R: SpotRepository + EventRepository,
+    R: SpotRepository + EventRepository + VisitorRepository,
     F: Firestore,
 {
     pub fn new(repo: R, firestore: F) -> Self {
@@ -77,7 +84,7 @@ where
 #[async_trait]
 impl<R, F> SpotUsecase for SpotUsecaseImpl<R, F>
 where
-    R: SpotRepository + EventRepository,
+    R: SpotRepository + EventRepository + VisitorRepository,
     F: Firestore,
 {
     async fn register_spot(
@@ -249,6 +256,32 @@ where
 
         let _ = SpotRepository::delete(&self.repo, event.id, spot_id).await?;
         self.firestore.delete_spot(event.event_id, spot_id).await?;
+
+        Ok(())
+    }
+
+    async fn scanned(
+        &self,
+        visitor_identification: VisitorIdentification,
+        hw_id: String,
+    ) -> Result<(), Error> {
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("No spots associated with {} have been registered", hw_id),
+            })?;
+        let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id).await?;
 
         Ok(())
     }

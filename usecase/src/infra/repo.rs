@@ -57,6 +57,8 @@ pub trait SpotRepository: AsyncSafe {
         spot_id: Id<EventSpot>,
         is_bonus: bool,
     ) -> Result<IsUpdated, Self::Error>;
+
+    async fn scanned(&self, visitor_id: i32, spot_id: i32) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
