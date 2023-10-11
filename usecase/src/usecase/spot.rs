@@ -17,6 +17,7 @@ use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
+use crate::model::spot::ScannedResponse;
 use crate::model::spot::{Beacon, SpotResponse};
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -71,7 +72,7 @@ pub trait SpotUsecase: AsyncSafe {
         &self,
         visitor_identification: VisitorIdentification,
         hw_id: String,
-    ) -> Result<(), Error>;
+    ) -> Result<ScannedResponse, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -281,7 +282,7 @@ where
         &self,
         visitor_identification: VisitorIdentification,
         hw_id: String,
-    ) -> Result<(), Error> {
+    ) -> Result<ScannedResponse, Error> {
         let now = Utc::now().naive_utc();
         let event = EventRepository::get(&self.repo, visitor_identification.event_id)
             .await?
@@ -407,6 +408,6 @@ where
         }
         let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id, now).await?;
 
-        Ok(())
+        Ok(ScannedResponse { is_bonus })
     }
 }

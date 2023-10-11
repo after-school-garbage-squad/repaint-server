@@ -15,6 +15,12 @@ pub struct SpotResponse {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
+pub struct ScannedResponse {
+    pub is_bonus: bool,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Beacon {
     pub hw_id: String,
     pub service_uuid: String,
