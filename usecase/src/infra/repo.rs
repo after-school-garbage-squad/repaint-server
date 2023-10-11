@@ -115,6 +115,8 @@ pub trait PaletteRepository: AsyncSafe {
     async fn get(&self, visitor_id: i32) -> Result<Vec<i32>, Self::Error>;
 
     async fn set(&self, visitor_id: i32, palette: i32) -> Result<IsUpdated, Self::Error>;
+
+    async fn get_all(&self, event_id: i32) -> Result<Option<Vec<i32>>, Self::Error>;
 }
 
 #[async_trait]
@@ -185,6 +187,13 @@ pub trait VisitorRepository: AsyncSafe {
     async fn set_download(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
 
     async fn check_download(&self, visitor_id: i32) -> Result<bool, Self::Error>;
+
+    async fn get_last_droped_at(
+        &self,
+        visitor_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error>;
+
+    async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error>;
 }
 
 #[derive(Debug)]

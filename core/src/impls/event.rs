@@ -143,6 +143,7 @@ pub(crate) mod test {
                     email: EmailAddress::from_str("test@example.com").unwrap(),
                     phone: "0120-10-7929".into(),
                 })),
+                palettes: Set(vec![0, 0, 0]),
                 ..Default::default()
             }
             .insert(self.orm().con())
