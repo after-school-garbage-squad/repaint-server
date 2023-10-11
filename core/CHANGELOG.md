@@ -30,6 +30,24 @@
 
 
 
+## [3.2.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.0.0...repaint-server-v3.2.0) (2023-10-11)
+
+
+### Features
+
+* impl traffic queue ([#338](https://github.com/after-school-garbage-squad/repaint-server/issues/338)) ([439313f](https://github.com/after-school-garbage-squad/repaint-server/commit/439313f667a9122ec4c1522e4c31910e794c344d))
+
+
+### Bug Fixes
+
+* fix initialize palettes ([#329](https://github.com/after-school-garbage-squad/repaint-server/issues/329)) ([222efe9](https://github.com/after-school-garbage-squad/repaint-server/commit/222efe9941758c2bdde5534ea81a5bbea15f1cbd))
+* **refactor:** remove unneeded firestore ([#336](https://github.com/after-school-garbage-squad/repaint-server/issues/336)) ([39f39d4](https://github.com/after-school-garbage-squad/repaint-server/commit/39f39d4e3433759251e6cd539417e193821ab1f1))
+
+
+### Miscellaneous Chores
+
+* release 3.2.0 ([1240c24](https://github.com/after-school-garbage-squad/repaint-server/commit/1240c244f5fe03baa2d4cbcaddbc5b0382191a21))
+
 ## [3.0.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.0.2...repaint-server-v3.0.0) (2023-10-11)
 
 
