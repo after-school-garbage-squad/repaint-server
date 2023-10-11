@@ -17,6 +17,7 @@ impl IntoResponse for Error {
     fn into_response(self) -> Response {
         let (status, error_message) = match self {
             Error(UsecaseError::BadRequest { message }) => (StatusCode::BAD_REQUEST, message),
+            Error(UsecaseError::Conflict) => (StatusCode::CONFLICT, "Conflict".to_string()),
             Error(UsecaseError::InternalServerError(e)) => {
                 tracing::error!("internal server error: {:?}", e);
 

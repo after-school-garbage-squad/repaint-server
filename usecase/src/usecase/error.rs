@@ -7,6 +7,7 @@ pub enum Error {
     UnAuthorized,
     NotFound,
     BadRequest { message: String },
+    Conflict,
     InternalServerError(anyhow::Error),
 }
 
