@@ -27,7 +27,7 @@ async fn scanned<U: SpotUsecase>(
     Json(req): Json<ScannedRequest>,
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
-    let _ = usecase
+    let res = usecase
         .scanned(
             VisitorIdentification {
                 visitor_id,
@@ -37,5 +37,5 @@ async fn scanned<U: SpotUsecase>(
         )
         .await?;
 
-    Ok(StatusCode::NO_CONTENT)
+    Ok((StatusCode::OK, Json(res)))
 }
