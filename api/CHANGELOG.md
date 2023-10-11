@@ -34,6 +34,18 @@
 
 
 
+## [3.1.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.0.1...repaint-server-v3.1.0) (2023-10-11)
+
+
+### Features
+
+* update scanned endpoint ([#331](https://github.com/after-school-garbage-squad/repaint-server/issues/331)) ([dc56a16](https://github.com/after-school-garbage-squad/repaint-server/commit/dc56a16fe5a460ad5653542e1e55a0ab00c16a4b))
+
+
+### Bug Fixes
+
+* change HTTP response type to Conflict ([#333](https://github.com/after-school-garbage-squad/repaint-server/issues/333)) ([321b2e0](https://github.com/after-school-garbage-squad/repaint-server/commit/321b2e077bb92fc6f811d90c3253e5e2f698d0ae))
+
 ## [3.0.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.17.0...repaint-server-v3.0.0) (2023-10-11)
 
 
