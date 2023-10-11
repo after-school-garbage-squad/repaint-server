@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::NaiveDateTime;
 use repaint_server_model::admin::Admin;
 use repaint_server_model::event::{Contact, Event};
 use repaint_server_model::event_image::Image as EventImage;
@@ -58,7 +59,12 @@ pub trait SpotRepository: AsyncSafe {
         is_bonus: bool,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn scanned(&self, visitor_id: i32, spot_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn scanned(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+        now: NaiveDateTime,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]

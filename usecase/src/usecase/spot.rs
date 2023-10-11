@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::Utc;
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -265,6 +266,7 @@ where
         visitor_identification: VisitorIdentification,
         hw_id: String,
     ) -> Result<(), Error> {
+        let now = Utc::now().naive_utc();
         let event = EventRepository::get(&self.repo, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
@@ -281,7 +283,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
             })?;
-        let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id).await?;
+        let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id, now).await?;
 
         Ok(())
     }

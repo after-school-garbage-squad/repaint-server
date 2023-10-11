@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::Utc;
+use chrono::NaiveDateTime;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
@@ -200,8 +200,12 @@ impl SpotRepository for SeaOrm {
         res.to_is_updated()
     }
 
-    async fn scanned(&self, visitor_id: i32, spot_id: i32) -> Result<IsUpdated, Self::Error> {
-        let now = Utc::now().naive_utc();
+    async fn scanned(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+        now: NaiveDateTime,
+    ) -> Result<IsUpdated, Self::Error> {
         let tx = self.con().begin().await?;
         let visitor_spot = visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
