@@ -17,7 +17,6 @@ pub struct Model {
     pub name: String,
     pub is_pick: bool,
     pub bonus: bool,
-    #[sea_orm(unique)]
     pub hw_id: String,
     pub service_uuid: String,
     pub created_at: DateTime,
