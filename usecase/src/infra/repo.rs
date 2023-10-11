@@ -37,6 +37,8 @@ pub trait SpotRepository: AsyncSafe {
         spot_id: Id<EventSpot>,
     ) -> Result<Option<EventSpot>, Self::Error>;
 
+    async fn get_by_id(&self, spot_id: i32) -> Result<Option<EventSpot>, Self::Error>;
+
     async fn update(
         &self,
         event_id: i32,

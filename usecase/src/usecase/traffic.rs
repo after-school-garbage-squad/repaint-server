@@ -11,7 +11,7 @@ use teloc::inject;
 
 use crate::infra::fcm::FirebaseCloudMessaging;
 use crate::infra::firestore::Firestore;
-use crate::infra::repo::{EventRepository, SpotRepository, VisitorRepository};
+use crate::infra::repo::{EventRepository, SpotRepository, TrafficRepository, VisitorRepository};
 use crate::model::traffic::{GetTrafficStatusResponse, TrafficStatus};
 use crate::usecase::error::Error;
 
@@ -49,7 +49,7 @@ pub struct TrafficUsecaseImpl<R, F, C> {
 #[inject]
 impl<R, F, C> TrafficUsecaseImpl<R, F, C>
 where
-    R: EventRepository + SpotRepository + VisitorRepository,
+    R: EventRepository + SpotRepository + VisitorRepository + TrafficRepository,
     F: Firestore,
     C: FirebaseCloudMessaging,
 {
@@ -65,7 +65,7 @@ where
 #[async_trait]
 impl<R, F, C> TrafficUsecase for TrafficUsecaseImpl<R, F, C>
 where
-    R: EventRepository + SpotRepository + VisitorRepository,
+    R: EventRepository + SpotRepository + VisitorRepository + TrafficRepository,
     F: Firestore,
     C: FirebaseCloudMessaging,
 {
@@ -119,16 +119,21 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-        let size = self.firestore.size_traffic_queue(event.event_id).await?;
+        let size = TrafficRepository::size(&self.repo).await?;
         if size >= 4 {
-            let spot_id = self
-                .firestore
-                .pop_traffic_queue(event.event_id)
+            let id = TrafficRepository::pop(&self.repo)
                 .await?
                 .ok_or(Error::BadRequest {
-                    message: format!("traffic queue is empty"),
+                    message: "traffic queue is empty".to_string(),
                 })?;
-            let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot_id, false).await?;
+            let spot =
+                SpotRepository::get_by_id(&self.repo, id)
+                    .await?
+                    .ok_or(Error::BadRequest {
+                        message: format!("{} is invalid id", id),
+                    })?;
+            let _ =
+                SpotRepository::set_bonus_state(&self.repo, event.id, spot.spot_id, false).await?;
         }
         let from = SpotRepository::get_by_qr(&self.repo, event.id, from)
             .await?
@@ -177,14 +182,13 @@ where
             .collect::<Result<Vec<_>, _>>()?;
 
         let _ = SpotRepository::set_bonus_state(&self.repo, event.id, to.spot_id, true).await?;
-        self.firestore
-            .push_traffic_queue(
-                event.event_id,
-                to.spot_id,
-                visitors_in_from.len(),
-                visitors_in_to.len(),
-            )
-            .await?;
+        let _ = TrafficRepository::push(
+            &self.repo,
+            to.id,
+            visitors_in_from.len(),
+            visitors_in_to.len(),
+        )
+        .await?;
 
         self.firestore
             .subscribe_traffic_log(event.event_id, from.spot_id, to.spot_id)
@@ -202,11 +206,14 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
+        let spot = SpotRepository::get_by_qr(&self.repo, event.id, spot_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", spot_id),
+            })?;
 
         let _ = SpotRepository::set_bonus_state(&self.repo, event.id, spot_id, false).await?;
-        self.firestore
-            .remove_traffic_queue(event.event_id, spot_id)
-            .await?;
+        let _ = TrafficRepository::remove(&self.repo, spot.id).await?;
 
         Ok(())
     }

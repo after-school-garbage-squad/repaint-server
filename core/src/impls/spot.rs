@@ -100,6 +100,14 @@ impl SpotRepository for SeaOrm {
             .transpose()
     }
 
+    async fn get_by_id(&self, spot_id: i32) -> Result<Option<EventSpot>, Self::Error> {
+        event_spots::Entity::find_by_id(spot_id)
+            .one(self.con())
+            .await?
+            .map(to_model)
+            .transpose()
+    }
+
     async fn update(
         &self,
         event_id: i32,
