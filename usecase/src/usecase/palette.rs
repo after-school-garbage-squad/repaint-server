@@ -81,9 +81,7 @@ where
                     envvar("PICK_INTERVAL", 300)
                 })
         {
-            return Err(Error::BadRequest {
-                message: "SHORT_INTERVAL".to_string(),
-            });
+            return Err(Error::Conflict);
         }
         let Some(palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
             unreachable!("palettes is not set")
