@@ -390,21 +390,32 @@ where
                     spot.spot_id,
                 )
                 .await?;
-            let Some(palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+            let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
                 unreachable!("palettes is not set")
             };
+            let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
+                .await?
+                .into_iter()
+                .collect::<Vec<_>>();
             let palette = self
                 .firestore
                 .get_palette(visitor_identification.event_id, spot.spot_id)
                 .await?
                 .unwrap_or(match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-                    Some((i, _)) => i as i32,
+                    Some((i, _)) => {
+                        palettes[i] += 1;
+
+                        i as i32
+                    }
                     None => unreachable!("palettes is empty"),
                 });
-            let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
-            self.firestore
-                .subscribe_palette(visitor_identification.event_id, spot.spot_id, palette)
-                .await?;
+            if !visitor_palettes.contains(&palette) {
+                let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
+                let _ = self
+                    .firestore
+                    .subscribe_palette(visitor_identification.event_id, spot.spot_id, palette)
+                    .await?;
+            }
         }
         let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id, now).await?;
 
