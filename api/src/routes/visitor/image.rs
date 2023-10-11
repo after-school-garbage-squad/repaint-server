@@ -8,8 +8,7 @@ use axum::{Json, Router};
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::model::image::{
-    CheckDownloadQuery, CheckUpdateQuery, GetCurrentQuery, ListQuery, ProxyCurrentQuery,
-    SetCurrentRequest,
+    CheckUpdateQuery, GetCurrentQuery, ListQuery, ProxyCurrentQuery, SetCurrentRequest,
 };
 use repaint_server_usecase::model::visitor::VisitorIdentification;
 use repaint_server_usecase::usecase::image::ImageUsecase;
@@ -25,7 +24,6 @@ pub fn image(usecase: impl ImageUsecase) -> Router {
         .route("/proxy", get(proxy))
         .route("/set-current", post(set_current))
         .route("/check-update", get(check_update))
-        .route("/check-download", get(check_download))
         .with_state(usecase)
 }
 
@@ -100,17 +98,6 @@ async fn check_update<U: ImageUsecase>(
 ) -> Result<impl IntoResponse, Error> {
     let usecase = Arc::clone(&usecase);
     let res = usecase.check_update(q.event_id, visitor_id).await?;
-
-    Ok((StatusCode::OK, Json(res)))
-}
-
-async fn check_download<U: ImageUsecase>(
-    State(usecase): State<Arc<U>>,
-    Path(visitor_id): Path<Id<Visitor>>,
-    Query(q): Query<CheckDownloadQuery>,
-) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(&usecase);
-    let res = usecase.check_download(q.event_id, visitor_id).await?;
 
     Ok((StatusCode::OK, Json(res)))
 }

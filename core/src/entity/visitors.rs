@@ -16,7 +16,6 @@ pub struct Model {
     pub visitor_id: AsString<Id<Visitor>>,
     pub registration_id: String,
     pub is_updated: bool,
-    pub is_downloadable: bool,
     pub last_droped_at: Option<DateTime>,
     pub created_at: DateTime,
     pub updated_at: Option<DateTime>,

@@ -186,10 +186,6 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error>;
 
-    async fn set_download(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
-
-    async fn check_download(&self, visitor_id: i32) -> Result<bool, Self::Error>;
-
     async fn get_last_droped_at(
         &self,
         visitor_id: i32,

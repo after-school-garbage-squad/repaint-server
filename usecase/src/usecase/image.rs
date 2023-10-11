@@ -15,9 +15,8 @@ use crate::infra::otp::ImageOtp;
 use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, ImageRepository, PaletteRepository, VisitorRepository};
 use crate::model::image::{
-    CheckDownloadResponse, CheckUpdateResponse, CheckVisitorImageExistResponse,
-    GetCurrentImageResponse, ListImageItem, ListImageResponse, ProxyCurrentImageResponse,
-    ProxyEventImageResponse,
+    CheckUpdateResponse, CheckVisitorImageExistResponse, GetCurrentImageResponse, ListImageItem,
+    ListImageResponse, ProxyCurrentImageResponse, ProxyEventImageResponse,
 };
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
@@ -89,12 +88,6 @@ pub trait ImageUsecase: AsyncSafe {
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<ProxyEventImageResponse, Error>;
-
-    async fn check_download(
-        &self,
-        event_id: Id<Event>,
-        visitor_id: Id<Visitor>,
-    ) -> Result<CheckDownloadResponse, Error>;
 }
 
 #[derive(Debug, Clone)]
@@ -399,25 +392,5 @@ where
         let token = self.otp.verify_event(event_id, image_id).await?;
 
         Ok(ProxyEventImageResponse { url: token.full })
-    }
-
-    async fn check_download(
-        &self,
-        event_id: Id<Event>,
-        visitor_id: Id<Visitor>,
-    ) -> Result<CheckDownloadResponse, Error> {
-        let event = EventRepository::get(&self.repo, event_id)
-            .await?
-            .ok_or(Error::BadRequest {
-                message: format!("{} is invalid id", event_id),
-            })?;
-        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
-            .await?
-            .ok_or(Error::BadRequest {
-                message: format!("{} is invalid id", visitor_id),
-            })?;
-        let is_downloadable = VisitorRepository::check_download(&self.repo, visitor.id).await?;
-
-        Ok(CheckDownloadResponse { is_downloadable })
     }
 }

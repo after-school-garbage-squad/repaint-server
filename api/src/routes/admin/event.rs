@@ -40,7 +40,6 @@ pub fn event(
         .route("/:event_id/delete", delete_handler(delete))
         .route("/list", get(list))
         .route("/:event_id/update", patch(update))
-        .route("/:event_id/finish", post(finish))
         .layer(middleware::from_fn(auth))
         .with_state(usecase)
         .nest("/:event_id/traffic", traffic)
@@ -94,15 +93,4 @@ async fn update<U: EventUsecase>(
         .await?;
 
     Ok((StatusCode::OK, Json(res)))
-}
-
-async fn finish<U: EventUsecase>(
-    State(usecase): State<Arc<U>>,
-    Extension(subject): Extension<String>,
-    Path(event_id): Path<Id<Event>>,
-) -> Result<impl IntoResponse, Error> {
-    let usecase = Arc::clone(&usecase);
-    let _ = usecase.finish_event(subject, event_id).await?;
-
-    Ok(StatusCode::NO_CONTENT)
 }

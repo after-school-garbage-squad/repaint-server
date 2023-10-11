@@ -151,36 +151,6 @@ impl VisitorRepository for SeaOrm {
         Ok(visitor.is_updated)
     }
 
-    async fn set_download(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
-        let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
-            .one(&tx)
-            .await?
-            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
-                "visitor doesn't found with {}",
-                visitor_id
-            ))))?
-            .into();
-        visitor.is_downloadable = Set(true);
-        let res = visitor.update(&tx).await;
-        tx.commit().await?;
-
-        res.to_is_updated()
-    }
-
-    async fn check_download(&self, visitor_id: i32) -> Result<bool, Self::Error> {
-        let visitor = match visitors::Entity::find_by_id(visitor_id)
-            .one(self.con())
-            .await?
-        {
-            Some(i) => i,
-            None => return Ok(false),
-        };
-
-        Ok(visitor.is_downloadable)
-    }
-
     async fn get_last_droped_at(
         &self,
         visitor_id: i32,
@@ -361,28 +331,5 @@ pub(crate) mod test {
         self::assert_eq!(res1, false);
         self::assert_eq!(res2, true);
         self::assert_eq!(res3, false);
-    }
-
-    #[test_log::test(tokio::test)]
-    async fn test_set_get_download() {
-        let orm = TestingSeaOrm::new().await;
-        let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id).await;
-        let visitor = orm.make_test_visitor(event.id, image_id).await;
-
-        let res1 = VisitorRepository::check_download(orm.orm(), visitor.id)
-            .await
-            .unwrap();
-
-        let _ = VisitorRepository::set_download(orm.orm(), visitor.id)
-            .await
-            .unwrap();
-
-        let res2 = VisitorRepository::check_download(orm.orm(), visitor.id)
-            .await
-            .unwrap();
-
-        self::assert_eq!(res1, false);
-        self::assert_eq!(res2, true);
     }
 }
