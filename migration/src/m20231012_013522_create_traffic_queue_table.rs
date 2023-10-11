@@ -13,8 +13,8 @@ impl Migration {
             .if_not_exists()
             .col(ColumnDef::new(TrafficQueues::Id).integer().not_null().auto_increment().primary_key())
             .col(ColumnDef::new(TrafficQueues::SpotId).integer().not_null())
-            .col(ColumnDef::new(TrafficQueues::HeadCountFrom).char_len(26).not_null())
-            .col(ColumnDef::new(TrafficQueues::HeadCountTo).char_len(26).not_null())
+            .col(ColumnDef::new(TrafficQueues::HeadCountFrom).integer().not_null())
+            .col(ColumnDef::new(TrafficQueues::HeadCountTo).integer().not_null())
             .col(ColumnDef::new(TrafficQueues::Timestamp).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
             .col(ColumnDef::new(TrafficQueues::CreatedAt).default(SimpleExpr::Keyword(Keyword::CurrentTimestamp)).date_time().not_null())
             .col(ColumnDef::new(TrafficQueues::UpdatedAt).date_time())
@@ -93,8 +93,8 @@ mod test {
                 r#"CREATE TABLE IF NOT EXISTS "traffic_queues" ("#,
                 r#""id" serial NOT NULL PRIMARY KEY,"#,
                 r#""spot_id" integer NOT NULL,"#,
-                r#""head_count_from" char(26) NOT NULL,"#,
-                r#""head_count_to" char(26) NOT NULL,"#,
+                r#""head_count_from" integer NOT NULL,"#,
+                r#""head_count_to" integer NOT NULL,"#,
                 r#""timestamp" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""created_at" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,"#,
                 r#""updated_at" timestamp without time zone,"#,
