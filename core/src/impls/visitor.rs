@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use async_trait::async_trait;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
@@ -5,7 +7,7 @@ use repaint_server_usecase::infra::repo::{IsUpdated, VisitorRepository};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, TransactionTrait};
 
-use crate::entity::{events, visitors};
+use crate::entity::{event_images, events, visitor_images, visitors};
 use crate::ty::string::ToDatabaseType;
 use crate::{Error, SeaOrm};
 
@@ -24,14 +26,33 @@ impl VisitorRepository for SeaOrm {
     type Error = Error;
 
     async fn create(&self, event_id: i32, registration_id: String) -> Result<Visitor, Self::Error> {
+        let tx = self.con().begin().await?;
         let visitor = visitors::ActiveModel {
             event_id: Set(event_id),
             visitor_id: Set(Id::new().dty()),
             registration_id: Set(registration_id),
             ..Default::default()
         }
-        .insert(self.con())
+        .insert(&tx)
         .await?;
+        let image = events::Entity::find_by_id(event_id)
+            .find_also_related(event_images::Entity)
+            .one(&tx)
+            .await?
+            .and_then(|(_, i)| i)
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "event_image doesn't found with {}",
+                event_id
+            ))))?;
+        let current_image_id = Id::from_str(image.image_id.model().to_string().as_str()).unwrap();
+        let _ = visitor_images::ActiveModel {
+            visitor_id: Set(visitor.id),
+            current_image_id: Set(current_image_id.dty()),
+            ..Default::default()
+        }
+        .insert(&tx)
+        .await?;
+        tx.commit().await?;
 
         to_model(visitor)
     }
@@ -154,22 +175,38 @@ impl VisitorRepository for SeaOrm {
 #[cfg(test)]
 pub(crate) mod test {
     use pretty_assertions::*;
+    use repaint_server_model::event_image::Image as EventImage;
 
     use crate::TestingSeaOrm;
 
     use super::*;
 
     impl TestingSeaOrm {
-        pub(crate) async fn make_test_visitor(&self, event_id: i32) -> Visitor {
+        pub(crate) async fn make_test_visitor(
+            &self,
+            event_id: i32,
+            image_id: Id<EventImage>,
+        ) -> Visitor {
+            let tx = self.orm().con().begin().await.unwrap();
             let visitor = visitors::ActiveModel {
                 event_id: Set(event_id),
                 visitor_id: Set(Id::new().dty()),
                 registration_id: Set("eXaMpLeReGiStRaTiOnId0123456789".into()),
                 ..Default::default()
             }
-            .insert(self.orm().con())
+            .insert(&tx)
             .await
             .unwrap();
+            let current_image_id = Id::from_str(image_id.to_string().as_str()).unwrap();
+            let _ = visitor_images::ActiveModel {
+                visitor_id: Set(visitor.id),
+                current_image_id: Set(current_image_id.dty()),
+                ..Default::default()
+            }
+            .insert(&tx)
+            .await
+            .unwrap();
+            tx.commit().await.unwrap();
 
             to_model(visitor).unwrap()
         }
@@ -179,7 +216,8 @@ pub(crate) mod test {
     async fn test_get() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
 
         let res = VisitorRepository::get(orm.orm(), event.id, visitor.visitor_id)
             .await
@@ -193,9 +231,10 @@ pub(crate) mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let event = orm.make_test_event().await;
+            let image_id = orm.make_test_default_image(event.id).await;
             let mut visitors = Vec::<Visitor>::new();
             for _ in 0..q {
-                visitors.push(orm.make_test_visitor(event.id).await);
+                visitors.push(orm.make_test_visitor(event.id, image_id).await);
             }
 
             let res = VisitorRepository::list(orm.orm(), event.id).await.unwrap();
@@ -212,9 +251,10 @@ pub(crate) mod test {
     async fn test_delete() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
+        let image_id = orm.make_test_default_image(event.id).await;
         let mut visitors = Vec::new();
         for _ in 0..3 {
-            visitors.push(orm.make_test_visitor(event.id).await);
+            visitors.push(orm.make_test_visitor(event.id, image_id).await);
         }
         let _ = VisitorRepository::delete(orm.orm(), visitors[1].id)
             .await
@@ -230,7 +270,8 @@ pub(crate) mod test {
     async fn test_set_get_unset_update() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
 
         let res1 = VisitorRepository::check_update(orm.orm(), visitor.id)
             .await
@@ -261,7 +302,8 @@ pub(crate) mod test {
     async fn test_set_get_download() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
 
         let res1 = VisitorRepository::check_download(orm.orm(), visitor.id)
             .await
