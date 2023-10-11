@@ -9,6 +9,8 @@ use repaint_server_model::visitor::Visitor;
 use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::{AsyncSafe, StaticError};
 
+use crate::model::traffic::HeadCountResponse;
+
 #[async_trait]
 pub trait SpotRepository: AsyncSafe {
     type Error: StaticError;
@@ -198,6 +200,28 @@ pub trait VisitorRepository: AsyncSafe {
     ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
     async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error>;
+}
+
+#[async_trait]
+pub trait TrafficRepository: AsyncSafe {
+    type Error: StaticError;
+
+    async fn size(&self) -> Result<usize, Self::Error>;
+
+    async fn push(
+        &self,
+        spot_id: i32,
+        hc_from: usize,
+        hc_to: usize,
+    ) -> Result<IsUpdated, Self::Error>;
+
+    async fn pop(&self) -> Result<Option<i32>, Self::Error>;
+
+    async fn remove(&self, spot_id: i32) -> Result<IsUpdated, Self::Error>;
+
+    async fn get_timestamp(&self, spot_id: i32) -> Result<Option<NaiveDateTime>, Self::Error>;
+
+    async fn get_hc(&self, spot_id: i32) -> Result<Option<HeadCountResponse>, Self::Error>;
 }
 
 #[derive(Debug)]
