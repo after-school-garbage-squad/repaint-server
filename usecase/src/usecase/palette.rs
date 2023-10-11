@@ -83,7 +83,7 @@ where
         {
             return Err(Error::Conflict);
         }
-        let Some(palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+        let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
             unreachable!("palettes is not set")
         };
         let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
@@ -119,11 +119,20 @@ where
             .await?;
         loop {
             let palette = match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-                Some((i, _)) => i as i32,
+                Some((i, _)) => {
+                    palettes[i] += 1;
+
+                    i as i32
+                }
                 None => unreachable!("palettes is empty"),
             };
             if !visitor_palettes.contains(&palette) {
                 let _ = PaletteRepository::set(&self.repo, visitor.id, palette);
+                break;
+            } else if palettes
+                .iter()
+                .all(|&palette| visitor_palettes.contains(&palette))
+            {
                 break;
             }
         }
