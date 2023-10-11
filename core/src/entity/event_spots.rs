@@ -33,6 +33,8 @@ pub enum Relation {
         on_delete = "Cascade"
     )]
     Events,
+    #[sea_orm(has_many = "super::traffic_queues::Entity")]
+    TrafficQueues,
     #[sea_orm(has_many = "super::visitor_spots::Entity")]
     VisitorSpots,
 }
@@ -40,6 +42,12 @@ pub enum Relation {
 impl Related<super::events::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Events.def()
+    }
+}
+
+impl Related<super::traffic_queues::Entity> for Entity {
+    fn to() -> RelationDef {
+        Relation::TrafficQueues.def()
     }
 }
 

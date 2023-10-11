@@ -11,9 +11,9 @@ pub struct TrafficStatus {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct StartHeadCount {
-    pub hc_from: usize,
-    pub hc_to: usize,
+pub struct HeadCountResponse {
+    pub hc_from: i32,
+    pub hc_to: i32,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

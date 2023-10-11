@@ -1,12 +1,9 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_model::{AsyncSafe, StaticError};
-
-use crate::model::traffic::StartHeadCount;
 
 #[async_trait]
 pub trait Firestore: AsyncSafe {
@@ -28,39 +25,6 @@ pub trait Firestore: AsyncSafe {
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error>;
 
     async fn get_event_id(&self, token: String) -> Result<Option<i32>, Self::Error>;
-
-    async fn size_traffic_queue(&self, event_id: Id<Event>) -> Result<usize, Self::Error>;
-
-    async fn push_traffic_queue(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-        hc_from: usize,
-        hc_to: usize,
-    ) -> Result<(), Self::Error>;
-
-    async fn pop_traffic_queue(
-        &self,
-        event_id: Id<Event>,
-    ) -> Result<Option<Id<EventSpot>>, Self::Error>;
-
-    async fn remove_traffic_queue(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<(), Self::Error>;
-
-    async fn get_traffic_timestamp(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<Option<DateTime<Utc>>, Self::Error>;
-
-    async fn get_traffic_hc(
-        &self,
-        event_id: Id<Event>,
-        spot_id: Id<EventSpot>,
-    ) -> Result<Option<StartHeadCount>, Self::Error>;
 
     async fn subscribe_visitor_log(
         &self,

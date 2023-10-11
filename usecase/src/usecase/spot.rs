@@ -14,6 +14,7 @@ use teloc::inject;
 
 use crate::infra::firestore::Firestore;
 use crate::infra::pubsub::GoogleCloudPubSub;
+use crate::infra::repo::TrafficRepository;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
@@ -85,7 +86,12 @@ pub struct SpotUsecaseImpl<R, F, P> {
 #[inject]
 impl<R, F, P> SpotUsecaseImpl<R, F, P>
 where
-    R: SpotRepository + EventRepository + VisitorRepository + ImageRepository + PaletteRepository,
+    R: SpotRepository
+        + EventRepository
+        + VisitorRepository
+        + ImageRepository
+        + PaletteRepository
+        + TrafficRepository,
     F: Firestore,
     P: GoogleCloudPubSub,
 {
@@ -101,7 +107,12 @@ where
 #[async_trait]
 impl<R, F, P> SpotUsecase for SpotUsecaseImpl<R, F, P>
 where
-    R: SpotRepository + EventRepository + VisitorRepository + ImageRepository + PaletteRepository,
+    R: SpotRepository
+        + EventRepository
+        + VisitorRepository
+        + ImageRepository
+        + PaletteRepository
+        + TrafficRepository,
     F: Firestore,
     P: GoogleCloudPubSub,
 {
@@ -310,22 +321,17 @@ where
                 })
         {
             if is_bonus {
-                let Some(timestamp) = self
-                    .firestore
-                    .get_traffic_timestamp(event.event_id, spot.spot_id)
-                    .await?
+                let Some(timestamp) = TrafficRepository::get_timestamp(&self.repo, spot.id).await?
                 else {
                     unreachable!("traffic timestamp is not set")
                 };
                 let visitors_now = VisitorRepository::get_visitors(&self.repo, spot.id).await?;
-                let Some(visitors_start) = self
-                    .firestore
-                    .get_traffic_hc(event.event_id, spot.spot_id)
-                    .await?
+                let Some(visitors_start) = TrafficRepository::get_hc(&self.repo, spot.id).await?
                 else {
                     unreachable!("traffic hc is not set")
                 };
-                if Utc::now() - timestamp >= Duration::seconds(envvar("BONUS_TIMEOUT", 1800))
+                if Utc::now() - timestamp.and_utc()
+                    >= Duration::seconds(envvar("BONUS_TIMEOUT", 1800))
                     || visitors_now.len()
                         > max(
                             ((visitors_start.hc_from as f32) * 0.4) as usize,
@@ -335,9 +341,7 @@ where
                     let _ =
                         SpotRepository::set_bonus_state(&self.repo, event.id, spot.spot_id, false)
                             .await?;
-                    self.firestore
-                        .remove_traffic_queue(event.event_id, spot.spot_id)
-                        .await?;
+                    let _ = TrafficRepository::remove(&self.repo, spot.id).await?;
                 }
             }
             let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;

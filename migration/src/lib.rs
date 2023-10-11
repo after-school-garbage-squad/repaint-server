@@ -10,6 +10,7 @@ mod m20230712_220812_create_visitor_palette_table;
 mod m20230712_222322_create_admin_table;
 mod m20230713_141545_create_event_admin_table;
 mod m20231011_022949_create_visitor_spot_table;
+mod m20231012_013522_create_traffic_queue_table;
 
 pub struct Migrator;
 
@@ -26,6 +27,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20230712_222322_create_admin_table::Migration),
             Box::new(m20230713_141545_create_event_admin_table::Migration),
             Box::new(m20231011_022949_create_visitor_spot_table::Migration),
+            Box::new(m20231012_013522_create_traffic_queue_table::Migration),
         ]
     }
 }
