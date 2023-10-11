@@ -93,7 +93,12 @@ async fn main() {
         )
         .nest(
             "/visitor",
-            visitor(visitor_usecase, palette_usecase, image_usecase),
+            visitor(
+                visitor_usecase,
+                palette_usecase,
+                image_usecase,
+                spot_usecase,
+            ),
         )
         .merge(healthz())
         .merge(version())

@@ -1,3 +1,4 @@
+use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use serde::{Deserialize, Serialize};
@@ -39,6 +40,13 @@ pub struct UpdateRequest {
     pub spot_id: Id<EventSpot>,
     pub name: String,
     pub is_pick: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ScannedRequest {
+    pub event_id: Id<Event>,
+    pub hw_id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
