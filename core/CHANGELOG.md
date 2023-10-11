@@ -28,6 +28,13 @@
 
 
 
+## [2.17.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.16.0...repaint-server-v2.17.0) (2023-10-11)
+
+
+### Features
+
+* refactor visitor_images logic ([#324](https://github.com/after-school-garbage-squad/repaint-server/issues/324)) ([7bcd042](https://github.com/after-school-garbage-squad/repaint-server/commit/7bcd0425e3f24b359feac592bd8e4cd78ee46f37))
+
 ## [2.16.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.14.0...repaint-server-v2.16.0) (2023-10-10)
 
 

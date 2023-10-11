@@ -1,5 +1,12 @@
 # Changelog
 
+## [2.16.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.16.0...repaint-server-v2.16.1) (2023-10-11)
+
+
+### Bug Fixes
+
+* DESTROY DROP LOGIC ([#322](https://github.com/after-school-garbage-squad/repaint-server/issues/322)) ([e598344](https://github.com/after-school-garbage-squad/repaint-server/commit/e598344f21e9dbb80c5d80f1de1cd5bf01aa2516))
+
 ## [2.16.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.15.1...repaint-server-v2.16.0) (2023-10-10)
 
 
