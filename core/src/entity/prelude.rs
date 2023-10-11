@@ -5,6 +5,7 @@ pub use super::event_images::Entity as EventImages;
 pub use super::event_spots::Entity as EventSpots;
 pub use super::events::Entity as Events;
 pub use super::events_admins::Entity as EventsAdmins;
+pub use super::traffic_queues::Entity as TrafficQueues;
 pub use super::visitor_images::Entity as VisitorImages;
 pub use super::visitor_palettes::Entity as VisitorPalettes;
 pub use super::visitor_spots::Entity as VisitorSpots;

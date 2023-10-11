@@ -7,6 +7,7 @@ pub mod event_images;
 pub mod event_spots;
 pub mod events;
 pub mod events_admins;
+pub mod traffic_queues;
 pub mod visitor_images;
 pub mod visitor_palettes;
 pub mod visitor_spots;
