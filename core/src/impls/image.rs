@@ -63,19 +63,27 @@ impl ImageRepository for SeaOrm {
         visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error> {
+        let tx = self.con().begin().await?;
         let current_image_id = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
             .ok()
             .unwrap();
+        let mut visitor_image: visitor_images::ActiveModel =
+            visitors::Entity::find_by_id(visitor_id)
+                .find_also_related(visitor_images::Entity)
+                .one(&tx)
+                .await?
+                .and_then(|(_, i)| i)
+                .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                    "visitor_image doesn't found with {}",
+                    visitor_id
+                ))))?
+                .into();
+        visitor_image.image_id = Set(Some(image_id.dty()));
+        visitor_image.current_image_id = Set(current_image_id.dty());
+        let res = visitor_image.update(&tx).await;
+        tx.commit().await?;
 
-        visitor_images::ActiveModel {
-            visitor_id: Set(visitor_id),
-            image_id: Set(image_id.dty()),
-            current_image_id: Set(current_image_id.dty()),
-            ..Default::default()
-        }
-        .insert(self.con())
-        .await
-        .to_is_updated()
+        res.to_is_updated()
     }
 
     async fn get_visitor_image(
@@ -91,7 +99,7 @@ impl ImageRepository for SeaOrm {
             return Ok(None);
         };
 
-        Ok(Some(image.image_id.model()))
+        Ok(image.image_id.map(|i| i.model()))
     }
 
     async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error> {
@@ -161,6 +169,17 @@ mod test {
 
     use super::*;
 
+    impl TestingSeaOrm {
+        pub(crate) async fn make_test_default_image(&self, event_id: i32) -> Id<EventImage> {
+            let image_id = Id::new();
+            let _ = ImageRepository::add_default_image(self.orm(), event_id, image_id.clone())
+                .await
+                .unwrap();
+
+            image_id
+        }
+    }
+
     #[test_log::test(tokio::test)]
     async fn test_add_default_image() {
         let orm = TestingSeaOrm::new().await;
@@ -207,7 +226,8 @@ mod test {
     async fn test_visitor_image() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
 
         let image_id = Id::<VisitorImage>::new();
 
@@ -226,30 +246,40 @@ mod test {
     async fn test_get_current_image() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
 
-        let image_id = Id::<VisitorImage>::new();
+        let i = Id::<VisitorImage>::new();
 
-        let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, image_id.clone())
+        let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
             .unwrap();
 
-        let res = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let _ = ImageRepository::upload_visitor_image(orm.orm(), visitor.id, i.clone())
+            .await
+            .unwrap();
+
+        let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
             .unwrap();
 
         let current_image_id = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
             .ok()
             .unwrap();
+        let c = Id::<CurrentImage>::from_str(i.to_string().as_str())
+            .ok()
+            .unwrap();
 
-        self::assert_eq!(res, Some(current_image_id));
+        self::assert_eq!(res1, Some(current_image_id));
+        self::assert_eq!(res2, Some(c));
     }
 
     #[test_log::test(tokio::test)]
     async fn test_set_current_image() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
         let mut images = Vec::new();
 
         for _ in 0..3 {
@@ -262,6 +292,9 @@ mod test {
 
         let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
             .await
+            .unwrap();
+        let current_id1 = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
+            .ok()
             .unwrap();
 
         let v = Id::new();
@@ -289,7 +322,7 @@ mod test {
             .ok()
             .unwrap();
 
-        self::assert_eq!(res1, None);
+        self::assert_eq!(res1, Some(current_id1));
         self::assert_eq!(res2, Some(current_id2));
         self::assert_eq!(res3, Some(current_id3));
     }

@@ -76,7 +76,8 @@ mod test {
     async fn test_get_set() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let visitor = orm.make_test_visitor(event.id).await;
+        let image_id = orm.make_test_default_image(event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
 
         let palette1 = PaletteRepository::get(orm.orm(), visitor.id).await.unwrap();
         let _ = PaletteRepository::set(orm.orm(), visitor.id, 1)
