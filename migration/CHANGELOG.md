@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.0.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.17.0...repaint-server-v3.0.0) (2023-10-11)
+
+
+### Features
+
+* impl visitor_spots and refactor logics ([#320](https://github.com/after-school-garbage-squad/repaint-server/issues/320)) ([211f553](https://github.com/after-school-garbage-squad/repaint-server/commit/211f553bc7f6b30beb01c865035c7eeccff4f3d2))
+
+
+### Miscellaneous Chores
+
+* release 3.0.0 ([24a6ff2](https://github.com/after-school-garbage-squad/repaint-server/commit/24a6ff2b51f98e9a69c55e70c7bcf592ae6b21a2))
+
 ## [2.17.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v2.16.0...repaint-server-v2.17.0) (2023-10-11)
 
 
