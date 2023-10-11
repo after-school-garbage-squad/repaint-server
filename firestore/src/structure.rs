@@ -11,11 +11,6 @@ pub(crate) struct PaletteStructure {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub(crate) struct VisitorStructure {
-    pub(crate) spot_id: Id<EventSpot>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct AdminStructure {
     pub(crate) event_id: Option<i32>,
 }

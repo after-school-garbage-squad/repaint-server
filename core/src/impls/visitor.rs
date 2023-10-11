@@ -76,6 +76,14 @@ impl VisitorRepository for SeaOrm {
             .transpose()
     }
 
+    async fn get_by_id(&self, visitor_id: i32) -> Result<Option<Visitor>, Self::Error> {
+        visitors::Entity::find_by_id(visitor_id)
+            .one(self.con())
+            .await?
+            .map(to_model)
+            .transpose()
+    }
+
     async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
         visitors::Entity::delete_by_id(visitor_id)
             .exec(self.con())
