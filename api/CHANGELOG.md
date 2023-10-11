@@ -34,6 +34,13 @@
 
 
 
+## [3.1.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.1.0...repaint-server-v3.1.1) (2023-10-11)
+
+
+### Bug Fixes
+
+* **refactor:** remove unneeded firestore ([#336](https://github.com/after-school-garbage-squad/repaint-server/issues/336)) ([39f39d4](https://github.com/after-school-garbage-squad/repaint-server/commit/39f39d4e3433759251e6cd539417e193821ab1f1))
+
 ## [3.1.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.0.1...repaint-server-v3.1.0) (2023-10-11)
 
 
