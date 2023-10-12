@@ -4,8 +4,9 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use firestore::errors::FirestoreError;
-use firestore::{paths, FirestoreDb};
+use firestore::{path, paths, FirestoreDb};
 use futures::stream::BoxStream;
+use futures::TryStreamExt;
 use rand::distributions::Alphanumeric;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -56,8 +57,8 @@ impl FirestoreInfra for Firestore {
         let collection = format!("spot_{}", event_id);
         let document = spot_id.to_string();
         let structure = PaletteStructure {
-            palette_id: Some(palette_id),
-            palettes_ids: None,
+            spot_id,
+            palette_id,
         };
         match self
             .client
@@ -79,28 +80,27 @@ impl FirestoreInfra for Firestore {
         Ok(())
     }
 
-    async fn get_palette(
+    async fn get_palettes(
         &self,
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
-    ) -> Result<Option<i32>, Self::Error> {
+    ) -> Result<Vec<i32>, Self::Error> {
         let collection = format!("spot_{}", event_id);
-        let document = spot_id.to_string();
-        let Some(res) = self
+        let stream: BoxStream<_> = self
             .client
             .fluent()
             .select()
-            .by_id_in(collection.as_str())
-            .obj::<PaletteStructure>()
-            .one(document)
-            .await?
-        else {
-            return Ok(None);
-        };
-        let palette_id = res.palette_id;
-        info!("got palette: {:?}", palette_id);
+            .fields(paths!(PaletteStructure::{palette_id}))
+            .from(collection.as_str())
+            .filter(|q| q.for_all([q.field(path!(PaletteStructure::spot_id)).eq(spot_id)]))
+            .obj()
+            .stream_query_with_errors()
+            .await?;
+        let docs = stream.try_collect::<Vec<PaletteStructure>>().await?;
+        let palette_ids = docs.into_iter().map(|d| d.palette_id).collect();
+        info!("got palettes: {:?}", palette_ids);
 
-        Ok(palette_id)
+        Ok(palette_ids)
     }
 
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error> {
@@ -337,7 +337,7 @@ impl FirestoreInfra for Firestore {
             .client
             .fluent()
             .list()
-            .from(&collection)
+            .from(collection.as_str())
             .stream_all()
             .await?;
         let docs = stream.collect::<Vec<_>>().await;
