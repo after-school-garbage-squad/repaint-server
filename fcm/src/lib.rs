@@ -60,7 +60,8 @@ impl FirebaseCloudMessaging for Fcm {
     type Error = Error;
 
     async fn send(&self, registeration_id: String, spot_name: String) -> Result<(), Self::Error> {
-        match self.client
+        match self
+            .client
             .post(format!(
                 "https://fcm.googleapis.com/v1/projects/{}/messages:send",
                 self.project_id
@@ -70,17 +71,18 @@ impl FirebaseCloudMessaging for Fcm {
                     "message": {
                         "token": registeration_id,
                         "notification": {
-                            "title": "Re:paint",
-                            "body": format!(include_str!("./message.tmp.txt"), SPOT_NAME = spot_name)
+                          "title": "Re:paint",
+                          "body": format!(include_str!("./message.tmp.txt"), SPOT_NAME = spot_name)
                         }
                     }
                 }
             ))
             .send()
-            .await {
-                Ok(_) => info!("sent notification to {}", registeration_id),
-                Err(e) => return Err(e),
-            }
+            .await
+        {
+            Ok(_) => info!("sent notification to {}", registeration_id),
+            Err(e) => return Err(e),
+        }
 
         Ok(())
     }
