@@ -227,6 +227,7 @@ impl SpotRepository for SeaOrm {
                 visitor_spot.last_scanned_at = Set(now);
                 let res = visitor_spot.update(&tx).await;
                 tx.commit().await?;
+
                 res.to_is_updated()
             }
             None => {
@@ -238,6 +239,7 @@ impl SpotRepository for SeaOrm {
                 };
                 let res = visitor_spot.insert(&tx).await;
                 tx.commit().await?;
+
                 res.to_is_updated()
             }
         }

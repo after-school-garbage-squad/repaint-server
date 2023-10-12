@@ -423,6 +423,7 @@ where
                     .subscribe_palette(visitor_identification.event_id, spot.spot_id, *palette)
                     .await?;
             }
+            let _ = VisitorRepository::set_last_droped_at(&self.repo, visitor.id, now).await?;
         }
         let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id, now).await?;
 
