@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.2](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.1...repaint-server-v3.3.2) (2023-10-12)
+
+
+### Bug Fixes
+
+* fix registering spot ([#349](https://github.com/after-school-garbage-squad/repaint-server/issues/349)) ([c631307](https://github.com/after-school-garbage-squad/repaint-server/commit/c631307d8820cd5bf1864ffa62a66aa6e2b883e6))
+
 ## [3.3.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.0...repaint-server-v3.3.1) (2023-10-12)
 
 
