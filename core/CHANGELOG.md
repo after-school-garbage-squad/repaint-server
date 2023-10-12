@@ -30,6 +30,23 @@
 
 
 
+## [3.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.2.0...repaint-server-v3.3.0) (2023-10-12)
+
+
+### Features
+
+* **refactor:** managing master palette on register spot ([#343](https://github.com/after-school-garbage-squad/repaint-server/issues/343)) ([33576d8](https://github.com/after-school-garbage-squad/repaint-server/commit/33576d8bc5f56ebcfb4d0a26c932080825bacb4f))
+
+
+### Bug Fixes
+
+* fix missed duration ([#344](https://github.com/after-school-garbage-squad/repaint-server/issues/344)) ([faf323f](https://github.com/after-school-garbage-squad/repaint-server/commit/faf323fdcc0ce42d3b838eb5e3e36083bdbea65c))
+
+
+### Miscellaneous Chores
+
+* release 3.3.0 ([69fd163](https://github.com/after-school-garbage-squad/repaint-server/commit/69fd163e94457f29a8938a32a572d1291d9e4347))
+
 ## [3.2.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.0...repaint-server-v3.2.0) (2023-10-12)
 
 
