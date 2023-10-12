@@ -44,6 +44,14 @@
 
 
 
+## [3.3.3](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.2...repaint-server-v3.3.3) (2023-10-12)
+
+
+### Bug Fixes
+
+* fix drop logic ([#353](https://github.com/after-school-garbage-squad/repaint-server/issues/353)) ([c5ab7fd](https://github.com/after-school-garbage-squad/repaint-server/commit/c5ab7fd289feec4bcada55c28f81b9ded7669944))
+* fix drop own palette ([#360](https://github.com/after-school-garbage-squad/repaint-server/issues/360)) ([68c2c18](https://github.com/after-school-garbage-squad/repaint-server/commit/68c2c18d9e970661d44ef4575ab649d72613b6e3))
+
 ## [3.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.2.0...repaint-server-v3.3.0) (2023-10-12)
 
 

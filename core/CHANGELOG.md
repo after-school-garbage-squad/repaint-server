@@ -34,6 +34,13 @@
 
 
 
+## [3.4.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.2...repaint-server-v3.4.0) (2023-10-12)
+
+
+### Features
+
+* impl setting last_picked_at and last_droped_at in repository and impls ([#359](https://github.com/after-school-garbage-squad/repaint-server/issues/359)) ([2796c4c](https://github.com/after-school-garbage-squad/repaint-server/commit/2796c4c7588af3b5cbbb24147af52aee194a775d))
+
 ## [3.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.2.0...repaint-server-v3.3.0) (2023-10-12)
 
 

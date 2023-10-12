@@ -1,5 +1,19 @@
 # Changelog
 
+## [3.4.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.2...repaint-server-v3.4.0) (2023-10-12)
+
+
+### Features
+
+* impl setting last_picked_at and last_droped_at in repository and impls ([#359](https://github.com/after-school-garbage-squad/repaint-server/issues/359)) ([2796c4c](https://github.com/after-school-garbage-squad/repaint-server/commit/2796c4c7588af3b5cbbb24147af52aee194a775d))
+
+
+### Bug Fixes
+
+* fix drop logic ([#353](https://github.com/after-school-garbage-squad/repaint-server/issues/353)) ([c5ab7fd](https://github.com/after-school-garbage-squad/repaint-server/commit/c5ab7fd289feec4bcada55c28f81b9ded7669944))
+* fix drop own palette ([#360](https://github.com/after-school-garbage-squad/repaint-server/issues/360)) ([68c2c18](https://github.com/after-school-garbage-squad/repaint-server/commit/68c2c18d9e970661d44ef4575ab649d72613b6e3))
+* fix pick core logic ([#362](https://github.com/after-school-garbage-squad/repaint-server/issues/362)) ([5f47b5d](https://github.com/after-school-garbage-squad/repaint-server/commit/5f47b5d6ed51e8ba6e024587f3bc35352df923c8))
+
 ## [3.3.2](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.1...repaint-server-v3.3.2) (2023-10-12)
 
 
