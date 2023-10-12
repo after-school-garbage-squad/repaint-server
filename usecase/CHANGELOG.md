@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.3.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.0...repaint-server-v3.3.1) (2023-10-12)
+
+
+### Bug Fixes
+
+* change gte to lte ([#347](https://github.com/after-school-garbage-squad/repaint-server/issues/347)) ([74ce864](https://github.com/after-school-garbage-squad/repaint-server/commit/74ce864b1e25ac9b5e6fc7f858e479c39493a693))
+
 ## [3.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.2.0...repaint-server-v3.3.0) (2023-10-12)
 
 
