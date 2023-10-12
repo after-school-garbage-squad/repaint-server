@@ -2,6 +2,7 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
+use itertools::Itertools;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
 use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
@@ -121,26 +122,31 @@ where
                 visitor_palettes.clone(),
             )
             .await?;
-        loop {
-            let palette = match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-                Some((i, _)) => {
-                    palettes[i] += 1;
-                    let _ =
-                        PaletteRepository::set_all(&self.repo, event.id, palettes.clone()).await?;
+        let cloned_palettes = palettes.clone();
+        let sorted_palettes = cloned_palettes
+            .iter()
+            .enumerate()
+            .sorted_by_key(|(_, &p)| p)
+            .map(|(i, _)| i as i32)
+            .collect::<Vec<_>>();
 
-                    i as i32
-                }
-                None => unreachable!("palettes is empty"),
-            };
+        let mut i = 0;
+        loop {
+            let palette = sorted_palettes[i];
             if !visitor_palettes.contains(&palette) {
-                let _ = PaletteRepository::set(&self.repo, visitor.id, palette);
+                palettes[palette as usize] += 1;
+                let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
+                let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
                 break;
             } else if palettes
                 .iter()
-                .all(|&palette| visitor_palettes.contains(&palette))
+                .all(|palette| visitor_palettes.contains(palette))
             {
                 break;
+            } else if i == envvar("CLUSTER", None) {
+                break;
             }
+            i += 1;
         }
         let _ = VisitorRepository::set_last_picked_at(&self.repo, visitor.id, spot.id, now).await?;
 

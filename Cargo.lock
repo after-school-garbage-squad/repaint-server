@@ -2610,6 +2610,7 @@ dependencies = [
  "chrono",
  "email_address",
  "futures",
+ "itertools 0.11.0",
  "rand",
  "repaint-server-model",
  "repaint-server-util",
