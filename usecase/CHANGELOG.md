@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.4.0...repaint-server-v3.5.0) (2023-10-12)
+
+
+### Features
+
+* **refactor:** remove fcm wrapper and use pubsub for notification ([#364](https://github.com/after-school-garbage-squad/repaint-server/issues/364)) ([bb49637](https://github.com/after-school-garbage-squad/repaint-server/commit/bb4963779fdf313b0e529defa06ad1ce9b16761e))
+
 ## [3.4.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.2...repaint-server-v3.4.0) (2023-10-12)
 
 
