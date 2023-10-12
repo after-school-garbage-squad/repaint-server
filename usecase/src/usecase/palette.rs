@@ -72,14 +72,18 @@ where
             })?;
         let last_picked =
             VisitorRepository::get_last_picked_at(&self.repo, visitor.id, spot.id).await?;
+        let last_scaned =
+            VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
         let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
-        if last_picked.is_some()
-            && now - last_picked.unwrap()
-                <= Duration::seconds(if is_bonus {
-                    envvar("BONUS_PICK_INTERVAL", 180)
-                } else {
-                    envvar("PICK_INTERVAL", 300)
-                })
+        if (last_scaned.is_some()
+            && now - last_scaned.unwrap() <= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
+            || (last_picked.is_some()
+                && now - last_picked.unwrap()
+                    <= Duration::seconds(if is_bonus {
+                        envvar("BONUS_PICK_INTERVAL", 180)
+                    } else {
+                        envvar("PICK_INTERVAL", 300)
+                    }))
         {
             return Err(Error::Conflict);
         }

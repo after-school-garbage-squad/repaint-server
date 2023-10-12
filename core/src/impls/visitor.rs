@@ -6,8 +6,11 @@ use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::repo::{IsUpdated, VisitorRepository};
 use repaint_server_util::envvar;
+use sea_orm::sea_query::Expr;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, QueryFilter, TransactionTrait};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, Condition, DbErr, EntityTrait, QueryFilter, TransactionTrait,
+};
 
 use crate::entity::{event_images, events, visitor_images, visitor_spots, visitors};
 use crate::ty::string::ToDatabaseType;
@@ -185,25 +188,40 @@ impl VisitorRepository for SeaOrm {
         Ok(visitor_spot.last_picked_at)
     }
 
+    async fn get_last_scanned_at(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error> {
+        let visitor_spot = match visitors::Entity::find_by_id(visitor_id)
+            .find_also_related(visitor_spots::Entity)
+            .filter(visitor_spots::Column::SpotId.eq(spot_id))
+            .one(self.con())
+            .await?
+            .and_then(|(_, s)| s)
+        {
+            Some(s) => s,
+            None => return Ok(None),
+        };
+
+        Ok(Some(visitor_spot.last_scanned_at))
+    }
+
     async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error> {
         let now = Utc::now().naive_utc();
         let visitors = visitor_spots::Entity::find()
-            .filter(visitor_spots::Column::SpotId.eq(spot_id))
+            .filter(
+                Condition::all()
+                    .add(visitor_spots::Column::SpotId.eq(spot_id))
+                    .add(
+                        Expr::col(visitor_spots::Column::LastScannedAt)
+                            .gte(now - Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300))),
+                    ),
+            )
             .all(self.con())
             .await?;
 
-        Ok(visitors
-            .into_iter()
-            .map(|v| {
-                if now - v.last_scanned_at <= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300))
-                {
-                    Some(v.id)
-                } else {
-                    None
-                }
-            })
-            .flatten()
-            .collect())
+        Ok(visitors.into_iter().map(|v| v.visitor_id).collect())
     }
 }
 
