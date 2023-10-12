@@ -6,7 +6,6 @@ use axum::http::{header, HeaderValue, Method};
 use axum::Router;
 use cfg_if::cfg_if;
 use repaint_server_core::SeaOrm;
-use repaint_server_fcm::Fcm;
 use repaint_server_firestore::Firestore;
 use repaint_server_gcs::Gcs;
 use repaint_server_otp::Otp;
@@ -51,7 +50,6 @@ async fn main() {
 
     let container = ServiceProvider::new()
         .add_singleton::<SeaOrm>()
-        .add_singleton::<FcmProvider>()
         .add_singleton::<FirestoreProvider>()
         .add_singleton::<GcsProvider>()
         .add_singleton::<OtpProvider>()
@@ -62,10 +60,9 @@ async fn main() {
         .add_transient::<ImageUsecaseImpl<SeaOrm, GcsProvider, OtpProvider, PubSubProvider>>()
         .add_transient::<PaletteUsecaseImpl<SeaOrm, PubSubProvider>>()
         .add_transient::<SpotUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
-        .add_transient::<TrafficUsecaseImpl<SeaOrm, FirestoreProvider, FcmProvider>>()
+        .add_transient::<TrafficUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_transient::<VisitorUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
         .add_instance(db)
-        .add_instance(fcm_provider().await)
         .add_instance(firestore_provider().await)
         .add_instance(gcs_provider().await)
         .add_instance(otp_provider())
@@ -166,17 +163,10 @@ async fn wait_for_shutdown_signal(force_shutdown_tx: oneshot::Sender<()>) {
     });
 }
 
-type FcmProvider = Fcm;
 type FirestoreProvider = Firestore;
 type GcsProvider = Gcs;
 type OtpProvider = Otp;
 type PubSubProvider = PubSub;
-
-async fn fcm_provider() -> FcmProvider {
-    let project_id = envvar_str("PROJECT_ID", None);
-
-    Fcm::new(project_id).await
-}
 
 async fn firestore_provider() -> FirestoreProvider {
     let project_id = envvar_str("PROJECT_ID", None);
@@ -202,8 +192,9 @@ async fn pubsub_provider() -> PubSubProvider {
     let cluster = envvar("CLUSTER", None);
     let clustering_topic = envvar_str("CLUSTERING_TOPIC", None);
     let merge_topic = envvar_str("MERGE_TOPIC", None);
+    let notification_topic = envvar_str("NOTIFICATION_TOPIC", None);
 
-    PubSub::new(cluster, clustering_topic, merge_topic).await
+    PubSub::new(cluster, clustering_topic, merge_topic, notification_topic).await
 }
 
 cfg_if! {

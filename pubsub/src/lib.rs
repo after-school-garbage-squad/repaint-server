@@ -21,10 +21,16 @@ pub struct PubSub {
     cluster: i32,
     clustering_topic: String,
     merge_topic: String,
+    notification_topic: String,
 }
 
 impl PubSub {
-    pub async fn new(cluster: i32, clustering_topic: String, merge_topic: String) -> Self {
+    pub async fn new(
+        cluster: i32,
+        clustering_topic: String,
+        merge_topic: String,
+        notification_topic: String,
+    ) -> Self {
         let config = ClientConfig::default()
             .with_auth()
             .await
@@ -37,6 +43,7 @@ impl PubSub {
             cluster,
             clustering_topic,
             merge_topic,
+            notification_topic,
         }
     }
 }
@@ -172,6 +179,49 @@ impl GoogleCloudPubSub for PubSub {
         for task in tasks {
             let message_id = task.await.expect("failed to join")?;
             info!("published merge current image: {}", message_id);
+        }
+        let mut publisher = publisher;
+        publisher.shutdown().await;
+
+        Ok(())
+    }
+
+    async fn publish_notification(
+        &self,
+        registration_id: String,
+        spot_name: String,
+    ) -> Result<(), Self::Error> {
+        let topic = self.client.topic(&self.notification_topic);
+        if !topic.exists(None).await? {
+            topic.create(None, None).await?;
+        }
+        let publisher = topic.new_publisher(None);
+        let tasks = (0..1)
+            .into_iter()
+            .map(|_i| {
+                let publisher = publisher.clone();
+                let registration_id = registration_id.clone();
+                let body = format!(include_str!("./message.tmp.txt"), SPOT_NAME = spot_name);
+                tokio::spawn(async move {
+                    let msg = PubsubMessage {
+                        data: serde_json::json!({
+                            "title": "Re:paintからのお知らせ",
+                            "body": body,
+                            "registration_id": registration_id
+                        })
+                        .to_string()
+                        .into(),
+                        ..Default::default()
+                    };
+                    let awaiter = publisher.publish(msg).await;
+
+                    awaiter.get().await
+                })
+            })
+            .collect::<Vec<JoinHandle<Result<_, _>>>>();
+        for task in tasks {
+            let message_id = task.await.expect("failed to join")?;
+            info!("published notification: {}", message_id);
         }
         let mut publisher = publisher;
         publisher.shutdown().await;

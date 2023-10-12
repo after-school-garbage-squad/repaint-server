@@ -30,4 +30,10 @@ pub trait GoogleCloudPubSub: AsyncSafe {
         image_id: Id<VisitorImage>,
         palette_ids: Vec<i32>,
     ) -> Result<(), Self::Error>;
+
+    async fn publish_notification(
+        &self,
+        registration_id: String,
+        spot_id: String,
+    ) -> Result<(), Self::Error>;
 }

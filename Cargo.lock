@@ -2437,7 +2437,6 @@ dependencies = [
  "metrics",
  "metrics-exporter-prometheus",
  "repaint-server-core",
- "repaint-server-fcm",
  "repaint-server-firestore",
  "repaint-server-gcs",
  "repaint-server-gmail",
@@ -2483,20 +2482,6 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "ulid",
-]
-
-[[package]]
-name = "repaint-server-fcm"
-version = "3.3.3"
-dependencies = [
- "async-trait",
- "google-cloud-auth",
- "google-cloud-token",
- "repaint-server-usecase",
- "reqwest",
- "serde_json",
- "teloc",
- "tracing",
 ]
 
 [[package]]

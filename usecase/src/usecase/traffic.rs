@@ -9,8 +9,8 @@ use repaint_server_model::id::Id;
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
-use crate::infra::fcm::FirebaseCloudMessaging;
 use crate::infra::firestore::Firestore;
+use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, SpotRepository, TrafficRepository, VisitorRepository};
 use crate::model::traffic::{GetTrafficStatusResponse, TrafficStatus};
 use crate::usecase::error::Error;
@@ -40,34 +40,34 @@ pub trait TrafficUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct TrafficUsecaseImpl<R, F, C> {
+pub struct TrafficUsecaseImpl<R, F, P> {
     repo: R,
     firestore: F,
-    fcm: C,
+    pubsub: P,
 }
 
 #[inject]
-impl<R, F, C> TrafficUsecaseImpl<R, F, C>
+impl<R, F, P> TrafficUsecaseImpl<R, F, P>
 where
     R: EventRepository + SpotRepository + VisitorRepository + TrafficRepository,
     F: Firestore,
-    C: FirebaseCloudMessaging,
+    P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, firestore: F, fcm: C) -> Self {
+    pub fn new(repo: R, firestore: F, pubsub: P) -> Self {
         Self {
             repo,
             firestore,
-            fcm,
+            pubsub,
         }
     }
 }
 
 #[async_trait]
-impl<R, F, C> TrafficUsecase for TrafficUsecaseImpl<R, F, C>
+impl<R, F, P> TrafficUsecase for TrafficUsecaseImpl<R, F, P>
 where
     R: EventRepository + SpotRepository + VisitorRepository + TrafficRepository,
     F: Firestore,
-    C: FirebaseCloudMessaging,
+    P: GoogleCloudPubSub,
 {
     async fn get_traffic_status(
         &self,
@@ -172,10 +172,10 @@ where
             .map(|&v| VisitorRepository::get_by_id(&self.repo, v));
         let visitors = join_all(v).await.into_iter().flatten().collect::<Vec<_>>();
 
-        let m = visitors
-            .into_iter()
-            .flatten()
-            .map(|v| self.fcm.send(v.registration_id, spot.name.clone()));
+        let m = visitors.into_iter().flatten().map(|v| {
+            self.pubsub
+                .publish_notification(v.registration_id, spot.name.clone())
+        });
         join_all(m)
             .await
             .into_iter()
