@@ -203,6 +203,13 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
+    async fn set_last_picked_at(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+        last_picked_at: NaiveDateTime,
+    ) -> Result<IsUpdated, Self::Error>;
+
     async fn get_last_picked_at(
         &self,
         visitor_id: i32,

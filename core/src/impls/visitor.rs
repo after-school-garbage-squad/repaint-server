@@ -157,7 +157,6 @@ impl VisitorRepository for SeaOrm {
         last_droped_at: NaiveDateTime,
     ) -> Result<IsUpdated, Self::Error> {
         let tx = self.con().begin().await?;
-
         let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .one(&tx)
             .await?
@@ -186,6 +185,31 @@ impl VisitorRepository for SeaOrm {
         };
 
         Ok(visitor.last_droped_at)
+    }
+
+    async fn set_last_picked_at(
+        &self,
+        visitor_id: i32,
+        spot_id: i32,
+        last_picked_at: NaiveDateTime,
+    ) -> Result<IsUpdated, Self::Error> {
+        let tx = self.con().begin().await?;
+        let mut visitor_spot: visitor_spots::ActiveModel = visitors::Entity::find_by_id(visitor_id)
+            .find_also_related(visitor_spots::Entity)
+            .filter(visitor_spots::Column::SpotId.eq(spot_id))
+            .one(&tx)
+            .await?
+            .and_then(|(_, s)| s)
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "visitor_spots doesn't found with {} and {}",
+                visitor_id, spot_id
+            ))))?
+            .into();
+        visitor_spot.last_picked_at = Set(Some(last_picked_at));
+        let res = visitor_spot.update(&tx).await;
+        tx.commit().await?;
+
+        res.to_is_updated()
     }
 
     async fn get_last_picked_at(
