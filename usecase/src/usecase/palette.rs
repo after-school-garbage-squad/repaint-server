@@ -76,7 +76,7 @@ where
             VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
         let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
         if (last_scaned.is_some()
-            && now - last_scaned.unwrap() <= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
+            && now - last_scaned.unwrap() >= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
             || (last_picked.is_some()
                 && now - last_picked.unwrap()
                     <= Duration::seconds(if is_bonus {
