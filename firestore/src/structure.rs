@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub(crate) struct PaletteStructure {
-    pub(crate) palette_id: Option<i32>,
-    pub(crate) palettes_ids: Option<Vec<i32>>,
+    pub(crate) spot_id: Id<EventSpot>,
+    pub(crate) palette_id: i32,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

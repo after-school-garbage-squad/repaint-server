@@ -4,6 +4,9 @@ use std::str::FromStr;
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
 use futures::future::join_all;
+use rand::rngs::StdRng;
+use rand::seq::SliceRandom;
+use rand::SeedableRng;
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -402,21 +405,22 @@ where
                 .await?
                 .into_iter()
                 .collect::<Vec<_>>();
-            let palette = self
+            let mut rng = {
+                let rng = rand::thread_rng();
+                StdRng::from_rng(rng).unwrap()
+            };
+            let p = self
                 .firestore
-                .get_palette(visitor_identification.event_id, spot.spot_id)
-                .await?
-                .unwrap_or(match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-                    Some((i, _)) => i as i32,
-                    None => unreachable!("palettes is empty"),
-                });
-            if !visitor_palettes.contains(&palette) {
-                palettes[palette as usize] += 1;
-                let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
+                .get_palettes(visitor_identification.event_id, spot.spot_id)
+                .await?;
+            let palette = p.choose(&mut rng).ok_or(Error::NotFound)?;
+            if !visitor_palettes.contains(palette) {
+                palettes[*palette as usize] += 1;
+                let _ = PaletteRepository::set(&self.repo, visitor.id, *palette).await?;
                 let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
                 let _ = self
                     .firestore
-                    .subscribe_palette(visitor_identification.event_id, spot.spot_id, palette)
+                    .subscribe_palette(visitor_identification.event_id, spot.spot_id, *palette)
                     .await?;
             }
         }
