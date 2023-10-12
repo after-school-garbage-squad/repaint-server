@@ -36,7 +36,7 @@ impl Fcm {
             .token()
             .await
             .expect("failed to get bearer token");
-        println!("bearer_token: {}", bearer_token); //DEBUG
+        info!("bearer_token: {}", bearer_token); //DEBUG
         let mut headers = HeaderMap::new();
         headers.insert(
             "Authorization",
@@ -82,7 +82,7 @@ impl FirebaseCloudMessaging for Fcm {
             .await
         {
             Ok(res) => {
-                println!("respose: {:?}", res); //DEBUG
+                info!("respose: {:?}", res); //DEBUG
                 info!("sent notification to {}", registeration_id)
             }
             Err(e) => return Err(e),
