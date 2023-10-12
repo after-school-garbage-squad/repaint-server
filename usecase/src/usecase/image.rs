@@ -312,12 +312,7 @@ where
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
         let _ = ImageRepository::set_current_image(&self.repo, visitor.id, image_id).await?;
-        let _ = self
-            .pubsub
-            .publish_merge_current_image(event.event_id, visitor.visitor_id, image_id, palettes)
-            .await?;
 
         Ok(())
     }
