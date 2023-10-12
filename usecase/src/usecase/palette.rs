@@ -123,19 +123,24 @@ where
             )
             .await?;
         let cloned_palettes = palettes.clone();
-        let sorted_palettes = cloned_palettes.iter().sorted().collect::<Vec<_>>();
+        let sorted_palettes = cloned_palettes
+            .iter()
+            .enumerate()
+            .sorted_by_key(|(_, &p)| p)
+            .map(|(i, _)| i as i32)
+            .collect::<Vec<_>>();
 
         let mut i = 0;
         loop {
             let palette = sorted_palettes[i];
-            if !visitor_palettes.contains(palette) {
-                palettes[*palette as usize] += 1;
-                let _ = PaletteRepository::set(&self.repo, visitor.id, *palette);
+            if !visitor_palettes.contains(&palette) {
+                palettes[palette as usize] += 1;
+                let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
                 let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
                 break;
             } else if palettes
                 .iter()
-                .all(|&palette| visitor_palettes.contains(&palette))
+                .all(|palette| visitor_palettes.contains(palette))
             {
                 break;
             } else if i == envvar("CLUSTER", None) {
