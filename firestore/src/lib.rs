@@ -63,9 +63,8 @@ impl FirestoreInfra for Firestore {
         match self
             .client
             .fluent()
-            .update()
-            .fields(paths!(PaletteStructure::{palette_id}))
-            .in_col(collection.as_str())
+            .insert()
+            .into(collection.as_str())
             .document_id(document)
             .object(&PaletteStructure {
                 ..structure.clone()
