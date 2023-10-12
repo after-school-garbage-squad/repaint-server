@@ -3,6 +3,7 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
+use futures::future::join_all;
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
@@ -142,19 +143,18 @@ where
         let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
             unreachable!("palettes is not set")
         };
-        let palette = match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-            Some((i, _)) => {
-                palettes[i] += 1;
-                let _ = PaletteRepository::set_all(&self.repo, event.id, palettes.clone()).await?;
-
-                i as i32
-            }
-            None => unreachable!("palettes is empty"),
-        };
-        let _ = self
-            .firestore
-            .subscribe_palette(event.event_id, spot.spot_id, palette)
-            .await?;
+        let p = palettes.clone().into_iter().map(|palette| {
+            self.firestore
+                .subscribe_palette(event.event_id, spot.spot_id, palette)
+        });
+        let _ = join_all(p)
+            .await
+            .into_iter()
+            .collect::<Result<Vec<_>, _>>()?;
+        for palette in palettes.iter_mut() {
+            *palette += 1;
+        }
+        let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
