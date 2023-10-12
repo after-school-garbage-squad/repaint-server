@@ -142,6 +142,7 @@ where
                 break;
             }
         }
+        let _ = VisitorRepository::set_last_picked_at(&self.repo, visitor.id, spot.id, now).await?;
 
         Ok(())
     }
