@@ -398,15 +398,13 @@ where
                 .get_palette(visitor_identification.event_id, spot.spot_id)
                 .await?
                 .unwrap_or(match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-                    Some((i, _)) => {
-                        palettes[i] += 1;
-
-                        i as i32
-                    }
+                    Some((i, _)) => i as i32,
                     None => unreachable!("palettes is empty"),
                 });
             if !visitor_palettes.contains(&palette) {
+                palettes[palette as usize] += 1;
                 let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
+                let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
                 let _ = self
                     .firestore
                     .subscribe_palette(visitor_identification.event_id, spot.spot_id, palette)

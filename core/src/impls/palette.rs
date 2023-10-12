@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use repaint_server_usecase::infra::repo::{IsUpdated, PaletteRepository};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, EntityTrait, TransactionTrait};
+use sea_orm::{ActiveModelTrait, DbErr, EntityTrait, TransactionTrait};
 
 use crate::entity::{events, visitor_palettes, visitors};
 use crate::{Error, SeaOrm};
@@ -69,6 +69,23 @@ impl PaletteRepository for SeaOrm {
             .await?
             .map(|e| e.palettes))
     }
+
+    async fn set_all(&self, event_id: i32, palette: Vec<i32>) -> Result<IsUpdated, Self::Error> {
+        let tx = self.con().begin().await?;
+        let mut event: events::ActiveModel = events::Entity::find_by_id(event_id)
+            .one(&tx)
+            .await?
+            .ok_or(Error::SeaOrm(DbErr::RecordNotFound(format!(
+                "events doesn't found with {}",
+                event_id
+            ))))?
+            .into();
+        event.palettes = Set(palette);
+        let res = event.update(&tx).await;
+        tx.commit().await?;
+
+        res.to_is_updated()
+    }
 }
 
 #[cfg(test)]
@@ -104,13 +121,20 @@ mod test {
     }
 
     #[test_log::test(tokio::test)]
-    async fn test_get_all() {
+    async fn test_get_set_all() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let res = PaletteRepository::get_all(orm.orm(), event.id)
+        let res1 = PaletteRepository::get_all(orm.orm(), event.id)
+            .await
+            .unwrap();
+        let _ = PaletteRepository::set_all(orm.orm(), event.id, vec![0, 1, 0])
+            .await
+            .unwrap();
+        let res2 = PaletteRepository::get_all(orm.orm(), event.id)
             .await
             .unwrap();
 
-        self::assert_eq!(res, Some(vec![0, 0, 0]));
+        self::assert_eq!(res1, Some(vec![0, 0, 0]));
+        self::assert_eq!(res2, Some(vec![0, 1, 0]));
     }
 }

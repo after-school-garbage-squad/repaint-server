@@ -121,6 +121,8 @@ where
             let palette = match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
                 Some((i, _)) => {
                     palettes[i] += 1;
+                    let _ =
+                        PaletteRepository::set_all(&self.repo, event.id, palettes.clone()).await?;
 
                     i as i32
                 }
