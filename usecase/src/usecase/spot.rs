@@ -126,13 +126,11 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
-
         let spot = SpotRepository::register(
             &self.repo,
             event.id,
@@ -141,6 +139,22 @@ where
             beacon_data.service_uuid,
         )
         .await?;
+        let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+            unreachable!("palettes is not set")
+        };
+        let palette = match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
+            Some((i, _)) => {
+                palettes[i] += 1;
+                let _ = PaletteRepository::set_all(&self.repo, event.id, palettes.clone()).await?;
+
+                i as i32
+            }
+            None => unreachable!("palettes is empty"),
+        };
+        let _ = self
+            .firestore
+            .subscribe_palette(event.event_id, spot.spot_id, palette)
+            .await?;
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
@@ -190,7 +204,6 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let spot = SpotRepository::get_by_qr(&self.repo, event.id, spot_id)
             .await?
             .ok_or(Error::BadRequest {
@@ -217,7 +230,6 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let spots = SpotRepository::list(&self.repo, event.id).await?;
 
         Ok(spots
@@ -246,13 +258,11 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
-
         let Some(spot) =
             SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?
         else {
@@ -282,7 +292,6 @@ where
         let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let _ = SpotRepository::delete(&self.repo, event.id, spot_id).await?;
 
         Ok(())
@@ -398,15 +407,13 @@ where
                 .get_palette(visitor_identification.event_id, spot.spot_id)
                 .await?
                 .unwrap_or(match palettes.iter().enumerate().min_by_key(|(_, &v)| v) {
-                    Some((i, _)) => {
-                        palettes[i] += 1;
-
-                        i as i32
-                    }
+                    Some((i, _)) => i as i32,
                     None => unreachable!("palettes is empty"),
                 });
             if !visitor_palettes.contains(&palette) {
+                palettes[palette as usize] += 1;
                 let _ = PaletteRepository::set(&self.repo, visitor.id, palette).await?;
+                let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
                 let _ = self
                     .firestore
                     .subscribe_palette(visitor_identification.event_id, spot.spot_id, palette)

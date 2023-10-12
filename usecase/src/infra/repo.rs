@@ -121,6 +121,8 @@ pub trait PaletteRepository: AsyncSafe {
     async fn set(&self, visitor_id: i32, palette: i32) -> Result<IsUpdated, Self::Error>;
 
     async fn get_all(&self, event_id: i32) -> Result<Option<Vec<i32>>, Self::Error>;
+
+    async fn set_all(&self, event_id: i32, palette: Vec<i32>) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
