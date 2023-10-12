@@ -1,5 +1,17 @@
 # Changelog
 
+## [3.3.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.2.0...repaint-server-v3.3.0) (2023-10-12)
+
+
+### Features
+
+* **refactor:** managing master palette on register spot ([#343](https://github.com/after-school-garbage-squad/repaint-server/issues/343)) ([33576d8](https://github.com/after-school-garbage-squad/repaint-server/commit/33576d8bc5f56ebcfb4d0a26c932080825bacb4f))
+
+
+### Bug Fixes
+
+* remove merge publisher from set-current usecase ([#341](https://github.com/after-school-garbage-squad/repaint-server/issues/341)) ([0730667](https://github.com/after-school-garbage-squad/repaint-server/commit/07306679cb8feb4d1d66bca24966b216929c8b21))
+
 ## [3.2.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.0.0...repaint-server-v3.2.0) (2023-10-11)
 
 
