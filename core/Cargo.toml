@@ -29,7 +29,7 @@ pretty_assertions = "1.4.0"
 rand = "0.8.5"
 repaint-server-migration = { path = "../migration" }
 sqlx = { version = "0.7.2", features = ["runtime-tokio-rustls", "postgres"] }
-test-log = { version = "0.2.12", default-features = false, features = [
+test-log = { version = "0.2.13", default-features = false, features = [
   "trace",
 ] }
 tokio = { version = "1.33.0", features = ["macros"] }
