@@ -154,10 +154,7 @@ where
         };
 
         let visitors = visitors_in_from
-            .choose_multiple(
-                &mut rng,
-                (visitors_in_from.len() + visitors_in_to.len()) / 2,
-            )
+            .choose_multiple(&mut rng, visitors_in_from.len() / 2)
             .cloned()
             .collect::<Vec<_>>();
 
