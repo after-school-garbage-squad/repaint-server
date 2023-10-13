@@ -408,7 +408,7 @@ where
             };
             let p = self
                 .firestore
-                .get_palettes(visitor_identification.event_id, spot.spot_id)
+                .get_palettes(event.event_id, spot.spot_id)
                 .await?;
             let palette = p.choose(&mut rng).ok_or(Error::NotFound)?;
             let drop_palette = visitor_palettes.choose(&mut rng);
@@ -425,6 +425,28 @@ where
                         .firestore
                         .subscribe_palette(event.event_id, spot.spot_id, *drop_palette.unwrap())
                         .await?;
+                }
+                if self
+                    .firestore
+                    .get_palettes(event.event_id, spot.spot_id)
+                    .await?
+                    .is_empty()
+                {
+                    let Some(mut palettes) =
+                        PaletteRepository::get_all(&self.repo, event.id).await?
+                    else {
+                        unreachable!("palettes is not set")
+                    };
+                    for (i, _) in palettes.iter().enumerate() {
+                        let _ = self
+                            .firestore
+                            .subscribe_palette(event.event_id, spot.spot_id, i as i32)
+                            .await?;
+                    }
+                    for palette in palettes.iter_mut() {
+                        *palette += 1;
+                    }
+                    let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
                 }
             }
             let _ = VisitorRepository::set_last_droped_at(&self.repo, visitor.id, now).await?;
