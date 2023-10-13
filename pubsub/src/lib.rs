@@ -228,4 +228,47 @@ impl GoogleCloudPubSub for PubSub {
 
         Ok(())
     }
+
+    async fn publish_pick_notification(
+        &self,
+        registration_id: String,
+        spot_name: String,
+    ) -> Result<(), Self::Error> {
+        let topic = self.client.topic(&self.notification_topic);
+        if !topic.exists(None).await? {
+            topic.create(None, None).await?;
+        }
+        let publisher = topic.new_publisher(None);
+        let tasks = (0..1)
+            .into_iter()
+            .map(|_i| {
+                let publisher = publisher.clone();
+                let registration_id = registration_id.clone();
+                let title = format!("{}の近くにいます", spot_name);
+                tokio::spawn(async move {
+                    let msg = PubsubMessage {
+                        data: serde_json::json!({
+                            "title": title,
+                            "body": "アプリからQRコードをスキャンして、パレットを入手しましょう!",
+                            "registration_id": registration_id
+                        })
+                        .to_string()
+                        .into(),
+                        ..Default::default()
+                    };
+                    let awaiter = publisher.publish(msg).await;
+
+                    awaiter.get().await
+                })
+            })
+            .collect::<Vec<JoinHandle<_>>>();
+        for task in tasks {
+            let message_id = task.await.expect("failed to join")?;
+            info!("published notification: {}", message_id);
+        }
+        let mut publisher = publisher;
+        publisher.shutdown().await;
+
+        Ok(())
+    }
 }
