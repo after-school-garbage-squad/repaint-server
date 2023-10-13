@@ -319,6 +319,18 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
             })?;
+        let last_scaned_at =
+            VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
+        if spot.is_pick
+            && (last_scaned_at.is_some()
+                || now - last_scaned_at.unwrap()
+                    >= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
+        {
+            let _ = self
+                .pubsub
+                .publish_pick_notification(visitor.registration_id, spot.name)
+                .await?;
+        }
         let last_droped = VisitorRepository::get_last_droped_at(&self.repo, visitor.id).await?;
         let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
         if last_droped.is_none()
