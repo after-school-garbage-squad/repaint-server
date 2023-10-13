@@ -145,10 +145,10 @@ where
         let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
             unreachable!("palettes is not set")
         };
-        for palette in palettes.clone() {
+        for (i, _) in palettes.iter().enumerate() {
             let _ = self
                 .firestore
-                .subscribe_palette(event.event_id, spot.spot_id, palette)
+                .subscribe_palette(event.event_id, spot.spot_id, i as i32)
                 .await?;
         }
         for palette in palettes.iter_mut() {
