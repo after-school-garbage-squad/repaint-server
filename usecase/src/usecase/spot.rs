@@ -322,7 +322,7 @@ where
         let last_scaned_at =
             VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
         if spot.is_pick
-            && (last_scaned_at.is_some()
+            && (last_scaned_at.is_none()
                 || now - last_scaned_at.unwrap()
                     >= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
         {
