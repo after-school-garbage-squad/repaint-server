@@ -3,7 +3,6 @@ use std::str::FromStr;
 
 use async_trait::async_trait;
 use chrono::{Duration, Utc};
-use futures::future::join_all;
 use rand::rngs::StdRng;
 use rand::seq::SliceRandom;
 use rand::SeedableRng;
@@ -146,14 +145,12 @@ where
         let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
             unreachable!("palettes is not set")
         };
-        let p = palettes.clone().into_iter().map(|palette| {
-            self.firestore
+        for palette in palettes.clone() {
+            let _ = self
+                .firestore
                 .subscribe_palette(event.event_id, spot.spot_id, palette)
-        });
-        let _ = join_all(p)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
+                .await?;
+        }
         for palette in palettes.iter_mut() {
             *palette += 1;
         }
