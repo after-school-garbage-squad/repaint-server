@@ -34,7 +34,7 @@ images:
     $_AR_HOSTNAME/$PROJECT_ID/cloud-run-source-deploy/$REPO_NAME/$_SERVICE_NAME:$COMMIT_SHA
 options:
   substitutionOption: ALLOW_LOOSE
-  machineType: 'E2_HIGHCPU_8'
+  machineType: "E2_HIGHCPU_32"
 substitutions:
   _PLATFORM: managed
   _TRIGGER_ID: 3d06106e-b896-4000-9794-17fb78781542
