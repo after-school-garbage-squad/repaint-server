@@ -9,3 +9,15 @@ pub struct PickRequest {
     pub event_id: Id<Event>,
     pub spot_id: Id<EventSpot>,
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckPalettesCompletedResponse {
+    pub is_completed: bool,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckPalettesCompletedQuery {
+    pub event_id: Id<Event>,
+}
