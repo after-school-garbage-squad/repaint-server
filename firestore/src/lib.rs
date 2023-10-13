@@ -106,6 +106,52 @@ impl FirestoreInfra for Firestore {
         Ok(())
     }
 
+    async fn unsubscribe_palette(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+        palette_id: i32,
+    ) -> Result<(), Self::Error> {
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
+        match self
+            .client
+            .fluent()
+            .select()
+            .by_id_in(collection.as_str())
+            .obj::<PaletteStructure>()
+            .one(document.clone())
+            .await?
+        {
+            Some(p) => {
+                let mut palette_ids = p.palette_ids;
+                if let Some(i) = palette_ids.iter().position(|p| *p == palette_id) {
+                    palette_ids.swap_remove(i);
+                }
+                let structure = PaletteStructure { palette_ids };
+                match self
+                    .client
+                    .fluent()
+                    .update()
+                    .fields(paths!(PaletteStructure::palette_ids))
+                    .in_col(collection.as_str())
+                    .document_id(document)
+                    .object(&structure)
+                    .execute::<()>()
+                    .await
+                {
+                    Ok(_) => info!("unsubscribed palette"),
+                    Err(e) => return Err(e),
+                }
+            }
+            None => {
+                unreachable!("spot has no palettes");
+            }
+        }
+
+        Ok(())
+    }
+
     async fn get_palettes(
         &self,
         event_id: Id<Event>,

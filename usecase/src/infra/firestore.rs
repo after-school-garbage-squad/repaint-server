@@ -16,6 +16,13 @@ pub trait Firestore: AsyncSafe {
         palette_id: i32,
     ) -> Result<(), Self::Error>;
 
+    async fn unsubscribe_palette(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+        palette_id: i32,
+    ) -> Result<(), Self::Error>;
+
     async fn get_palettes(
         &self,
         event_id: Id<Event>,
