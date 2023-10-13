@@ -9,7 +9,6 @@ use repaint_server_model::id::Id;
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
-use crate::infra::firestore::Firestore;
 use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{EventRepository, SpotRepository, TrafficRepository, VisitorRepository};
 use crate::model::traffic::{GetTrafficStatusResponse, TrafficStatus};
@@ -40,33 +39,26 @@ pub trait TrafficUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct TrafficUsecaseImpl<R, F, P> {
+pub struct TrafficUsecaseImpl<R, P> {
     repo: R,
-    firestore: F,
     pubsub: P,
 }
 
 #[inject]
-impl<R, F, P> TrafficUsecaseImpl<R, F, P>
+impl<R, P> TrafficUsecaseImpl<R, P>
 where
     R: EventRepository + SpotRepository + VisitorRepository + TrafficRepository,
-    F: Firestore,
     P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, firestore: F, pubsub: P) -> Self {
-        Self {
-            repo,
-            firestore,
-            pubsub,
-        }
+    pub fn new(repo: R, pubsub: P) -> Self {
+        Self { repo, pubsub }
     }
 }
 
 #[async_trait]
-impl<R, F, P> TrafficUsecase for TrafficUsecaseImpl<R, F, P>
+impl<R, P> TrafficUsecase for TrafficUsecaseImpl<R, P>
 where
     R: EventRepository + SpotRepository + VisitorRepository + TrafficRepository,
-    F: Firestore,
     P: GoogleCloudPubSub,
 {
     async fn get_traffic_status(
@@ -84,15 +76,6 @@ where
             .iter()
             .map(|s| VisitorRepository::get_visitors(&self.repo, s.id));
         let visitors = join_all(s)
-            .await
-            .into_iter()
-            .collect::<Result<Vec<_>, _>>()?;
-
-        let s = spots.iter().zip(visitors.clone()).map(|(s, v)| {
-            self.firestore
-                .subscribe_spot_log(event_id, s.spot_id, v.len())
-        });
-        let _ = join_all(s)
             .await
             .into_iter()
             .collect::<Result<Vec<_>, _>>()?;
@@ -186,10 +169,6 @@ where
             visitors_in_to.len(),
         )
         .await?;
-
-        self.firestore
-            .subscribe_traffic_log(event.event_id, from.spot_id, to.spot_id)
-            .await?;
 
         Ok(())
     }

@@ -8,7 +8,6 @@ use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
-use crate::infra::firestore::Firestore;
 use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
@@ -38,33 +37,26 @@ pub trait VisitorUsecase: AsyncSafe {
 }
 
 #[derive(Debug)]
-pub struct VisitorUsecaseImpl<R, F, P> {
+pub struct VisitorUsecaseImpl<R, P> {
     repo: R,
-    firestore: F,
     pubsub: P,
 }
 
 #[inject]
-impl<R, F, P> VisitorUsecaseImpl<R, F, P>
+impl<R, P> VisitorUsecaseImpl<R, P>
 where
     R: VisitorRepository + EventRepository + SpotRepository + ImageRepository + PaletteRepository,
-    F: Firestore,
     P: GoogleCloudPubSub,
 {
-    pub fn new(repo: R, firestore: F, pubsub: P) -> Self {
-        Self {
-            repo,
-            firestore,
-            pubsub,
-        }
+    pub fn new(repo: R, pubsub: P) -> Self {
+        Self { repo, pubsub }
     }
 }
 
 #[async_trait]
-impl<R, F, P> VisitorUsecase for VisitorUsecaseImpl<R, F, P>
+impl<R, P> VisitorUsecase for VisitorUsecaseImpl<R, P>
 where
     R: VisitorRepository + EventRepository + SpotRepository + ImageRepository + PaletteRepository,
-    F: Firestore,
     P: GoogleCloudPubSub,
 {
     async fn join_event(
@@ -107,10 +99,6 @@ where
         };
         let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
         let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
-        let _ = self
-            .firestore
-            .subscribe_register_log(event_id, visitor.visitor_id)
-            .await?;
         let _ = self
             .pubsub
             .publish_merge_current_image(
@@ -187,13 +175,6 @@ where
                     })?
             }
         };
-
-        self.firestore
-            .subscribe_initialize_log(
-                visitor_identification.event_id,
-                visitor_identification.visitor_id,
-            )
-            .await?;
 
         Ok((
             EventResponse {

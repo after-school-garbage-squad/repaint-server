@@ -383,18 +383,6 @@ where
                     palettes.clone(),
                 )
                 .await?;
-            let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
-                .await?
-                .is_some();
-            self.firestore
-                .subscribe_visitor_log(
-                    visitor_identification.event_id,
-                    visitor_identification.visitor_id,
-                    spot.spot_id,
-                    palettes.len(),
-                    took_photo,
-                )
-                .await?;
             let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
                 unreachable!("palettes is not set")
             };
