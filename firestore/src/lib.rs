@@ -55,7 +55,7 @@ impl FirestoreInfra for Firestore {
     ) -> Result<(), Self::Error> {
         let collection = format!("spot_{}", event_id);
         let document = spot_id.to_string();
-        match self
+        let palette_ids = match self
             .client
             .fluent()
             .select()
@@ -67,40 +67,25 @@ impl FirestoreInfra for Firestore {
             Some(p) => {
                 let mut palette_ids = p.palette_ids;
                 palette_ids.push(palette_id);
-                let structure = PaletteStructure { palette_ids };
-                match self
-                    .client
-                    .fluent()
-                    .update()
-                    .fields(paths!(PaletteStructure::palette_ids))
-                    .in_col(collection.as_str())
-                    .document_id(document)
-                    .object(&structure)
-                    .execute::<()>()
-                    .await
-                {
-                    Ok(_) => info!("subscribed palette"),
-                    Err(e) => return Err(e),
-                }
+
+                palette_ids
             }
-            None => {
-                let structure = PaletteStructure {
-                    palette_ids: vec![palette_id],
-                };
-                match self
-                    .client
-                    .fluent()
-                    .insert()
-                    .into(collection.as_str())
-                    .document_id(document)
-                    .object(&structure)
-                    .execute::<()>()
-                    .await
-                {
-                    Ok(_) => info!("subscribed palette"),
-                    Err(e) => return Err(e),
-                }
-            }
+            None => vec![palette_id],
+        };
+        let structure = PaletteStructure { palette_ids };
+        match self
+            .client
+            .fluent()
+            .update()
+            .fields(paths!(PaletteStructure::palette_ids))
+            .in_col(collection.as_str())
+            .document_id(document)
+            .object(&structure)
+            .execute::<()>()
+            .await
+        {
+            Ok(_) => info!("subscribed palette"),
+            Err(e) => return Err(e),
         }
 
         Ok(())
