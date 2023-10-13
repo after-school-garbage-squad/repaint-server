@@ -14,6 +14,7 @@ use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
+use crate::model::palette::CheckPalettesCompletedResponse;
 use crate::model::visitor::VisitorIdentification;
 use crate::usecase::error::Error;
 
@@ -24,6 +25,11 @@ pub trait PaletteUsecase: AsyncSafe {
         visitor_identification: VisitorIdentification,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Error>;
+
+    async fn check_palettes_completed(
+        &self,
+        visitor_identification: VisitorIdentification,
+    ) -> Result<CheckPalettesCompletedResponse, Error>;
 }
 
 #[derive(Debug)]
@@ -151,5 +157,30 @@ where
         let _ = VisitorRepository::set_last_picked_at(&self.repo, visitor.id, spot.id, now).await?;
 
         Ok(())
+    }
+
+    async fn check_palettes_completed(
+        &self,
+        visitor_identification: VisitorIdentification,
+    ) -> Result<CheckPalettesCompletedResponse, Error> {
+        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+            .await?
+            .ok_or(Error::BadRequest {
+                message: format!("{} is invalid id", visitor_identification.event_id),
+            })?;
+        let visitor =
+            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+                .await?
+                .ok_or(Error::BadRequest {
+                    message: format!("{} is invalid id", visitor_identification.visitor_id),
+                })?;
+        let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
+            .await?
+            .into_iter()
+            .collect::<Vec<_>>();
+
+        Ok(CheckPalettesCompletedResponse {
+            is_completed: visitor_palettes.len() == envvar("CLUSTER", None),
+        })
     }
 }
