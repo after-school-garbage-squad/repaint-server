@@ -4,9 +4,8 @@
 use async_trait::async_trait;
 use chrono::Utc;
 use firestore::errors::FirestoreError;
-use firestore::{path, paths, FirestoreDb};
+use firestore::{paths, FirestoreDb};
 use futures::stream::BoxStream;
-use futures::TryStreamExt;
 use rand::distributions::Alphanumeric;
 use rand::rngs::StdRng;
 use rand::{Rng, SeedableRng};
@@ -56,24 +55,98 @@ impl FirestoreInfra for Firestore {
     ) -> Result<(), Self::Error> {
         let collection = format!("spot_{}", event_id);
         let document = spot_id.to_string();
-        let structure = PaletteStructure {
-            spot_id,
-            palette_id,
-        };
         match self
             .client
             .fluent()
-            .insert()
-            .into(collection.as_str())
-            .document_id(document)
-            .object(&PaletteStructure {
-                ..structure.clone()
-            })
-            .execute::<()>()
-            .await
+            .select()
+            .by_id_in(collection.as_str())
+            .obj::<PaletteStructure>()
+            .one(document.clone())
+            .await?
         {
-            Ok(_) => info!("subscribed palette"),
-            Err(e) => return Err(e),
+            Some(p) => {
+                let mut palette_ids = p.palette_ids;
+                palette_ids.push(palette_id);
+                let structure = PaletteStructure { palette_ids };
+                match self
+                    .client
+                    .fluent()
+                    .update()
+                    .fields(paths!(PaletteStructure::palette_ids))
+                    .in_col(collection.as_str())
+                    .document_id(document)
+                    .object(&structure)
+                    .execute::<()>()
+                    .await
+                {
+                    Ok(_) => info!("subscribed palette"),
+                    Err(e) => return Err(e),
+                }
+            }
+            None => {
+                let structure = PaletteStructure {
+                    palette_ids: vec![palette_id],
+                };
+                match self
+                    .client
+                    .fluent()
+                    .insert()
+                    .into(collection.as_str())
+                    .document_id(document)
+                    .object(&structure)
+                    .execute::<()>()
+                    .await
+                {
+                    Ok(_) => info!("subscribed palette"),
+                    Err(e) => return Err(e),
+                }
+            }
+        }
+
+        Ok(())
+    }
+
+    async fn unsubscribe_palette(
+        &self,
+        event_id: Id<Event>,
+        spot_id: Id<EventSpot>,
+        palette_id: i32,
+    ) -> Result<(), Self::Error> {
+        let collection = format!("spot_{}", event_id);
+        let document = spot_id.to_string();
+        match self
+            .client
+            .fluent()
+            .select()
+            .by_id_in(collection.as_str())
+            .obj::<PaletteStructure>()
+            .one(document.clone())
+            .await?
+        {
+            Some(p) => {
+                let mut palette_ids = p.palette_ids;
+                if let Some(i) = palette_ids.iter().position(|p| *p == palette_id) {
+                    palette_ids.swap_remove(i);
+                }
+                let structure = PaletteStructure { palette_ids };
+                match self
+                    .client
+                    .fluent()
+                    .update()
+                    .fields(paths!(PaletteStructure::palette_ids))
+                    .in_col(collection.as_str())
+                    .document_id(document)
+                    .object(&structure)
+                    .execute::<()>()
+                    .await
+                {
+                    Ok(_) => info!("unsubscribed palette"),
+                    Err(e) => return Err(e),
+                }
+            }
+            None => {
+                unreachable!("spot has no palettes");
+            }
         }
 
         Ok(())
@@ -85,21 +158,21 @@ impl FirestoreInfra for Firestore {
         spot_id: Id<EventSpot>,
     ) -> Result<Vec<i32>, Self::Error> {
         let collection = format!("spot_{}", event_id);
-        let stream: BoxStream<_> = self
+        let document = spot_id.to_string();
+        let Some(res) = self
             .client
             .fluent()
             .select()
-            .fields(paths!(PaletteStructure::{palette_id}))
-            .from(collection.as_str())
-            .filter(|q| q.for_all([q.field(path!(PaletteStructure::spot_id)).eq(spot_id)]))
-            .obj()
-            .stream_query_with_errors()
-            .await?;
-        let docs = stream.try_collect::<Vec<PaletteStructure>>().await?;
-        let palette_ids = docs.into_iter().map(|d| d.palette_id).collect();
-        info!("got palettes: {:?}", palette_ids);
+            .by_id_in(collection.as_str())
+            .obj::<PaletteStructure>()
+            .one(document)
+            .await?
+        else {
+            unreachable!("spot has no palettes")
+        };
+        info!("got palettes: {:?}", res.palette_ids);
 
-        Ok(palette_ids)
+        Ok(res.palette_ids)
     }
 
     async fn set_event_id(&self, token: String, event_id: i32) -> Result<(), Self::Error> {
