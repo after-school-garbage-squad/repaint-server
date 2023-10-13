@@ -319,6 +319,18 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
             })?;
+        let last_scaned_at =
+            VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
+        if spot.is_pick
+            && (last_scaned_at.is_some()
+                || now - last_scaned_at.unwrap()
+                    >= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
+        {
+            let _ = self
+                .pubsub
+                .publish_pick_notification(visitor.registration_id, spot.name)
+                .await?;
+        }
         let last_droped = VisitorRepository::get_last_droped_at(&self.repo, visitor.id).await?;
         let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
         if last_droped.is_none()
@@ -381,18 +393,6 @@ where
                     visitor.visitor_id,
                     image_id,
                     palettes.clone(),
-                )
-                .await?;
-            let took_photo = ImageRepository::get_visitor_image(&self.repo, visitor.id)
-                .await?
-                .is_some();
-            self.firestore
-                .subscribe_visitor_log(
-                    visitor_identification.event_id,
-                    visitor_identification.visitor_id,
-                    spot.spot_id,
-                    palettes.len(),
-                    took_photo,
                 )
                 .await?;
             let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {

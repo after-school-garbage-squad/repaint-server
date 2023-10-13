@@ -36,4 +36,10 @@ pub trait GoogleCloudPubSub: AsyncSafe {
         registration_id: String,
         spot_id: String,
     ) -> Result<(), Self::Error>;
+
+    async fn publish_pick_notification(
+        &self,
+        registration_id: String,
+        spot_name: String,
+    ) -> Result<(), Self::Error>;
 }

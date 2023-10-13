@@ -60,8 +60,8 @@ async fn main() {
         .add_transient::<ImageUsecaseImpl<SeaOrm, GcsProvider, OtpProvider, PubSubProvider>>()
         .add_transient::<PaletteUsecaseImpl<SeaOrm, PubSubProvider>>()
         .add_transient::<SpotUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
-        .add_transient::<TrafficUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
-        .add_transient::<VisitorUsecaseImpl<SeaOrm, FirestoreProvider, PubSubProvider>>()
+        .add_transient::<TrafficUsecaseImpl<SeaOrm, PubSubProvider>>()
+        .add_transient::<VisitorUsecaseImpl<SeaOrm, PubSubProvider>>()
         .add_instance(db)
         .add_instance(firestore_provider().await)
         .add_instance(gcs_provider().await)
@@ -74,8 +74,8 @@ async fn main() {
     let image_usecase: ImageUsecaseImpl<_, _, _, _> = container.resolve();
     let palette_usecase: PaletteUsecaseImpl<_, _> = container.resolve();
     let spot_usecase: SpotUsecaseImpl<_, _, _> = container.resolve();
-    let traffic_usecase: TrafficUsecaseImpl<_, _, _> = container.resolve();
-    let visitor_usecase: VisitorUsecaseImpl<_, _, _> = container.resolve();
+    let traffic_usecase: TrafficUsecaseImpl<_, _> = container.resolve();
+    let visitor_usecase: VisitorUsecaseImpl<_, _> = container.resolve();
 
     let app = Router::new()
         .nest(
