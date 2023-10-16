@@ -3,7 +3,7 @@ use repaint_server_model::admin::Admin;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{AdminRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
+use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseTransaction, EntityTrait, QueryFilter};
 
 use crate::entity::{admins, events_admins};
 use crate::ty::string::ToDatabaseType;
@@ -43,13 +43,31 @@ impl AdminRepository for SeaOrm {
             .transpose()
     }
 
-    async fn update(&self, admin_id: i32, event_id: i32) -> Result<IsUpdated, Self::Error> {
+    async fn get_with_tx(
+        &self,
+        tx: &DatabaseTransaction,
+        subject: String,
+    ) -> Result<Option<Admin>, Self::Error> {
+        admins::Entity::find()
+            .filter(admins::Column::Subject.eq(subject))
+            .one(tx)
+            .await?
+            .map(to_model)
+            .transpose()
+    }
+
+    async fn update(
+        &self,
+        tx: &DatabaseTransaction,
+        admin_id: i32,
+        event_id: i32,
+    ) -> Result<IsUpdated, Self::Error> {
         events_admins::ActiveModel {
             event_id: Set(event_id),
             admin_id: Set(admin_id),
             ..Default::default()
         }
-        .insert(self.con())
+        .insert(tx)
         .await
         .to_is_updated()
     }
@@ -61,6 +79,7 @@ pub(crate) mod test {
     use rand::distributions::Alphanumeric;
     use rand::rngs::StdRng;
     use rand::{Rng, SeedableRng};
+    use repaint_server_usecase::infra::repo::TransactionRepository;
 
     use crate::TestingSeaOrm;
 
@@ -94,10 +113,22 @@ pub(crate) mod test {
     async fn test_get() {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
-
         let res = AdminRepository::get(orm.orm(), admin.subject.clone())
             .await
             .unwrap();
+
+        self::assert_eq!(res, Some(admin));
+    }
+
+    #[test_log::test(tokio::test)]
+    async fn test_get_with_tx() {
+        let orm = TestingSeaOrm::new().await;
+        let admin = orm.make_test_admin().await;
+        let tx = orm.orm().begin_transaction().await.unwrap();
+        let res = AdminRepository::get_with_tx(orm.orm(), &tx, admin.subject.clone())
+            .await
+            .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, Some(admin));
     }

@@ -10,7 +10,7 @@ use teloc::inject;
 
 use crate::infra::email::EmailSender;
 use crate::infra::firestore::Firestore;
-use crate::infra::repo::{AdminRepository, EventRepository};
+use crate::infra::repo::{AdminRepository, EventRepository, TransactionRepository};
 use crate::usecase::error::Error;
 
 #[async_trait]
@@ -37,7 +37,7 @@ pub struct AdminUsecaseImpl<R, F, E> {
 #[inject]
 impl<R, F, E> AdminUsecaseImpl<R, F, E>
 where
-    R: AdminRepository + EventRepository,
+    R: AdminRepository + EventRepository + TransactionRepository,
     F: Firestore,
     E: EmailSender,
 {
@@ -53,7 +53,7 @@ where
 #[async_trait]
 impl<R, F, E> AdminUsecase for AdminUsecaseImpl<R, F, E>
 where
-    R: AdminRepository + EventRepository,
+    R: AdminRepository + EventRepository + TransactionRepository,
     F: Firestore,
     E: EmailSender,
 {
@@ -92,10 +92,10 @@ where
     }
 
     async fn add_operator(&self, subject: String, token: String) -> Result<(), Error> {
-        let admin = AdminRepository::get(&self.repo, subject)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let admin = AdminRepository::get_with_tx(&self.repo, &tx, subject)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         let event_id = self
             .firestore
             .get_event_id(token)
@@ -103,8 +103,8 @@ where
             .ok_or(Error::BadRequest {
                 message: "This token has already expired or is invalid.".to_string(),
             })?;
-
-        let _ = AdminRepository::update(&self.repo, admin.id, event_id).await?;
+        let _ = AdminRepository::update(&self.repo, &tx, admin.id, event_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }

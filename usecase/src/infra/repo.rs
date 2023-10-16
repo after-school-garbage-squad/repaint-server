@@ -166,7 +166,18 @@ pub trait AdminRepository: AsyncSafe {
 
     async fn get(&self, subject: String) -> Result<Option<Admin>, Self::Error>;
 
-    async fn update(&self, admin_id: i32, event_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn get_with_tx(
+        &self,
+        tx: DatabaseTransaction,
+        subject: String,
+    ) -> Result<Option<Admin>, Self::Error>;
+
+    async fn update(
+        &self,
+        tx: DatabaseTransaction,
+        admin_id: i32,
+        event_id: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
