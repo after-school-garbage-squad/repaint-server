@@ -319,6 +319,26 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
             })?;
+        if self
+            .firestore
+            .get_palettes(event.event_id, spot.spot_id)
+            .await?
+            .is_empty()
+        {
+            let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+                unreachable!("palettes is not set")
+            };
+            for (i, _) in palettes.iter().enumerate() {
+                let _ = self
+                    .firestore
+                    .subscribe_palette(event.event_id, spot.spot_id, i as i32)
+                    .await?;
+            }
+            for palette in palettes.iter_mut() {
+                *palette += 1;
+            }
+            let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
+        }
         let last_scaned_at =
             VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
         if spot.is_pick
