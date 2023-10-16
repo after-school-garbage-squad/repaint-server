@@ -7,7 +7,8 @@ use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_usecase::infra::repo::{ImageRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, ModelTrait,
+    QueryFilter, TransactionTrait,
 };
 
 use crate::entity::{event_images, events, visitor_images, visitors};
@@ -102,10 +103,14 @@ impl ImageRepository for SeaOrm {
         Ok(image.image_id.map(|i| i.model()))
     }
 
-    async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error> {
+    async fn list_default_image(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<Id<EventImage>>, Self::Error> {
         let ids = events::Entity::find_by_id(event_id)
             .find_with_related(event_images::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, i)| i)
@@ -164,6 +169,7 @@ impl ImageRepository for SeaOrm {
 #[cfg(test)]
 mod test {
     use pretty_assertions::*;
+    use repaint_server_usecase::infra::repo::TransactionRepository;
 
     use crate::TestingSeaOrm;
 
@@ -184,16 +190,17 @@ mod test {
     async fn test_add_default_image() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let image_id = Id::<EventImage>::new();
-
         let _ = ImageRepository::add_default_image(orm.orm(), event.id, image_id.clone())
             .await
             .unwrap();
-
-        let res = ImageRepository::list_default_image(orm.orm(), event.id)
+        let res = ImageRepository::list_default_image(orm.orm(), &tx, event.id)
             .await
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, [image_id]);
     }
@@ -202,19 +209,22 @@ mod test {
     async fn test_delete_default_image() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
 
         let image_id = Id::<EventImage>::new();
 
         let _ = ImageRepository::add_default_image(orm.orm(), event.id, image_id.clone())
             .await
             .unwrap();
-        let res1 = ImageRepository::list_default_image(orm.orm(), event.id)
+        let res1 = ImageRepository::list_default_image(orm.orm(), &tx, event.id)
             .await
             .unwrap();
         let _ = ImageRepository::delete_default_image(orm.orm(), event.id, image_id.clone())
             .await
             .unwrap();
-        let res2 = ImageRepository::list_default_image(orm.orm(), event.id)
+        let res2 = ImageRepository::list_default_image(orm.orm(), &tx, event.id)
             .await
             .unwrap();
 

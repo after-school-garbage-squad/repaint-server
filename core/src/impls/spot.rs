@@ -5,7 +5,8 @@ use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, ModelTrait,
+    QueryFilter, TransactionTrait,
 };
 
 use crate::entity::{event_spots, events, visitor_spots, visitors};
@@ -51,10 +52,14 @@ impl SpotRepository for SeaOrm {
         to_model(spot)
     }
 
-    async fn list(&self, event_id: i32) -> Result<Vec<EventSpot>, Self::Error> {
+    async fn list(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<EventSpot>, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)

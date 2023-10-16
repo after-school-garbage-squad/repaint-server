@@ -3,7 +3,9 @@ use repaint_server_model::admin::Admin;
 use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{AdminRepository, IsUpdated};
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DatabaseTransaction, EntityTrait, QueryFilter};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, EntityTrait, QueryFilter, QuerySelect,
+};
 
 use crate::entity::{admins, events_admins};
 use crate::ty::string::ToDatabaseType;
@@ -37,6 +39,7 @@ impl AdminRepository for SeaOrm {
     async fn get(&self, subject: String) -> Result<Option<Admin>, Self::Error> {
         admins::Entity::find()
             .filter(admins::Column::Subject.eq(subject))
+            .limit(1)
             .one(self.con())
             .await?
             .map(to_model)
@@ -50,6 +53,7 @@ impl AdminRepository for SeaOrm {
     ) -> Result<Option<Admin>, Self::Error> {
         admins::Entity::find()
             .filter(admins::Column::Subject.eq(subject))
+            .limit(1)
             .one(tx)
             .await?
             .map(to_model)

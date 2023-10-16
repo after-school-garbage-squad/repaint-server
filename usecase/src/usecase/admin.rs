@@ -69,24 +69,23 @@ where
         event_id: Id<Event>,
         email: EmailAddress,
     ) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
         let rng = {
             let rng = rand::thread_rng();
             StdRng::from_rng(rng).unwrap()
         };
-
         let token = rng
             .sample_iter(&Alphanumeric)
             .take(32)
             .map(char::from)
             .collect::<String>();
-
         self.email.send(email.clone(), token.clone()).await?;
-
         self.firestore.set_event_id(token, event.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }

@@ -4,7 +4,10 @@ use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{EventRepository, IsUpdated};
 use repaint_server_util::envvar;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter, TransactionTrait};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, EntityTrait, QueryFilter, QuerySelect,
+    TransactionTrait,
+};
 
 use crate::entity::{admins, events, events_admins};
 use crate::ty::json::AsJson;
@@ -38,6 +41,7 @@ impl EventRepository for SeaOrm {
     ) -> Result<Option<Event>, Self::Error> {
         admins::Entity::find()
             .filter(admins::Column::Subject.eq(subject))
+            .limit(1)
             .find_with_related(events::Entity)
             .all(self.con())
             .await?
@@ -51,6 +55,7 @@ impl EventRepository for SeaOrm {
 
     async fn create(
         &self,
+        tx: &DatabaseTransaction,
         name: String,
         hp_url: String,
         contact: Contact,
@@ -63,25 +68,34 @@ impl EventRepository for SeaOrm {
             palettes: Set(vec![0; envvar("CLUSTER", None)]),
             ..Default::default()
         }
-        .insert(self.con())
+        .insert(tx)
         .await?;
 
         to_model(event)
     }
 
-    async fn delete(&self, event_id: i32) -> Result<IsUpdated, Self::Error> {
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<IsUpdated, Self::Error> {
         events_admins::Entity::delete_many()
             .filter(events_admins::Column::EventId.eq(event_id))
-            .exec(self.con())
+            .exec(tx)
             .await
             .to_is_updated()
     }
 
-    async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error> {
+    async fn list(
+        &self,
+        tx: &DatabaseTransaction,
+        subject: String,
+    ) -> Result<Vec<Event>, Self::Error> {
         admins::Entity::find()
             .filter(admins::Column::Subject.eq(subject.dty()))
+            .limit(1)
             .find_with_related(events::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, events)| events)
@@ -92,13 +106,13 @@ impl EventRepository for SeaOrm {
 
     async fn update(
         &self,
+        txn: &DatabaseTransaction,
         event_id: i32,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<Option<Event>, Self::Error> {
-        let tx = self.con().begin().await?;
-
+        let tx = txn.begin().await?;
         let mut event: events::ActiveModel =
             match events::Entity::find_by_id(event_id).one(&tx).await? {
                 Some(m) => m.into(),
@@ -129,6 +143,7 @@ pub(crate) mod test {
 
     use email_address::EmailAddress;
     use pretty_assertions::*;
+    use repaint_server_usecase::infra::repo::TransactionRepository;
 
     use crate::TestingSeaOrm;
 
@@ -161,19 +176,28 @@ pub(crate) mod test {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
         let event = orm.make_test_event().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
             orm.orm(),
+            &tx,
             admin.id,
             event.id,
         )
         .await
         .unwrap();
 
-        let res =
-            EventRepository::get_event_belong_to_subject(orm.orm(), admin.subject, event.event_id)
-                .await
-                .unwrap()
-                .unwrap();
+        let res = EventRepository::get_event_belong_to_subject(
+            orm.orm(),
+            &tx,
+            admin.subject,
+            event.event_id,
+        )
+        .await
+        .unwrap()
+        .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, event);
     }
@@ -213,10 +237,14 @@ pub(crate) mod test {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
         let mut events = Vec::new();
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
             let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
                 orm.orm(),
+                &tx,
                 admin.id,
                 e.id,
             )
@@ -224,11 +252,11 @@ pub(crate) mod test {
             .unwrap();
             events.push(e);
         }
-
         let res = EventRepository::get(orm.orm(), events[1].event_id)
             .await
             .unwrap()
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, events[1]);
     }
@@ -238,8 +266,12 @@ pub(crate) mod test {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
         let event = orm.make_test_event().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
             orm.orm(),
+            &tx,
             admin.id,
             event.id,
         )
@@ -247,6 +279,7 @@ pub(crate) mod test {
         .unwrap();
         let res = EventRepository::update(
             orm.orm(),
+            &tx,
             event.id,
             "test2".into(),
             event.hp_url.clone(),
@@ -258,6 +291,7 @@ pub(crate) mod test {
         )
         .await
         .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(
             res,
@@ -282,10 +316,14 @@ pub(crate) mod test {
         let event = orm.make_test_event().await;
         let mut events = Vec::new();
         let mut admins = Vec::new();
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
             let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
                 orm.orm(),
+                &tx,
                 admin.id,
                 e.id,
             )
@@ -297,6 +335,7 @@ pub(crate) mod test {
             let a = orm.make_test_admin().await;
             let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
                 orm.orm(),
+                &tx,
                 a.id,
                 event.id,
             )
@@ -305,21 +344,24 @@ pub(crate) mod test {
             admins.push(a);
         }
         events.push(event.clone());
-        let _ = EventRepository::delete(orm.orm(), events[1].id)
+        let _ = EventRepository::delete(orm.orm(), &tx, events[1].id)
             .await
             .unwrap();
         events.remove(1);
-        let res1 = EventRepository::list(orm.orm(), admin.subject.clone())
+        let res1 = EventRepository::list(orm.orm(), &tx, admin.subject.clone())
             .await
             .unwrap();
-        let res2 = EventRepository::list(orm.orm(), admins[0].subject.clone())
+        let res2 = EventRepository::list(orm.orm(), &tx, admins[0].subject.clone())
             .await
             .unwrap();
-        let _ = EventRepository::delete(orm.orm(), event.id).await.unwrap();
-        let res3 = EventRepository::list(orm.orm(), admin.subject.clone())
+        let _ = EventRepository::delete(orm.orm(), &tx, event.id)
+            .await
+            .unwrap();
+        let res3 = EventRepository::list(orm.orm(), &tx, admin.subject.clone())
             .await
             .unwrap();
         events.remove(2);
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res1, events);
         self::assert_eq!(res2, [event]);

@@ -24,7 +24,11 @@ pub trait SpotRepository: AsyncSafe {
         service_uuid: String,
     ) -> Result<EventSpot, Self::Error>;
 
-    async fn list(&self, event_id: i32) -> Result<Vec<EventSpot>, Self::Error>;
+    async fn list(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<EventSpot>, Self::Error>;
 
     async fn get_by_beacon(
         &self,
@@ -99,7 +103,11 @@ pub trait ImageRepository: AsyncSafe {
         visitor_id: i32,
     ) -> Result<Option<Id<VisitorImage>>, Self::Error>;
 
-    async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error>;
+    async fn list_default_image(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<Id<EventImage>>, Self::Error>;
 
     async fn get_current_image(
         &self,
@@ -132,23 +140,34 @@ pub trait EventRepository: AsyncSafe {
 
     async fn get_event_belong_to_subject(
         &self,
+        tx: &DatabaseTransaction,
         subject: String,
         event_id: Id<Event>,
     ) -> Result<Option<Event>, Self::Error>;
 
     async fn create(
         &self,
+        tx: &DatabaseTransaction,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<Event, Self::Error>;
 
-    async fn delete(&self, event_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 
-    async fn list(&self, subject: String) -> Result<Vec<Event>, Self::Error>;
+    async fn list(
+        &self,
+        tx: &DatabaseTransaction,
+        subject: String,
+    ) -> Result<Vec<Event>, Self::Error>;
 
     async fn update(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         name: String,
         hp_url: String,
@@ -168,13 +187,13 @@ pub trait AdminRepository: AsyncSafe {
 
     async fn get_with_tx(
         &self,
-        tx: DatabaseTransaction,
+        tx: &DatabaseTransaction,
         subject: String,
     ) -> Result<Option<Admin>, Self::Error>;
 
     async fn update(
         &self,
-        tx: DatabaseTransaction,
+        tx: &DatabaseTransaction,
         admin_id: i32,
         event_id: i32,
     ) -> Result<IsUpdated, Self::Error>;
