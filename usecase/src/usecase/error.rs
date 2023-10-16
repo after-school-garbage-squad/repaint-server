@@ -8,6 +8,7 @@ pub enum Error {
     NotFound,
     BadRequest { message: String },
     Conflict,
+    RangeNotSatisfiable,
     InternalServerError(anyhow::Error),
 }
 
