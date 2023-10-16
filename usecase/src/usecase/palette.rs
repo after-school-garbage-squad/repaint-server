@@ -77,6 +77,13 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", spot_id),
             })?;
+        let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
+            .await?
+            .into_iter()
+            .collect::<Vec<_>>();
+        if visitor_palettes.len() == envvar("CLUSTER", None) {
+            return Err(Error::RangeNotSatisfiable);
+        }
         let last_picked =
             VisitorRepository::get_last_picked_at(&self.repo, visitor.id, spot.id).await?;
         let last_scaned =
@@ -97,10 +104,6 @@ where
         let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
             unreachable!("palettes is not set")
         };
-        let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
-            .await?
-            .into_iter()
-            .collect::<Vec<_>>();
         let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
             Some(i) => i,
             None => {
