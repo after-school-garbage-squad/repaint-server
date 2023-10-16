@@ -17,4 +17,4 @@ repaint-server-usecase = { path = "../usecase" }
 serde = "1.0.189"
 teloc = "0.2.0"
 tokio-stream = "0.1.14"
-tracing = "0.1.37"
+tracing = "0.1.39"

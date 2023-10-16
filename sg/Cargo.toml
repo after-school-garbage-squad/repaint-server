@@ -11,7 +11,7 @@ async-trait = "0.1.73"
 email_address = "0.2.4"
 repaint-server-usecase = { path = "../usecase" }
 teloc = "0.2.0"
-tracing = "0.1.37"
+tracing = "0.1.39"
 
 [dependencies.sendgrid]
 version = "0.19.2"
