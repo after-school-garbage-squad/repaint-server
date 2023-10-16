@@ -27,6 +27,10 @@ impl IntoResponse for Error {
                 )
             }
             Error(UsecaseError::NotFound) => (StatusCode::NOT_FOUND, "Not Found".to_string()),
+            Error(UsecaseError::RangeNotSatisfiable) => (
+                StatusCode::RANGE_NOT_SATISFIABLE,
+                "Range Not Satisfiable".to_string(),
+            ),
             Error(UsecaseError::UnAuthorized) => {
                 (StatusCode::UNAUTHORIZED, "UnAuthorized".to_string())
             }
