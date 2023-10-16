@@ -8,6 +8,7 @@ use repaint_server_model::id::Id;
 use repaint_server_model::visitor::Visitor;
 use repaint_server_model::visitor_image::{CurrentImage, Image as VisitorImage};
 use repaint_server_model::{AsyncSafe, StaticError};
+use sea_orm::DatabaseTransaction;
 
 use crate::model::traffic::HeadCountResponse;
 
@@ -245,6 +246,13 @@ pub trait TrafficRepository: AsyncSafe {
     async fn get_timestamp(&self, spot_id: i32) -> Result<Option<NaiveDateTime>, Self::Error>;
 
     async fn get_hc(&self, spot_id: i32) -> Result<Option<HeadCountResponse>, Self::Error>;
+}
+
+#[async_trait]
+pub trait TransactionRepository: AsyncSafe {
+    type Error: StaticError;
+
+    async fn begin_transaction(&self) -> Result<DatabaseTransaction, Self::Error>;
 }
 
 #[derive(Debug)]

@@ -152,7 +152,7 @@ where
                 .all(|palette| visitor_palettes.contains(palette))
             {
                 break;
-            } else if i == envvar("CLUSTER", None) {
+            } else if i == envvar::<usize, _>("CLUSTER", None) {
                 break;
             }
             i += 1;
@@ -183,7 +183,7 @@ where
             .collect::<Vec<_>>();
 
         Ok(CheckPalettesCompletedResponse {
-            is_completed: visitor_palettes.len() == envvar("CLUSTER", None),
+            is_completed: visitor_palettes.len() == envvar::<usize, _>("CLUSTER", None),
         })
     }
 }
