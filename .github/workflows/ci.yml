@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -48,7 +48,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
@@ -62,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Setup | Checkout
-        uses: actions/checkout@v4.1.0
+        uses: actions/checkout@v4.1.1
       - name: Setup | Rust
         uses: dtolnay/rust-toolchain@nightly
         with:
