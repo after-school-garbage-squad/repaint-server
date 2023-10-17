@@ -9,7 +9,6 @@ use rand::SeedableRng;
 use repaint_server_model::event::Event;
 use repaint_server_model::event_spot::EventSpot;
 use repaint_server_model::id::Id;
-use repaint_server_model::visitor_image::CurrentImage;
 use repaint_server_model::visitor_image::Image as VisitorImage;
 use repaint_server_model::AsyncSafe;
 use repaint_server_util::envvar;
@@ -18,6 +17,7 @@ use teloc::inject;
 use crate::infra::firestore::Firestore;
 use crate::infra::pubsub::GoogleCloudPubSub;
 use crate::infra::repo::TrafficRepository;
+use crate::infra::repo::TransactionRepository;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
@@ -94,7 +94,8 @@ where
         + VisitorRepository
         + ImageRepository
         + PaletteRepository
-        + TrafficRepository,
+        + TrafficRepository
+        + TransactionRepository,
     F: Firestore,
     P: GoogleCloudPubSub,
 {
@@ -115,7 +116,8 @@ where
         + VisitorRepository
         + ImageRepository
         + PaletteRepository
-        + TrafficRepository,
+        + TrafficRepository
+        + TransactionRepository,
     F: Firestore,
     P: GoogleCloudPubSub,
 {
@@ -126,9 +128,11 @@ where
         name: String,
         beacon_data: Beacon,
     ) -> Result<SpotResponse, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
@@ -136,13 +140,15 @@ where
         }
         let spot = SpotRepository::register(
             &self.repo,
+            &tx,
             event.id,
             name,
             beacon_data.hw_id,
             beacon_data.service_uuid,
         )
         .await?;
-        let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+        let Some(mut palettes) = PaletteRepository::get_all(&self.repo, &tx, event.id).await?
+        else {
             unreachable!("palettes is not set")
         };
         for (i, _) in palettes.iter().enumerate() {
@@ -154,7 +160,8 @@ where
         for palette in palettes.iter_mut() {
             *palette += 1;
         }
-        let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
+        let _ = PaletteRepository::set_all(&self.repo, &tx, event.id, palettes).await?;
+        let _ = tx.commit().await?;
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
@@ -174,14 +181,17 @@ where
         event_id: Id<Event>,
         hw_id: String,
     ) -> Result<Option<SpotResponse>, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let spot = SpotRepository::get_by_beacon(&self.repo, &tx, event.id, hw_id.clone())
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
             })?;
+        let _ = tx.commit().await?;
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
@@ -201,14 +211,17 @@ where
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<SpotResponse>, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let spot = SpotRepository::get_by_qr(&self.repo, event.id, spot_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let spot = SpotRepository::get_by_qr(&self.repo, &tx, event.id, spot_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: "This QR code is invalid.".to_string(),
             })?;
+        let _ = tx.commit().await?;
 
         Ok(Some(SpotResponse {
             spot_id: spot.spot_id,
@@ -227,10 +240,13 @@ where
         subject: String,
         event_id: Id<Event>,
     ) -> Result<Vec<SpotResponse>, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let spots = SpotRepository::list(&self.repo, event.id).await?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let spots = SpotRepository::list(&self.repo, &tx, event.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(spots
             .into_iter()
@@ -255,21 +271,24 @@ where
         name: String,
         is_pick: bool,
     ) -> Result<SpotResponse, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
         let Some(spot) =
-            SpotRepository::update(&self.repo, event.id, spot_id, name, is_pick).await?
+            SpotRepository::update(&self.repo, &tx, event.id, spot_id, name, is_pick).await?
         else {
             return Err(Error::BadRequest {
                 message: format!("{} is not found", spot_id),
             });
         };
+        let _ = tx.commit().await?;
 
         Ok(SpotResponse {
             spot_id: spot.spot_id,
@@ -289,10 +308,13 @@ where
         event_id: Id<Event>,
         spot_id: Id<EventSpot>,
     ) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let _ = SpotRepository::delete(&self.repo, event.id, spot_id).await?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let _ = SpotRepository::delete(&self.repo, &tx, event.id, spot_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
@@ -303,18 +325,19 @@ where
         hw_id: String,
     ) -> Result<ScannedResponse, Error> {
         let now = Utc::now().naive_utc();
-        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
         let visitor =
-            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+            VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let spot = SpotRepository::get_by_beacon(&self.repo, event.id, hw_id.clone())
+        let spot = SpotRepository::get_by_beacon(&self.repo, &tx, event.id, hw_id.clone())
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("No spots associated with {} have been registered", hw_id),
@@ -340,7 +363,7 @@ where
             let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
         }
         let last_scaned_at =
-            VisitorRepository::get_last_scanned_at(&self.repo, visitor.id, spot.id).await?;
+            VisitorRepository::get_last_scanned_at(&self.repo, &tx, visitor.id, spot.id).await?;
         if spot.is_pick
             && (last_scaned_at.is_none()
                 || now - last_scaned_at.unwrap()
@@ -352,7 +375,8 @@ where
                 .await?;
         }
         let last_droped = VisitorRepository::get_last_droped_at(&self.repo, visitor.id).await?;
-        let is_bonus = SpotRepository::get_bonus_state(&self.repo, event.id, spot.spot_id).await?;
+        let is_bonus =
+            SpotRepository::get_bonus_state(&self.repo, &tx, event.id, spot.spot_id).await?;
         if last_droped.is_none()
             || now - last_droped.unwrap()
                 >= Duration::seconds(if is_bonus {
@@ -362,12 +386,15 @@ where
                 })
         {
             if is_bonus {
-                let Some(timestamp) = TrafficRepository::get_timestamp(&self.repo, spot.id).await?
+                let Some(timestamp) =
+                    TrafficRepository::get_timestamp(&self.repo, &tx, spot.id).await?
                 else {
                     unreachable!("traffic timestamp is not set")
                 };
-                let visitors_now = VisitorRepository::get_visitors(&self.repo, spot.id).await?;
-                let Some(visitors_start) = TrafficRepository::get_hc(&self.repo, spot.id).await?
+                let visitors_now =
+                    VisitorRepository::get_visitors(&self.repo, &tx, spot.id).await?;
+                let Some(visitors_start) =
+                    TrafficRepository::get_hc(&self.repo, &tx, spot.id).await?
                 else {
                     unreachable!("traffic hc is not set")
                 };
@@ -379,49 +406,52 @@ where
                             ((max(visitors_start.hc_to, 5) as f32) * 1.5) as usize,
                         )
                 {
-                    let _ =
-                        SpotRepository::set_bonus_state(&self.repo, event.id, spot.spot_id, false)
-                            .await?;
-                    let _ = TrafficRepository::remove(&self.repo, spot.id).await?;
+                    let _ = SpotRepository::set_bonus_state(
+                        &self.repo,
+                        &tx,
+                        event.id,
+                        spot.spot_id,
+                        false,
+                    )
+                    .await?;
+                    let _ = TrafficRepository::remove(&self.repo, &tx, spot.id).await?;
                 }
             }
-            let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
-            let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
-                Some(i) => i,
-                None => {
-                    let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
-                    let current_image_id = default
-                        .first()
-                        .ok_or(Error::BadRequest {
-                            message: "default image is empty".to_string(),
-                        })?
-                        .clone();
+            let visitor_palettes = PaletteRepository::get(&self.repo, &tx, visitor.id).await?;
+            let image_id =
+                match ImageRepository::get_current_image(&self.repo, &tx, visitor.id).await? {
+                    Some(i) => Id::<VisitorImage>::from_str(i.to_string().as_str())?,
+                    None => {
+                        let default =
+                            ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+                        let event_image_id = default
+                            .first()
+                            .ok_or(Error::BadRequest {
+                                message: "default image is empty".to_string(),
+                            })?
+                            .clone();
 
-                    Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
-                        .ok()
-                        .ok_or(Error::BadRequest {
-                            message: "failed to parse default image id to current image id"
-                                .to_string(),
-                        })?
-                }
-            };
-            let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
+                        Id::<VisitorImage>::from_str(event_image_id.to_string().as_str())
+                            .ok()
+                            .ok_or(Error::BadRequest {
+                                message: "failed to parse default image id to current image id"
+                                    .to_string(),
+                            })?
+                    }
+                };
             let _ = self
                 .pubsub
                 .publish_merge_current_image(
                     event.event_id,
                     visitor.visitor_id,
                     image_id,
-                    palettes.clone(),
+                    visitor_palettes.clone(),
                 )
                 .await?;
-            let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+            let Some(mut palettes) = PaletteRepository::get_all(&self.repo, &tx, event.id).await?
+            else {
                 unreachable!("palettes is not set")
             };
-            let visitor_palettes = PaletteRepository::get(&self.repo, visitor.id)
-                .await?
-                .into_iter()
-                .collect::<Vec<_>>();
             let mut rng = {
                 let rng = rand::thread_rng();
                 StdRng::from_rng(rng).unwrap()
@@ -438,8 +468,8 @@ where
                     .unsubscribe_palette(event.event_id, spot.spot_id, *palette)
                     .await?;
                 palettes[*palette as usize] += 1;
-                let _ = PaletteRepository::set(&self.repo, visitor.id, *palette).await?;
-                let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
+                let _ = PaletteRepository::set(&self.repo, &tx, visitor.id, *palette).await?;
+                let _ = PaletteRepository::set_all(&self.repo, &tx, event.id, palettes).await?;
                 if drop_palette.is_some() {
                     let _ = self
                         .firestore
@@ -453,7 +483,7 @@ where
                     .is_empty()
                 {
                     let Some(mut palettes) =
-                        PaletteRepository::get_all(&self.repo, event.id).await?
+                        PaletteRepository::get_all(&self.repo, &tx, event.id).await?
                     else {
                         unreachable!("palettes is not set")
                     };
@@ -466,12 +496,13 @@ where
                     for palette in palettes.iter_mut() {
                         *palette += 1;
                     }
-                    let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
+                    let _ = PaletteRepository::set_all(&self.repo, &tx, event.id, palettes).await?;
                 }
             }
-            let _ = VisitorRepository::set_last_droped_at(&self.repo, visitor.id, now).await?;
+            let _ = VisitorRepository::set_last_droped_at(&self.repo, &tx, visitor.id, now).await?;
         }
-        let _ = SpotRepository::scanned(&self.repo, visitor.id, spot.id, now).await?;
+        let _ = SpotRepository::scanned(&self.repo, &tx, visitor.id, spot.id, now).await?;
+        let _ = tx.commit().await?;
 
         Ok(ScannedResponse { is_bonus })
     }

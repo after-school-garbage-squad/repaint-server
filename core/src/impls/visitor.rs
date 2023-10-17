@@ -163,10 +163,11 @@ impl VisitorRepository for SeaOrm {
 
     async fn set_last_droped_at(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         last_droped_at: NaiveDateTime,
     ) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
+        let tx = txn.begin().await?;
         let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .one(&tx)
             .await?
@@ -265,11 +266,15 @@ impl VisitorRepository for SeaOrm {
         Ok(Some(visitor_spot.last_scanned_at))
     }
 
-    async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error> {
+    async fn get_visitors(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Vec<i32>, Self::Error> {
         let now = Utc::now().naive_utc();
         let visitors = visitor_spots::Entity::find()
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
-            .all(self.con())
+            .all(tx)
             .await?;
 
         Ok(visitors

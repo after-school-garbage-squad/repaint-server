@@ -18,6 +18,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn register(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         name: String,
         hw_id: String,
@@ -32,6 +33,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn get_by_beacon(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         hw_id: String,
     ) -> Result<Option<EventSpot>, Self::Error>;
@@ -47,14 +49,19 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn update(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
         name: String,
         is_pick: bool,
     ) -> Result<Option<EventSpot>, Self::Error>;
 
-    async fn delete(&self, event_id: i32, spot_id: Id<EventSpot>)
-        -> Result<IsUpdated, Self::Error>;
+    async fn delete(
+        &self,
+        txn: &DatabaseTransaction,
+        event_id: i32,
+        spot_id: Id<EventSpot>,
+    ) -> Result<IsUpdated, Self::Error>;
 
     async fn get_bonus_state(
         &self,
@@ -65,6 +72,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn set_bonus_state(
         &self,
+        txn: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
         is_bonus: bool,
@@ -72,6 +80,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn scanned(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
         now: NaiveDateTime,
@@ -261,6 +270,7 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn set_last_droped_at(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
         last_droped_at: NaiveDateTime,
     ) -> Result<IsUpdated, Self::Error>;
@@ -292,7 +302,11 @@ pub trait VisitorRepository: AsyncSafe {
         spot_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
-    async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error>;
+    async fn get_visitors(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Vec<i32>, Self::Error>;
 }
 
 #[async_trait]
@@ -310,11 +324,23 @@ pub trait TrafficRepository: AsyncSafe {
 
     async fn pop(&self) -> Result<Option<i32>, Self::Error>;
 
-    async fn remove(&self, spot_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn remove(
+        &self,
+        txn: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 
-    async fn get_timestamp(&self, spot_id: i32) -> Result<Option<NaiveDateTime>, Self::Error>;
+    async fn get_timestamp(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
-    async fn get_hc(&self, spot_id: i32) -> Result<Option<HeadCountResponse>, Self::Error>;
+    async fn get_hc(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<HeadCountResponse>, Self::Error>;
 }
 
 #[async_trait]
