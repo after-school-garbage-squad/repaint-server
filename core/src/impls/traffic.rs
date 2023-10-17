@@ -16,10 +16,10 @@ use super::IsUpdatedExt;
 impl TrafficRepository for SeaOrm {
     type Error = Error;
 
-    async fn size(&self) -> Result<usize, Self::Error> {
+    async fn size(&self, tx: &DatabaseTransaction) -> Result<usize, Self::Error> {
         let length = traffic_queues::Entity::find()
             .order_by_asc(traffic_queues::Column::Timestamp)
-            .all(self.con())
+            .all(tx)
             .await?
             .len();
 
@@ -28,6 +28,7 @@ impl TrafficRepository for SeaOrm {
 
     async fn push(
         &self,
+        tx: &DatabaseTransaction,
         spot_id: i32,
         hc_from: usize,
         hc_to: usize,
@@ -38,13 +39,13 @@ impl TrafficRepository for SeaOrm {
             head_count_to: Set(hc_to as i32),
             ..Default::default()
         }
-        .insert(self.con())
+        .insert(tx)
         .await
         .to_is_updated()
     }
 
-    async fn pop(&self) -> Result<Option<i32>, Self::Error> {
-        let tx = self.con().begin().await?;
+    async fn pop(&self, txn: &DatabaseTransaction) -> Result<Option<i32>, Self::Error> {
+        let tx = txn.begin().await?;
         let last = traffic_queues::Entity::find()
             .order_by_desc(traffic_queues::Column::Timestamp)
             .one(&tx)

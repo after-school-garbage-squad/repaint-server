@@ -80,9 +80,13 @@ impl VisitorRepository for SeaOrm {
             .transpose()
     }
 
-    async fn get_by_id(&self, visitor_id: i32) -> Result<Option<Visitor>, Self::Error> {
+    async fn get_by_id(
+        &self,
+        tx: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<Option<Visitor>, Self::Error> {
         visitors::Entity::find_by_id(visitor_id)
-            .one(self.con())
+            .one(tx)
             .await?
             .map(to_model)
             .transpose()

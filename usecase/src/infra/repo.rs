@@ -45,7 +45,11 @@ pub trait SpotRepository: AsyncSafe {
         spot_id: Id<EventSpot>,
     ) -> Result<Option<EventSpot>, Self::Error>;
 
-    async fn get_by_id(&self, spot_id: i32) -> Result<Option<EventSpot>, Self::Error>;
+    async fn get_by_id(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<EventSpot>, Self::Error>;
 
     async fn update(
         &self,
@@ -248,7 +252,11 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
 
-    async fn get_by_id(&self, visitor_id: i32) -> Result<Option<Visitor>, Self::Error>;
+    async fn get_by_id(
+        &self,
+        tx: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<Option<Visitor>, Self::Error>;
 
     async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
 
@@ -313,16 +321,17 @@ pub trait VisitorRepository: AsyncSafe {
 pub trait TrafficRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn size(&self) -> Result<usize, Self::Error>;
+    async fn size(&self, tx: &DatabaseTransaction) -> Result<usize, Self::Error>;
 
     async fn push(
         &self,
+        tx: &DatabaseTransaction,
         spot_id: i32,
         hc_from: usize,
         hc_to: usize,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn pop(&self) -> Result<Option<i32>, Self::Error>;
+    async fn pop(&self, txn: &DatabaseTransaction) -> Result<Option<i32>, Self::Error>;
 
     async fn remove(
         &self,

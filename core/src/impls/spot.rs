@@ -109,9 +109,13 @@ impl SpotRepository for SeaOrm {
             .transpose()
     }
 
-    async fn get_by_id(&self, spot_id: i32) -> Result<Option<EventSpot>, Self::Error> {
+    async fn get_by_id(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<EventSpot>, Self::Error> {
         event_spots::Entity::find_by_id(spot_id)
-            .one(self.con())
+            .one(tx)
             .await?
             .map(to_model)
             .transpose()
