@@ -8,6 +8,7 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, ModelTrait,
     QueryFilter, TransactionTrait,
 };
+use tracing_subscriber::registry::Data;
 
 use crate::entity::{event_spots, events, visitor_spots, visitors};
 use crate::ty::string::ToDatabaseType;
@@ -90,12 +91,13 @@ impl SpotRepository for SeaOrm {
 
     async fn get_by_qr(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<EventSpot>, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)
@@ -166,12 +168,13 @@ impl SpotRepository for SeaOrm {
 
     async fn get_bonus_state(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<bool, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)
@@ -254,6 +257,7 @@ impl SpotRepository for SeaOrm {
 #[cfg(test)]
 mod test {
     use pretty_assertions::*;
+    use repaint_server_usecase::infra::repo::TransactionRepository;
 
     use crate::TestingSeaOrm;
 
@@ -318,11 +322,14 @@ mod test {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
         let spot = orm.make_test_spot(event.id).await;
-
-        let res = SpotRepository::get_by_qr(orm.orm(), event.id, spot.spot_id)
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
+        let res = SpotRepository::get_by_qr(orm.orm(), &tx, event.id, spot.spot_id)
             .await
             .unwrap()
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, spot);
     }
@@ -354,15 +361,18 @@ mod test {
     #[test_log::test(tokio::test)]
     async fn test_set_get_bonus() {
         let orm = TestingSeaOrm::new().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let event = orm.make_test_event().await;
         let spot = orm.make_test_spot(event.id).await;
-
         let _ = SpotRepository::set_bonus_state(orm.orm(), event.id, spot.spot_id, true)
             .await
             .unwrap();
-        let res = SpotRepository::get_bonus_state(orm.orm(), event.id, spot.spot_id)
+        let res = SpotRepository::get_bonus_state(orm.orm(), &tx, event.id, spot.spot_id)
             .await
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, true);
     }

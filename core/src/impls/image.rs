@@ -126,11 +126,12 @@ impl ImageRepository for SeaOrm {
 
     async fn get_current_image(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
     ) -> Result<Option<Id<CurrentImage>>, Self::Error> {
         let Some(image) = visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_images::Entity)
-            .one(self.con())
+            .one(tx)
             .await?
             .and_then(|(_, i)| i)
         else {
@@ -270,13 +271,13 @@ mod test {
         let image_id = orm.make_test_default_image(event.id, &tx).await;
         let visitor = orm.make_test_visitor(event.id, image_id).await;
         let i = Id::<VisitorImage>::new();
-        let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res1 = ImageRepository::get_current_image(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let _ = ImageRepository::upload_visitor_image(orm.orm(), &tx, visitor.id, i.clone())
             .await
             .unwrap();
-        let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res2 = ImageRepository::get_current_image(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let current_image_id = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
@@ -308,7 +309,7 @@ mod test {
                 .unwrap();
             images.push(i);
         }
-        let res1 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res1 = ImageRepository::get_current_image(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let current_id1 = Id::<CurrentImage>::from_str(image_id.to_string().as_str())
@@ -318,7 +319,7 @@ mod test {
         let _ = ImageRepository::upload_visitor_image(orm.orm(), &tx, visitor.id, v)
             .await
             .unwrap();
-        let res2 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res2 = ImageRepository::get_current_image(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let current_id2 = Id::<CurrentImage>::from_str(v.to_string().as_str())
@@ -335,7 +336,7 @@ mod test {
         )
         .await
         .unwrap();
-        let res3 = ImageRepository::get_current_image(orm.orm(), visitor.id)
+        let res3 = ImageRepository::get_current_image(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let current_id3 = Id::<CurrentImage>::from_str(visitor_image_id.to_string().as_str())

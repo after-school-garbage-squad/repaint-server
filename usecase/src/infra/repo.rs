@@ -38,6 +38,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn get_by_qr(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<EventSpot>, Self::Error>;
@@ -57,6 +58,7 @@ pub trait SpotRepository: AsyncSafe {
 
     async fn get_bonus_state(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<bool, Self::Error>;
@@ -115,6 +117,7 @@ pub trait ImageRepository: AsyncSafe {
 
     async fn get_current_image(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
     ) -> Result<Option<Id<CurrentImage>>, Self::Error>;
 
@@ -130,13 +133,28 @@ pub trait ImageRepository: AsyncSafe {
 pub trait PaletteRepository: AsyncSafe {
     type Error: StaticError;
 
-    async fn get(&self, visitor_id: i32) -> Result<Vec<i32>, Self::Error>;
+    async fn get(&self, tx: &DatabaseTransaction, visitor_id: i32)
+        -> Result<Vec<i32>, Self::Error>;
 
-    async fn set(&self, visitor_id: i32, palette: i32) -> Result<IsUpdated, Self::Error>;
+    async fn set(
+        &self,
+        txn: &DatabaseTransaction,
+        visitor_id: i32,
+        palette: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 
-    async fn get_all(&self, event_id: i32) -> Result<Option<Vec<i32>>, Self::Error>;
+    async fn get_all(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Option<Vec<i32>>, Self::Error>;
 
-    async fn set_all(&self, event_id: i32, palette: Vec<i32>) -> Result<IsUpdated, Self::Error>;
+    async fn set_all(
+        &self,
+        txn: &DatabaseTransaction,
+        event_id: i32,
+        palette: Vec<i32>,
+    ) -> Result<IsUpdated, Self::Error>;
 }
 
 #[async_trait]
@@ -254,6 +272,7 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn set_last_picked_at(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
         last_picked_at: NaiveDateTime,
@@ -261,12 +280,14 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn get_last_picked_at(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
     async fn get_last_scanned_at(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error>;

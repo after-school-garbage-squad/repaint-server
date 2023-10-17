@@ -294,7 +294,7 @@ where
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let current_image_id = match ImageRepository::get_current_image(&self.repo, visitor.id)
+        let current_image_id = match ImageRepository::get_current_image(&self.repo, &tx, visitor.id)
             .await?
         {
             Some(i) => i,

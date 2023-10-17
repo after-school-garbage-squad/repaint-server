@@ -199,11 +199,12 @@ impl VisitorRepository for SeaOrm {
 
     async fn set_last_picked_at(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
         last_picked_at: NaiveDateTime,
     ) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
+        let tx = txn.begin().await?;
         let mut visitor_spot: visitor_spots::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
@@ -224,13 +225,15 @@ impl VisitorRepository for SeaOrm {
 
     async fn get_last_picked_at(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error> {
         let visitor_spot = match visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
-            .one(self.con())
+            .limit(1)
+            .one(tx)
             .await?
             .and_then(|(_, s)| s)
         {
@@ -243,13 +246,15 @@ impl VisitorRepository for SeaOrm {
 
     async fn get_last_scanned_at(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error> {
         let visitor_spot = match visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
-            .one(self.con())
+            .limit(1)
+            .one(tx)
             .await?
             .and_then(|(_, s)| s)
         {
