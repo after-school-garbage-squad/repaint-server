@@ -258,9 +258,17 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: i32,
     ) -> Result<Option<Visitor>, Self::Error>;
 
-    async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn list(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<Visitor>, Self::Error>;
 
-    async fn list(&self, event_id: i32) -> Result<Vec<Visitor>, Self::Error>;
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 
     async fn set_update(
         &self,
@@ -274,7 +282,11 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: i32,
     ) -> Result<IsUpdated, Self::Error>;
 
-    async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error>;
+    async fn check_update(
+        &self,
+        tx: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<bool, Self::Error>;
 
     async fn set_last_droped_at(
         &self,

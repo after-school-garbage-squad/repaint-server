@@ -406,7 +406,7 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_id),
             })?;
-        let is_updated = VisitorRepository::check_update(&self.repo, visitor.id).await?;
+        let is_updated = VisitorRepository::check_update(&self.repo, &tx, visitor.id).await?;
         let _ = tx.commit().await?;
 
         Ok(CheckUpdateResponse { is_updated })

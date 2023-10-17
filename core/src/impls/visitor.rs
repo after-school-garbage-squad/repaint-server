@@ -92,23 +92,31 @@ impl VisitorRepository for SeaOrm {
             .transpose()
     }
 
-    async fn delete(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
-        visitors::Entity::delete_by_id(visitor_id)
-            .exec(self.con())
-            .await
-            .to_is_updated()
-    }
-
-    async fn list(&self, event_id: i32) -> Result<Vec<Visitor>, Self::Error> {
+    async fn list(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<Visitor>, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(visitors::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, v)| v)
             .flatten()
             .map(to_model)
             .collect()
+    }
+
+    async fn delete(
+        &self,
+        tx: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<IsUpdated, Self::Error> {
+        visitors::Entity::delete_by_id(visitor_id)
+            .exec(tx)
+            .await
+            .to_is_updated()
     }
 
     async fn set_update(
@@ -153,11 +161,12 @@ impl VisitorRepository for SeaOrm {
         res.to_is_updated()
     }
 
-    async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error> {
-        let visitor = match visitors::Entity::find_by_id(visitor_id)
-            .one(self.con())
-            .await?
-        {
+    async fn check_update(
+        &self,
+        tx: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<bool, Self::Error> {
+        let visitor = match visitors::Entity::find_by_id(visitor_id).one(tx).await? {
             Some(i) => i,
             None => return Ok(false),
         };
@@ -237,7 +246,6 @@ impl VisitorRepository for SeaOrm {
         let visitor_spot = match visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
-            .limit(1)
             .one(tx)
             .await?
             .and_then(|(_, s)| s)
@@ -258,7 +266,6 @@ impl VisitorRepository for SeaOrm {
         let visitor_spot = match visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
-            .limit(1)
             .one(tx)
             .await?
             .and_then(|(_, s)| s)
@@ -358,14 +365,19 @@ pub(crate) mod test {
     async fn test_list() {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
+            let tx = TransactionRepository::begin_transaction(orm.orm())
+                .await
+                .unwrap();
             let event = orm.make_test_event().await;
-            let image_id = orm.make_test_default_image(event.id).await;
+            let image_id = orm.make_test_default_image(&tx, event.id).await;
             let mut visitors = Vec::<Visitor>::new();
             for _ in 0..q {
                 visitors.push(orm.make_test_visitor(event.id, image_id).await);
             }
-
-            let res = VisitorRepository::list(orm.orm(), event.id).await.unwrap();
+            let res = VisitorRepository::list(orm.orm(), &tx, event.id)
+                .await
+                .unwrap();
+            let _ = tx.commit().await.unwrap();
 
             self::assert_eq!(res, visitors);
         }
@@ -387,11 +399,13 @@ pub(crate) mod test {
         for _ in 0..3 {
             visitors.push(orm.make_test_visitor(event.id, image_id).await);
         }
-        let _ = VisitorRepository::delete(orm.orm(), visitors[1].id)
+        let _ = VisitorRepository::delete(orm.orm(), &tx, visitors[1].id)
             .await
             .unwrap();
         visitors.remove(1);
-        let res = VisitorRepository::list(orm.orm(), event.id).await.unwrap();
+        let res = VisitorRepository::list(orm.orm(), &tx, event.id)
+            .await
+            .unwrap();
         let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, visitors);
@@ -406,19 +420,19 @@ pub(crate) mod test {
         let event = orm.make_test_event().await;
         let image_id = orm.make_test_default_image(&tx, event.id).await;
         let visitor = orm.make_test_visitor(event.id, image_id).await;
-        let res1 = VisitorRepository::check_update(orm.orm(), visitor.id)
+        let res1 = VisitorRepository::check_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let _ = VisitorRepository::set_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
-        let res2 = VisitorRepository::check_update(orm.orm(), visitor.id)
+        let res2 = VisitorRepository::check_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let _ = VisitorRepository::unset_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
-        let res3 = VisitorRepository::check_update(orm.orm(), visitor.id)
+        let res3 = VisitorRepository::check_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
         let _ = tx.commit().await.unwrap();
