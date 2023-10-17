@@ -127,10 +127,15 @@ impl EventRepository for SeaOrm {
         to_model(event).map(Some)
     }
 
-    async fn get(&self, event_id: Id<Event>) -> Result<Option<Event>, Self::Error> {
+    async fn get(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: Id<Event>,
+    ) -> Result<Option<Event>, Self::Error> {
         events::Entity::find()
             .filter(events::Column::EventId.eq(event_id.dty()))
-            .one(self.con())
+            .limit(1)
+            .one(tx)
             .await?
             .map(to_model)
             .transpose()
@@ -252,7 +257,7 @@ pub(crate) mod test {
             .unwrap();
             events.push(e);
         }
-        let res = EventRepository::get(orm.orm(), events[1].event_id)
+        let res = EventRepository::get(orm.orm(), &tx, events[1].event_id)
             .await
             .unwrap()
             .unwrap();

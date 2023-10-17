@@ -13,7 +13,9 @@ use teloc::inject;
 use crate::infra::gcs::GoogleCloudStorage;
 use crate::infra::otp::ImageOtp;
 use crate::infra::pubsub::GoogleCloudPubSub;
-use crate::infra::repo::{EventRepository, ImageRepository, PaletteRepository, VisitorRepository};
+use crate::infra::repo::{
+    EventRepository, ImageRepository, PaletteRepository, TransactionRepository, VisitorRepository,
+};
 use crate::model::image::{
     CheckUpdateResponse, CheckVisitorImageExistResponse, GetCurrentImageResponse, ListImageItem,
     ListImageResponse, ProxyCurrentImageResponse, ProxyEventImageResponse,
@@ -101,7 +103,11 @@ pub struct ImageUsecaseImpl<R, S, O, P> {
 #[inject]
 impl<R, S, O, P> ImageUsecaseImpl<R, S, O, P>
 where
-    R: ImageRepository + EventRepository + VisitorRepository + PaletteRepository,
+    R: ImageRepository
+        + EventRepository
+        + VisitorRepository
+        + PaletteRepository
+        + TransactionRepository,
     S: GoogleCloudStorage,
     O: ImageOtp,
     P: GoogleCloudPubSub,
@@ -119,7 +125,11 @@ where
 #[async_trait]
 impl<R, S, O, P> ImageUsecase for ImageUsecaseImpl<R, S, O, P>
 where
-    R: ImageRepository + EventRepository + VisitorRepository + PaletteRepository,
+    R: ImageRepository
+        + EventRepository
+        + VisitorRepository
+        + PaletteRepository
+        + TransactionRepository,
     S: GoogleCloudStorage,
     O: ImageOtp,
     P: GoogleCloudPubSub,
@@ -130,9 +140,11 @@ where
         event_id: Id<Event>,
         data: Vec<u8>,
     ) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
         let image_id = Id::<EventImage>::new();
         let _ = self
             .storage
@@ -142,7 +154,8 @@ where
             .pubsub
             .publish_clustering_event_image(event.event_id, image_id)
             .await?;
-        let _ = ImageRepository::add_default_image(&self.repo, event.id, image_id).await?;
+        let _ = ImageRepository::add_default_image(&self.repo, &tx, event.id, image_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
@@ -153,10 +166,13 @@ where
         event_id: Id<Event>,
         image_id: Id<EventImage>,
     ) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let _ = ImageRepository::delete_default_image(&self.repo, event.id, image_id).await?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let _ = ImageRepository::delete_default_image(&self.repo, &tx, event.id, image_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
@@ -167,15 +183,18 @@ where
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<CheckVisitorImageExistResponse, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let visitor = VisitorRepository::get(&self.repo, &tx, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
             })?;
-        let image = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
+        let image = ImageRepository::get_visitor_image(&self.repo, &tx, visitor.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(CheckVisitorImageExistResponse { image_id: image })
     }
@@ -187,10 +206,12 @@ where
         visitor_id: Id<Visitor>,
         data: Vec<u8>,
     ) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let visitor = VisitorRepository::get(&self.repo, &tx, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} aren't exist", visitor_id),
@@ -204,7 +225,8 @@ where
             .pubsub
             .publish_clustering_visitor_image(event.event_id, visitor.visitor_id, image_id)
             .await?;
-        let _ = ImageRepository::upload_visitor_image(&self.repo, visitor.id, image_id).await?;
+        let _ = ImageRepository::upload_visitor_image(&self.repo, &tx, visitor.id, image_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
@@ -213,19 +235,20 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<ListImageResponse, Error> {
-        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
         let visitor =
-            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+            VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
-        let vi = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
+        let default = ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+        let vi = ImageRepository::get_visitor_image(&self.repo, &tx, visitor.id).await?;
         let mut image_ids = default
             .iter()
             .filter_map(|&i| Id::<VisitorImage>::from_str(i.to_string().as_str()).ok())
@@ -250,6 +273,7 @@ where
                 url: u,
             })
             .collect();
+        let _ = tx.commit().await?;
 
         Ok(ListImageResponse { images })
     }
@@ -258,13 +282,14 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<GetCurrentImageResponse, Error> {
-        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
         let visitor =
-            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+            VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
@@ -274,7 +299,8 @@ where
         {
             Some(i) => i,
             None => {
-                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+                let default =
+                    ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
                 let current_image_id = default
                     .first()
                     .ok_or(Error::BadRequest {
@@ -289,6 +315,7 @@ where
                     })?
             }
         };
+        let _ = tx.commit().await?;
 
         Ok(GetCurrentImageResponse {
             image_id: current_image_id,
@@ -300,18 +327,20 @@ where
         visitor_identification: VisitorIdentification,
         image_id: Id<VisitorImage>,
     ) -> Result<(), Error> {
-        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
         let visitor =
-            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+            VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let _ = ImageRepository::set_current_image(&self.repo, visitor.id, image_id).await?;
+        let _ = ImageRepository::set_current_image(&self.repo, &tx, visitor.id, image_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
@@ -322,12 +351,13 @@ where
         image_id: Id<CurrentImage>,
         visitor_id: Id<Visitor>,
     ) -> Result<ProxyCurrentImageResponse, Error> {
-        let event = EventRepository::get(&self.repo, event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, &tx, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_id),
@@ -336,24 +366,26 @@ where
             .otp
             .verify_current(event_id, image_id, visitor_id)
             .await?;
-        let _ = VisitorRepository::unset_update(&self.repo, visitor.id).await?;
+        let _ = VisitorRepository::unset_update(&self.repo, &tx, visitor.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(ProxyCurrentImageResponse { url: token.full })
     }
 
     async fn set_update(&self, event_id: Id<Event>, visitor_id: Id<Visitor>) -> Result<(), Error> {
-        let event = EventRepository::get(&self.repo, event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, &tx, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_id),
             })?;
-
-        let _ = VisitorRepository::set_update(&self.repo, visitor.id).await?;
+        let _ = VisitorRepository::set_update(&self.repo, &tx, visitor.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
@@ -363,17 +395,19 @@ where
         event_id: Id<Event>,
         visitor_id: Id<Visitor>,
     ) -> Result<CheckUpdateResponse, Error> {
-        let event = EventRepository::get(&self.repo, event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let visitor = VisitorRepository::get(&self.repo, event.id, visitor_id)
+        let visitor = VisitorRepository::get(&self.repo, &tx, event.id, visitor_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_id),
             })?;
         let is_updated = VisitorRepository::check_update(&self.repo, visitor.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(CheckUpdateResponse { is_updated })
     }

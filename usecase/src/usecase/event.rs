@@ -108,6 +108,7 @@ where
         }
         let event = EventRepository::create(&self.repo, &tx, name, hp_url, contact).await?;
         let _ = AdminRepository::update(&self.repo, &tx, admin.id, event.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(CreateEventResponse {
             event_id: event.event_id,

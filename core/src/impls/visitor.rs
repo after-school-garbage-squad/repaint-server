@@ -7,7 +7,10 @@ use repaint_server_model::visitor::Visitor;
 use repaint_server_usecase::infra::repo::{IsUpdated, VisitorRepository};
 use repaint_server_util::envvar;
 use sea_orm::ActiveValue::Set;
-use sea_orm::{ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, QueryFilter, TransactionTrait};
+use sea_orm::{
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, QueryFilter,
+    TransactionTrait,
+};
 
 use crate::entity::{event_images, events, visitor_images, visitor_spots, visitors};
 use crate::ty::string::ToDatabaseType;
@@ -61,12 +64,13 @@ impl VisitorRepository for SeaOrm {
 
     async fn get(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(visitors::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, v)| v)
@@ -103,9 +107,12 @@ impl VisitorRepository for SeaOrm {
             .collect()
     }
 
-    async fn set_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
+    async fn set_update(
+        &self,
+        txn: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<IsUpdated, Self::Error> {
+        let tx = txn.begin().await?;
         let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .one(&tx)
             .await?
@@ -121,9 +128,12 @@ impl VisitorRepository for SeaOrm {
         res.to_is_updated()
     }
 
-    async fn unset_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
+    async fn unset_update(
+        &self,
+        txn: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<IsUpdated, Self::Error> {
+        let tx = txn.begin().await?;
         let mut visitor: visitors::ActiveModel = visitors::Entity::find_by_id(visitor_id)
             .one(&tx)
             .await?
@@ -276,6 +286,7 @@ impl VisitorRepository for SeaOrm {
 pub(crate) mod test {
     use pretty_assertions::*;
     use repaint_server_model::event_image::Image as EventImage;
+    use repaint_server_usecase::infra::repo::TransactionRepository;
 
     use crate::TestingSeaOrm;
 
@@ -316,12 +327,15 @@ pub(crate) mod test {
     async fn test_get() {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id).await;
-        let visitor = orm.make_test_visitor(event.id, image_id).await;
-
-        let res = VisitorRepository::get(orm.orm(), event.id, visitor.visitor_id)
+        let tx = TransactionRepository::begin_transaction(orm.orm())
             .await
             .unwrap();
+        let image_id = orm.make_test_default_image(&tx, event.id).await;
+        let visitor = orm.make_test_visitor(event.id, image_id).await;
+        let res = VisitorRepository::get(orm.orm(), &tx, event.id, visitor.visitor_id)
+            .await
+            .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, Some(visitor));
     }
@@ -350,8 +364,11 @@ pub(crate) mod test {
     #[test_log::test(tokio::test)]
     async fn test_delete() {
         let orm = TestingSeaOrm::new().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id).await;
+        let image_id = orm.make_test_default_image(&tx, event.id).await;
         let mut visitors = Vec::new();
         for _ in 0..3 {
             visitors.push(orm.make_test_visitor(event.id, image_id).await);
@@ -360,8 +377,8 @@ pub(crate) mod test {
             .await
             .unwrap();
         visitors.remove(1);
-
         let res = VisitorRepository::list(orm.orm(), event.id).await.unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, visitors);
     }
@@ -369,29 +386,28 @@ pub(crate) mod test {
     #[test_log::test(tokio::test)]
     async fn test_set_get_unset_update() {
         let orm = TestingSeaOrm::new().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id).await;
+        let image_id = orm.make_test_default_image(&tx, event.id).await;
         let visitor = orm.make_test_visitor(event.id, image_id).await;
-
         let res1 = VisitorRepository::check_update(orm.orm(), visitor.id)
             .await
             .unwrap();
-
-        let _ = VisitorRepository::set_update(orm.orm(), visitor.id)
+        let _ = VisitorRepository::set_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
-
         let res2 = VisitorRepository::check_update(orm.orm(), visitor.id)
             .await
             .unwrap();
-
-        let _ = VisitorRepository::unset_update(orm.orm(), visitor.id)
+        let _ = VisitorRepository::unset_update(orm.orm(), &tx, visitor.id)
             .await
             .unwrap();
-
         let res3 = VisitorRepository::check_update(orm.orm(), visitor.id)
             .await
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res1, false);
         self::assert_eq!(res2, true);

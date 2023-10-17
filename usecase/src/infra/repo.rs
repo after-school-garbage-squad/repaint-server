@@ -82,24 +82,28 @@ pub trait ImageRepository: AsyncSafe {
 
     async fn add_default_image(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         image_id: Id<EventImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
     async fn delete_default_image(
         &self,
+        txn: &DatabaseTransaction,
         event_id: i32,
         image_id: Id<EventImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
     async fn upload_visitor_image(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error>;
 
     async fn get_visitor_image(
         &self,
+        tx: &DatabaseTransaction,
         visitor_id: i32,
     ) -> Result<Option<Id<VisitorImage>>, Self::Error>;
 
@@ -116,6 +120,7 @@ pub trait ImageRepository: AsyncSafe {
 
     async fn set_current_image(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         image_id: Id<VisitorImage>,
     ) -> Result<IsUpdated, Self::Error>;
@@ -167,14 +172,18 @@ pub trait EventRepository: AsyncSafe {
 
     async fn update(
         &self,
-        tx: &DatabaseTransaction,
+        txn: &DatabaseTransaction,
         event_id: i32,
         name: String,
         hp_url: String,
         contact: Contact,
     ) -> Result<Option<Event>, Self::Error>;
 
-    async fn get(&self, event_id: Id<Event>) -> Result<Option<Event>, Self::Error>;
+    async fn get(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: Id<Event>,
+    ) -> Result<Option<Event>, Self::Error>;
 }
 
 #[async_trait]
@@ -207,6 +216,7 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn get(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
@@ -217,9 +227,17 @@ pub trait VisitorRepository: AsyncSafe {
 
     async fn list(&self, event_id: i32) -> Result<Vec<Visitor>, Self::Error>;
 
-    async fn set_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn set_update(
+        &self,
+        txn: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 
-    async fn unset_update(&self, visitor_id: i32) -> Result<IsUpdated, Self::Error>;
+    async fn unset_update(
+        &self,
+        txn: &DatabaseTransaction,
+        visitor_id: i32,
+    ) -> Result<IsUpdated, Self::Error>;
 
     async fn check_update(&self, visitor_id: i32) -> Result<bool, Self::Error>;
 
