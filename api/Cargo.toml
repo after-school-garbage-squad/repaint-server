@@ -27,7 +27,7 @@ serde = "1.0.189"
 serde_json = "1.0.107"
 static_assertions = "1.1.0"
 teloc = "0.2.0"
-tracing = "0.1.37"
+tracing = "0.1.39"
 metrics-exporter-prometheus = "0.12.1"
 
 [dependencies.reqwest]
