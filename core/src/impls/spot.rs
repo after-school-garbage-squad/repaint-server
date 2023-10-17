@@ -8,7 +8,6 @@ use sea_orm::{
     ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, ModelTrait,
     QueryFilter, TransactionTrait,
 };
-use tracing_subscriber::registry::Data;
 
 use crate::entity::{event_spots, events, visitor_spots, visitors};
 use crate::ty::string::ToDatabaseType;
@@ -296,12 +295,17 @@ mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let event = orm.make_test_event().await;
+            let tx = TransactionRepository::begin_transaction(orm.orm())
+                .await
+                .unwrap();
             let mut spots = Vec::new();
             for _ in 0..q {
                 spots.push(orm.make_test_spot(event.id).await);
             }
-
-            let res = SpotRepository::list(orm.orm(), event.id).await.unwrap();
+            let res = SpotRepository::list(orm.orm(), &tx, event.id)
+                .await
+                .unwrap();
+            let _ = tx.commit().await.unwrap();
 
             self::assert_eq!(res, spots);
         }

@@ -36,6 +36,7 @@ impl EventRepository for SeaOrm {
 
     async fn get_event_belong_to_subject(
         &self,
+        tx: &DatabaseTransaction,
         subject: String,
         event_id: Id<Event>,
     ) -> Result<Option<Event>, Self::Error> {
@@ -43,7 +44,7 @@ impl EventRepository for SeaOrm {
             .filter(admins::Column::Subject.eq(subject))
             .limit(1)
             .find_with_related(events::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, events)| events)
@@ -212,11 +213,15 @@ pub(crate) mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let admin = orm.make_test_admin().await;
+            let tx = TransactionRepository::begin_transaction(orm.orm())
+                .await
+                .unwrap();
             let mut events = Vec::new();
             for _ in 0..q {
                 let e = orm.make_test_event().await;
                 let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
                     orm.orm(),
+                    &tx,
                     admin.id,
                     e.id,
                 )
@@ -225,7 +230,7 @@ pub(crate) mod test {
                 events.push(e);
             }
 
-            let res = EventRepository::list(orm.orm(), admin.subject.clone())
+            let res = EventRepository::list(orm.orm(), &tx, admin.subject.clone())
                 .await
                 .unwrap();
 

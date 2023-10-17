@@ -247,7 +247,7 @@ mod test {
             .await
             .unwrap();
         let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id, &tx).await;
+        let image_id = orm.make_test_default_image(&tx, event.id).await;
         let visitor = orm.make_test_visitor(event.id, image_id).await;
         let image_id = Id::<VisitorImage>::new();
         let _ = ImageRepository::upload_visitor_image(orm.orm(), &tx, visitor.id, image_id.clone())
@@ -268,7 +268,7 @@ mod test {
             .await
             .unwrap();
         let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id, &tx).await;
+        let image_id = orm.make_test_default_image(&tx, event.id).await;
         let visitor = orm.make_test_visitor(event.id, image_id).await;
         let i = Id::<VisitorImage>::new();
         let res1 = ImageRepository::get_current_image(orm.orm(), &tx, visitor.id)
@@ -299,7 +299,7 @@ mod test {
             .await
             .unwrap();
         let event = orm.make_test_event().await;
-        let image_id = orm.make_test_default_image(event.id, &tx).await;
+        let image_id = orm.make_test_default_image(&tx, event.id).await;
         let visitor = orm.make_test_visitor(event.id, image_id).await;
         let mut images = Vec::new();
         for _ in 0..3 {
