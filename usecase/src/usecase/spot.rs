@@ -245,7 +245,7 @@ where
             EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
                 .await?
                 .ok_or(Error::UnAuthorized)?;
-        let spots = SpotRepository::list(&self.repo, &tx, event.id).await?;
+        let spots = SpotRepository::list_with_tx(&self.repo, &tx, event.id).await?;
         let _ = tx.commit().await?;
 
         Ok(spots
@@ -348,7 +348,8 @@ where
             .await?
             .is_empty()
         {
-            let Some(mut palettes) = PaletteRepository::get_all(&self.repo, event.id).await? else {
+            let Some(mut palettes) = PaletteRepository::get_all(&self.repo, &tx, event.id).await?
+            else {
                 unreachable!("palettes is not set")
             };
             for (i, _) in palettes.iter().enumerate() {
@@ -360,7 +361,7 @@ where
             for palette in palettes.iter_mut() {
                 *palette += 1;
             }
-            let _ = PaletteRepository::set_all(&self.repo, event.id, palettes).await?;
+            let _ = PaletteRepository::set_all(&self.repo, &tx, event.id, palettes).await?;
         }
         let last_scaned_at =
             VisitorRepository::get_last_scanned_at(&self.repo, &tx, visitor.id, spot.id).await?;
@@ -392,7 +393,7 @@ where
                     unreachable!("traffic timestamp is not set")
                 };
                 let visitors_now =
-                    VisitorRepository::get_visitors(&self.repo, &tx, spot.id).await?;
+                    VisitorRepository::get_visitors_with_tx(&self.repo, &tx, spot.id).await?;
                 let Some(visitors_start) =
                     TrafficRepository::get_hc(&self.repo, &tx, spot.id).await?
                 else {
@@ -423,7 +424,8 @@ where
                     Some(i) => Id::<VisitorImage>::from_str(i.to_string().as_str())?,
                     None => {
                         let default =
-                            ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+                            ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id)
+                                .await?;
                         let event_image_id = default
                             .first()
                             .ok_or(Error::BadRequest {

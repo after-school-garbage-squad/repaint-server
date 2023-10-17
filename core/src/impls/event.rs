@@ -233,6 +233,7 @@ pub(crate) mod test {
             let res = EventRepository::list(orm.orm(), &tx, admin.subject.clone())
                 .await
                 .unwrap();
+            let _ = tx.commit().await.unwrap();
 
             self::assert_eq!(res, events);
         }

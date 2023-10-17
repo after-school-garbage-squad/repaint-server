@@ -80,13 +80,9 @@ impl VisitorRepository for SeaOrm {
             .transpose()
     }
 
-    async fn get_by_id(
-        &self,
-        tx: &DatabaseTransaction,
-        visitor_id: i32,
-    ) -> Result<Option<Visitor>, Self::Error> {
+    async fn get_by_id(&self, visitor_id: i32) -> Result<Option<Visitor>, Self::Error> {
         visitors::Entity::find_by_id(visitor_id)
-            .one(tx)
+            .one(self.con())
             .await?
             .map(to_model)
             .transpose()
@@ -277,7 +273,28 @@ impl VisitorRepository for SeaOrm {
         Ok(Some(visitor_spot.last_scanned_at))
     }
 
-    async fn get_visitors(
+    async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error> {
+        let now = Utc::now().naive_utc();
+        let visitors = visitor_spots::Entity::find()
+            .filter(visitor_spots::Column::SpotId.eq(spot_id))
+            .all(self.con())
+            .await?;
+
+        Ok(visitors
+            .into_iter()
+            .map(|v| {
+                match now - v.last_scanned_at
+                    <= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300))
+                {
+                    true => Some(v.visitor_id),
+                    false => None,
+                }
+            })
+            .flatten()
+            .collect())
+    }
+
+    async fn get_visitors_with_tx(
         &self,
         tx: &DatabaseTransaction,
         spot_id: i32,

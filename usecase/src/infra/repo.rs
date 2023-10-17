@@ -25,7 +25,9 @@ pub trait SpotRepository: AsyncSafe {
         service_uuid: String,
     ) -> Result<EventSpot, Self::Error>;
 
-    async fn list(
+    async fn list(&self, event_id: i32) -> Result<Vec<EventSpot>, Self::Error>;
+
+    async fn list_with_tx(
         &self,
         tx: &DatabaseTransaction,
         event_id: i32,
@@ -122,7 +124,9 @@ pub trait ImageRepository: AsyncSafe {
         visitor_id: i32,
     ) -> Result<Option<Id<VisitorImage>>, Self::Error>;
 
-    async fn list_default_image(
+    async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error>;
+
+    async fn list_default_image_with_tx(
         &self,
         tx: &DatabaseTransaction,
         event_id: i32,
@@ -252,11 +256,7 @@ pub trait VisitorRepository: AsyncSafe {
         visitor_id: Id<Visitor>,
     ) -> Result<Option<Visitor>, Self::Error>;
 
-    async fn get_by_id(
-        &self,
-        tx: &DatabaseTransaction,
-        visitor_id: i32,
-    ) -> Result<Option<Visitor>, Self::Error>;
+    async fn get_by_id(&self, visitor_id: i32) -> Result<Option<Visitor>, Self::Error>;
 
     async fn list(
         &self,
@@ -322,7 +322,9 @@ pub trait VisitorRepository: AsyncSafe {
         spot_id: i32,
     ) -> Result<Option<NaiveDateTime>, Self::Error>;
 
-    async fn get_visitors(
+    async fn get_visitors(&self, spot_id: i32) -> Result<Vec<i32>, Self::Error>;
+
+    async fn get_visitors_with_tx(
         &self,
         tx: &DatabaseTransaction,
         spot_id: i32,

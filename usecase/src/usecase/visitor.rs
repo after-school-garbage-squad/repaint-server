@@ -86,8 +86,8 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, &tx, event.id).await?;
-        let images = ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+        let spots = SpotRepository::list_with_tx(&self.repo, &tx, event.id).await?;
+        let images = ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
         let visitor =
             VisitorRepository::create(&self.repo, event.id, registration_id.clone()).await?;
         let image_id = match ImageRepository::get_current_image(&self.repo, &tx, visitor.id).await?
@@ -95,7 +95,7 @@ where
             Some(i) => Id::<VisitorImage>::from_str(i.to_string().as_str())?,
             None => {
                 let default =
-                    ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+                    ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
                 let event_image_id = default
                     .first()
                     .ok_or(Error::BadRequest {
@@ -158,8 +158,8 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, &tx, event.id).await?;
-        let images = ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+        let spots = SpotRepository::list_with_tx(&self.repo, &tx, event.id).await?;
+        let images = ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
         let visitor =
             VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
@@ -174,7 +174,7 @@ where
             Some(i) => i,
             None => {
                 let default =
-                    ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+                    ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
                 let current_image_id = default
                     .first()
                     .ok_or(Error::BadRequest {

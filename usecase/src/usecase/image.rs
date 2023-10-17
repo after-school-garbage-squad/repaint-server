@@ -247,7 +247,8 @@ where
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let default = ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+        let default =
+            ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
         let vi = ImageRepository::get_visitor_image(&self.repo, &tx, visitor.id).await?;
         let mut image_ids = default
             .iter()
@@ -300,7 +301,7 @@ where
             Some(i) => i,
             None => {
                 let default =
-                    ImageRepository::list_default_image(&self.repo, &tx, event.id).await?;
+                    ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
                 let current_image_id = default
                     .first()
                     .ok_or(Error::BadRequest {

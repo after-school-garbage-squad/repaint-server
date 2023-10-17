@@ -136,14 +136,14 @@ where
         let events = EventRepository::list(&self.repo, &tx, subject).await?;
         let s = events
             .iter()
-            .map(|e| SpotRepository::list(&self.repo, &tx, e.id));
+            .map(|e| SpotRepository::list(&self.repo, e.id));
         let spots = join_all(s)
             .await
             .into_iter()
             .collect::<Result<Vec<Vec<_>>, _>>()?;
         let i = events
             .iter()
-            .map(|e| ImageRepository::list_default_image(&self.repo, &tx, e.id));
+            .map(|e| ImageRepository::list_default_image(&self.repo, e.id));
         let images = join_all(i)
             .await
             .into_iter()

@@ -53,7 +53,19 @@ impl SpotRepository for SeaOrm {
         to_model(spot)
     }
 
-    async fn list(
+    async fn list(&self, event_id: i32) -> Result<Vec<EventSpot>, Self::Error> {
+        events::Entity::find_by_id(event_id)
+            .find_with_related(event_spots::Entity)
+            .all(self.con())
+            .await?
+            .into_iter()
+            .map(|(_, s)| s)
+            .flatten()
+            .map(to_model)
+            .collect()
+    }
+
+    async fn list_with_tx(
         &self,
         tx: &DatabaseTransaction,
         event_id: i32,
@@ -295,17 +307,11 @@ mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let event = orm.make_test_event().await;
-            let tx = TransactionRepository::begin_transaction(orm.orm())
-                .await
-                .unwrap();
             let mut spots = Vec::new();
             for _ in 0..q {
                 spots.push(orm.make_test_spot(event.id).await);
             }
-            let res = SpotRepository::list(orm.orm(), &tx, event.id)
-                .await
-                .unwrap();
-            let _ = tx.commit().await.unwrap();
+            let res = SpotRepository::list(orm.orm(), event.id).await.unwrap();
 
             self::assert_eq!(res, spots);
         }

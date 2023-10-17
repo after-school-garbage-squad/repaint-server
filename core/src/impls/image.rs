@@ -106,7 +106,21 @@ impl ImageRepository for SeaOrm {
         Ok(image.image_id.map(|i| i.model()))
     }
 
-    async fn list_default_image(
+    async fn list_default_image(&self, event_id: i32) -> Result<Vec<Id<EventImage>>, Self::Error> {
+        let ids = events::Entity::find_by_id(event_id)
+            .find_with_related(event_images::Entity)
+            .all(self.con())
+            .await?
+            .into_iter()
+            .map(|(_, i)| i)
+            .flatten()
+            .map(|i| i.image_id.model())
+            .collect();
+
+        Ok(ids)
+    }
+
+    async fn list_default_image_with_tx(
         &self,
         tx: &DatabaseTransaction,
         event_id: i32,
@@ -204,7 +218,7 @@ mod test {
         let _ = ImageRepository::add_default_image(orm.orm(), &tx, event.id, image_id.clone())
             .await
             .unwrap();
-        let res = ImageRepository::list_default_image(orm.orm(), &tx, event.id)
+        let res = ImageRepository::list_default_image_with_tx(orm.orm(), &tx, event.id)
             .await
             .unwrap();
         let _ = tx.commit().await.unwrap();
@@ -225,13 +239,13 @@ mod test {
         let _ = ImageRepository::add_default_image(orm.orm(), &tx, event.id, image_id.clone())
             .await
             .unwrap();
-        let res1 = ImageRepository::list_default_image(orm.orm(), &tx, event.id)
+        let res1 = ImageRepository::list_default_image_with_tx(orm.orm(), &tx, event.id)
             .await
             .unwrap();
         let _ = ImageRepository::delete_default_image(orm.orm(), &tx, event.id, image_id.clone())
             .await
             .unwrap();
-        let res2 = ImageRepository::list_default_image(orm.orm(), &tx, event.id)
+        let res2 = ImageRepository::list_default_image_with_tx(orm.orm(), &tx, event.id)
             .await
             .unwrap();
         let _ = tx.commit().await.unwrap();

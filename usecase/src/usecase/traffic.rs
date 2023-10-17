@@ -82,11 +82,11 @@ where
                 .await?
                 .ok_or(Error::UnAuthorized)?;
 
-        let spots = SpotRepository::list(&self.repo, &tx, event.id).await?;
+        let spots = SpotRepository::list_with_tx(&self.repo, &tx, event.id).await?;
 
         let s = spots
             .iter()
-            .map(|s| VisitorRepository::get_visitors(&self.repo, &tx, s.id));
+            .map(|s| VisitorRepository::get_visitors(&self.repo, s.id));
         let visitors = join_all(s)
             .await
             .into_iter()
@@ -142,8 +142,10 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", to),
             })?;
-        let visitors_in_from = VisitorRepository::get_visitors(&self.repo, &tx, from.id).await?;
-        let visitors_in_to = VisitorRepository::get_visitors(&self.repo, &tx, to.id).await?;
+        let visitors_in_from =
+            VisitorRepository::get_visitors_with_tx(&self.repo, &tx, from.id).await?;
+        let visitors_in_to =
+            VisitorRepository::get_visitors_with_tx(&self.repo, &tx, to.id).await?;
         let mut rng = {
             let rng = rand::thread_rng();
             StdRng::from_rng(rng).unwrap()
@@ -159,7 +161,7 @@ where
             })?;
         let v = visitors
             .iter()
-            .map(|&v| VisitorRepository::get_by_id(&self.repo, &tx, v));
+            .map(|&v| VisitorRepository::get_by_id(&self.repo, v));
         let visitors = join_all(v).await.into_iter().flatten().collect::<Vec<_>>();
         let m = visitors.into_iter().flatten().map(|v| {
             self.pubsub
