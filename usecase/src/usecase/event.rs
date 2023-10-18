@@ -7,7 +7,8 @@ use teloc::inject;
 
 use crate::infra::firestore::Firestore;
 use crate::infra::repo::{
-    AdminRepository, EventRepository, ImageRepository, SpotRepository, VisitorRepository,
+    AdminRepository, EventRepository, ImageRepository, SpotRepository, TransactionRepository,
+    VisitorRepository,
 };
 use crate::model::event::{CreateEventResponse, EventResponse, UpdateEventResponse};
 use crate::usecase::error::Error;
@@ -45,7 +46,12 @@ pub struct EventUsecaseImpl<R, F> {
 #[inject]
 impl<R, F> EventUsecaseImpl<R, F>
 where
-    R: EventRepository + AdminRepository + SpotRepository + ImageRepository + VisitorRepository,
+    R: EventRepository
+        + AdminRepository
+        + SpotRepository
+        + ImageRepository
+        + VisitorRepository
+        + TransactionRepository,
     F: Firestore,
 {
     pub fn new(repo: R, firestore: F) -> Self {
@@ -56,7 +62,12 @@ where
 #[async_trait]
 impl<R, F> EventUsecase for EventUsecaseImpl<R, F>
 where
-    R: EventRepository + AdminRepository + SpotRepository + ImageRepository + VisitorRepository,
+    R: EventRepository
+        + AdminRepository
+        + SpotRepository
+        + ImageRepository
+        + VisitorRepository
+        + TransactionRepository,
     F: Firestore,
 {
     async fn create_event(
@@ -66,43 +77,38 @@ where
         hp_url: String,
         contact: Contact,
     ) -> Result<CreateEventResponse, Error> {
-        let admin = AdminRepository::get(&self.repo, subject)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let admin = AdminRepository::get_with_tx(&self.repo, &tx, subject)
             .await?
             .ok_or(Error::UnAuthorized)?;
-
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
-
         if hp_url.chars().count() > 2083 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 2083 chars", hp_url),
             });
         }
-
         if contact.name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", contact.name),
             });
         }
-
         if contact.email.as_str().chars().count() > 80 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 80 chars", contact.email),
             });
         }
-
         if contact.phone.chars().count() > 11 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 11 chars", contact.phone),
             });
         }
-
-        let event = EventRepository::create(&self.repo, name, hp_url, contact).await?;
-
-        let _ = AdminRepository::update(&self.repo, admin.id, event.id).await?;
+        let event = EventRepository::create(&self.repo, &tx, name, hp_url, contact).await?;
+        let _ = AdminRepository::update(&self.repo, &tx, admin.id, event.id).await?;
+        let _ = tx.commit().await?;
 
         Ok(CreateEventResponse {
             event_id: event.event_id,
@@ -113,19 +119,21 @@ where
     }
 
     async fn delete_event(&self, subject: String, event_id: Id<Event>) -> Result<(), Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-
-        let _ = EventRepository::delete(&self.repo, event.id).await?;
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
+        let _ = EventRepository::delete(&self.repo, &tx, event.id).await?;
         let _ = self.firestore.delete(event.event_id).await?;
+        let _ = tx.commit().await?;
 
         Ok(())
     }
 
     async fn list_event(&self, subject: String) -> Result<Vec<EventResponse>, Error> {
-        let events = EventRepository::list(&self.repo, subject).await?;
-
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let events = EventRepository::list(&self.repo, &tx, subject).await?;
         let s = events
             .iter()
             .map(|e| SpotRepository::list(&self.repo, e.id));
@@ -133,7 +141,6 @@ where
             .await
             .into_iter()
             .collect::<Result<Vec<Vec<_>>, _>>()?;
-
         let i = events
             .iter()
             .map(|e| ImageRepository::list_default_image(&self.repo, e.id));
@@ -141,6 +148,7 @@ where
             .await
             .into_iter()
             .collect::<Result<Vec<Vec<_>>, _>>()?;
+        let _ = tx.commit().await?;
 
         Ok(events
             .into_iter()
@@ -165,47 +173,44 @@ where
         hp_url: String,
         contact: Contact,
     ) -> Result<UpdateEventResponse, Error> {
-        let event = EventRepository::get_event_belong_to_subject(&self.repo, subject, event_id)
-            .await?
-            .ok_or(Error::UnAuthorized)?;
-
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event =
+            EventRepository::get_event_belong_to_subject(&self.repo, &tx, subject, event_id)
+                .await?
+                .ok_or(Error::UnAuthorized)?;
         if name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", name),
             });
         }
-
         if hp_url.chars().count() > 2083 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 2083 chars", hp_url),
             });
         }
-
         if contact.name.chars().count() > 32 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 32 chars", contact.name),
             });
         }
-
         if contact.email.as_str().chars().count() > 80 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 80 chars", contact.email),
             });
         }
-
         if contact.phone.chars().count() > 11 {
             return Err(Error::BadRequest {
                 message: format!("{} is longer than 11 chars", contact.phone),
             });
         }
-
         let Some(event) =
-            EventRepository::update(&self.repo, event.id, name, hp_url, contact).await?
+            EventRepository::update(&self.repo, &tx, event.id, name, hp_url, contact).await?
         else {
             return Err(Error::BadRequest {
                 message: format!("{} is not found", event_id),
             });
         };
+        let _ = tx.commit().await?;
 
         Ok(UpdateEventResponse {
             event_id: event.event_id,

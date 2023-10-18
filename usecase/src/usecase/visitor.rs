@@ -9,6 +9,7 @@ use repaint_server_model::AsyncSafe;
 use teloc::inject;
 
 use crate::infra::pubsub::GoogleCloudPubSub;
+use crate::infra::repo::TransactionRepository;
 use crate::infra::repo::{
     EventRepository, ImageRepository, PaletteRepository, SpotRepository, VisitorRepository,
 };
@@ -45,7 +46,12 @@ pub struct VisitorUsecaseImpl<R, P> {
 #[inject]
 impl<R, P> VisitorUsecaseImpl<R, P>
 where
-    R: VisitorRepository + EventRepository + SpotRepository + ImageRepository + PaletteRepository,
+    R: VisitorRepository
+        + EventRepository
+        + SpotRepository
+        + ImageRepository
+        + PaletteRepository
+        + TransactionRepository,
     P: GoogleCloudPubSub,
 {
     pub fn new(repo: R, pubsub: P) -> Self {
@@ -56,7 +62,12 @@ where
 #[async_trait]
 impl<R, P> VisitorUsecase for VisitorUsecaseImpl<R, P>
 where
-    R: VisitorRepository + EventRepository + SpotRepository + ImageRepository + PaletteRepository,
+    R: VisitorRepository
+        + EventRepository
+        + SpotRepository
+        + ImageRepository
+        + PaletteRepository
+        + TransactionRepository,
     P: GoogleCloudPubSub,
 {
     async fn join_event(
@@ -69,36 +80,37 @@ where
                 message: format!("{} is longer than 4096 chars", registration_id),
             });
         }
-
-        let event = EventRepository::get(&self.repo, event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, event.id).await?;
-        let images = ImageRepository::list_default_image(&self.repo, event.id).await?;
+        let spots = SpotRepository::list_with_tx(&self.repo, &tx, event.id).await?;
+        let images = ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
         let visitor =
             VisitorRepository::create(&self.repo, event.id, registration_id.clone()).await?;
-        let image = match ImageRepository::get_current_image(&self.repo, visitor.id).await? {
-            Some(i) => i,
+        let image_id = match ImageRepository::get_current_image(&self.repo, &tx, visitor.id).await?
+        {
+            Some(i) => Id::<VisitorImage>::from_str(i.to_string().as_str())?,
             None => {
-                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
-                let current_image_id = default
+                let default =
+                    ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
+                let event_image_id = default
                     .first()
                     .ok_or(Error::BadRequest {
                         message: "default image is empty".to_string(),
                     })?
                     .clone();
 
-                Id::<CurrentImage>::from_str(current_image_id.to_string().as_str())
+                Id::<VisitorImage>::from_str(event_image_id.to_string().as_str())
                     .ok()
                     .ok_or(Error::BadRequest {
                         message: "failed to parse default image id to current image id".to_string(),
                     })?
             }
         };
-        let image_id = Id::<VisitorImage>::from_str(image.to_string().as_str())?;
-        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
+        let palettes = PaletteRepository::get(&self.repo, &tx, visitor.id).await?;
         let _ = self
             .pubsub
             .publish_merge_current_image(
@@ -108,6 +120,7 @@ where
                 palettes.clone(),
             )
             .await?;
+        let _ = tx.commit().await?;
 
         Ok((
             EventResponse {
@@ -139,28 +152,29 @@ where
                 message: format!("{} is longer than 4096 chars", registration_id),
             });
         }
-
-        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
-        let spots = SpotRepository::list(&self.repo, event.id).await?;
-        let images = ImageRepository::list_default_image(&self.repo, event.id).await?;
+        let spots = SpotRepository::list_with_tx(&self.repo, &tx, event.id).await?;
+        let images = ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
         let visitor =
-            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+            VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let palettes = PaletteRepository::get(&self.repo, visitor.id).await?;
-        let image_id = ImageRepository::get_visitor_image(&self.repo, visitor.id).await?;
-        let current_image_id = match ImageRepository::get_current_image(&self.repo, visitor.id)
+        let palettes = PaletteRepository::get(&self.repo, &tx, visitor.id).await?;
+        let image_id = ImageRepository::get_visitor_image(&self.repo, &tx, visitor.id).await?;
+        let current_image_id = match ImageRepository::get_current_image(&self.repo, &tx, visitor.id)
             .await?
         {
             Some(i) => i,
             None => {
-                let default = ImageRepository::list_default_image(&self.repo, event.id).await?;
+                let default =
+                    ImageRepository::list_default_image_with_tx(&self.repo, &tx, event.id).await?;
                 let current_image_id = default
                     .first()
                     .ok_or(Error::BadRequest {
@@ -175,6 +189,7 @@ where
                     })?
             }
         };
+        let _ = tx.commit().await?;
 
         Ok((
             EventResponse {
@@ -199,18 +214,19 @@ where
         &self,
         visitor_identification: VisitorIdentification,
     ) -> Result<(), Error> {
-        let event = EventRepository::get(&self.repo, visitor_identification.event_id)
+        let tx = TransactionRepository::begin_transaction(&self.repo).await?;
+        let event = EventRepository::get(&self.repo, &tx, visitor_identification.event_id)
             .await?
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", visitor_identification.event_id),
             })?;
         let visitor =
-            VisitorRepository::get(&self.repo, event.id, visitor_identification.visitor_id)
+            VisitorRepository::get(&self.repo, &tx, event.id, visitor_identification.visitor_id)
                 .await?
                 .ok_or(Error::BadRequest {
                     message: format!("{} is invalid id", visitor_identification.visitor_id),
                 })?;
-        let _ = VisitorRepository::delete(&self.repo, visitor.id).await?;
+        let _ = VisitorRepository::delete(&self.repo, &tx, visitor.id).await?;
 
         Ok(())
     }

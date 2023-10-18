@@ -3,8 +3,8 @@ use chrono::NaiveDateTime;
 use repaint_server_usecase::infra::repo::{IsUpdated, TrafficRepository};
 use repaint_server_usecase::model::traffic::HeadCountResponse;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, QueryFilter, QueryOrder, Set,
-    TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, QueryFilter,
+    QueryOrder, QuerySelect, Set, TransactionTrait,
 };
 
 use crate::entity::traffic_queues;
@@ -16,10 +16,10 @@ use super::IsUpdatedExt;
 impl TrafficRepository for SeaOrm {
     type Error = Error;
 
-    async fn size(&self) -> Result<usize, Self::Error> {
+    async fn size(&self, tx: &DatabaseTransaction) -> Result<usize, Self::Error> {
         let length = traffic_queues::Entity::find()
             .order_by_asc(traffic_queues::Column::Timestamp)
-            .all(self.con())
+            .all(tx)
             .await?
             .len();
 
@@ -28,6 +28,7 @@ impl TrafficRepository for SeaOrm {
 
     async fn push(
         &self,
+        tx: &DatabaseTransaction,
         spot_id: i32,
         hc_from: usize,
         hc_to: usize,
@@ -38,13 +39,13 @@ impl TrafficRepository for SeaOrm {
             head_count_to: Set(hc_to as i32),
             ..Default::default()
         }
-        .insert(self.con())
+        .insert(tx)
         .await
         .to_is_updated()
     }
 
-    async fn pop(&self) -> Result<Option<i32>, Self::Error> {
-        let tx = self.con().begin().await?;
+    async fn pop(&self, txn: &DatabaseTransaction) -> Result<Option<i32>, Self::Error> {
+        let tx = txn.begin().await?;
         let last = traffic_queues::Entity::find()
             .order_by_desc(traffic_queues::Column::Timestamp)
             .one(&tx)
@@ -66,8 +67,12 @@ impl TrafficRepository for SeaOrm {
         }
     }
 
-    async fn remove(&self, spot_id: i32) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
+    async fn remove(
+        &self,
+        txn: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<IsUpdated, Self::Error> {
+        let tx = txn.begin().await?;
         let last = traffic_queues::Entity::find()
             .filter(traffic_queues::Column::SpotId.eq(spot_id))
             .order_by_desc(traffic_queues::Column::Timestamp)
@@ -85,19 +90,29 @@ impl TrafficRepository for SeaOrm {
         res.to_is_updated()
     }
 
-    async fn get_timestamp(&self, spot_id: i32) -> Result<Option<NaiveDateTime>, Self::Error> {
+    async fn get_timestamp(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<NaiveDateTime>, Self::Error> {
         let last = traffic_queues::Entity::find()
             .filter(traffic_queues::Column::SpotId.eq(spot_id))
-            .one(self.con())
+            .limit(1)
+            .one(tx)
             .await?;
 
         Ok(last.map(|last| last.timestamp))
     }
 
-    async fn get_hc(&self, spot_id: i32) -> Result<Option<HeadCountResponse>, Self::Error> {
+    async fn get_hc(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<HeadCountResponse>, Self::Error> {
         let last = traffic_queues::Entity::find()
             .filter(traffic_queues::Column::SpotId.eq(spot_id))
-            .one(self.con())
+            .limit(1)
+            .one(tx)
             .await?;
 
         Ok(last.map(|last| HeadCountResponse {

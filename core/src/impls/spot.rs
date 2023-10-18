@@ -5,7 +5,8 @@ use repaint_server_model::id::Id;
 use repaint_server_usecase::infra::repo::{IsUpdated, SpotRepository};
 use sea_orm::ActiveValue::Set;
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, DbErr, EntityTrait, ModelTrait, QueryFilter, TransactionTrait,
+    ActiveModelTrait, ColumnTrait, DatabaseTransaction, DbErr, EntityTrait, ModelTrait,
+    QueryFilter, TransactionTrait,
 };
 
 use crate::entity::{event_spots, events, visitor_spots, visitors};
@@ -32,6 +33,7 @@ impl SpotRepository for SeaOrm {
 
     async fn register(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         name: String,
         hw_id: String,
@@ -45,7 +47,7 @@ impl SpotRepository for SeaOrm {
             service_uuid: Set(service_uuid),
             ..Default::default()
         }
-        .insert(self.con())
+        .insert(tx)
         .await?;
 
         to_model(spot)
@@ -63,14 +65,31 @@ impl SpotRepository for SeaOrm {
             .collect()
     }
 
+    async fn list_with_tx(
+        &self,
+        tx: &DatabaseTransaction,
+        event_id: i32,
+    ) -> Result<Vec<EventSpot>, Self::Error> {
+        events::Entity::find_by_id(event_id)
+            .find_with_related(event_spots::Entity)
+            .all(tx)
+            .await?
+            .into_iter()
+            .map(|(_, s)| s)
+            .flatten()
+            .map(to_model)
+            .collect()
+    }
+
     async fn get_by_beacon(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         hw_id: String,
     ) -> Result<Option<EventSpot>, Self::Error> {
         let Some(spot) = events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)
@@ -85,12 +104,13 @@ impl SpotRepository for SeaOrm {
 
     async fn get_by_qr(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<Option<EventSpot>, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)
@@ -100,9 +120,13 @@ impl SpotRepository for SeaOrm {
             .transpose()
     }
 
-    async fn get_by_id(&self, spot_id: i32) -> Result<Option<EventSpot>, Self::Error> {
+    async fn get_by_id(
+        &self,
+        tx: &DatabaseTransaction,
+        spot_id: i32,
+    ) -> Result<Option<EventSpot>, Self::Error> {
         event_spots::Entity::find_by_id(spot_id)
-            .one(self.con())
+            .one(tx)
             .await?
             .map(to_model)
             .transpose()
@@ -110,6 +134,7 @@ impl SpotRepository for SeaOrm {
 
     async fn update(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
         name: String,
@@ -117,7 +142,7 @@ impl SpotRepository for SeaOrm {
     ) -> Result<Option<EventSpot>, Self::Error> {
         let mut spot: event_spots::ActiveModel = match events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)
@@ -136,11 +161,11 @@ impl SpotRepository for SeaOrm {
 
     async fn delete(
         &self,
+        txn: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
+        let tx = txn.begin().await?;
         let spot = events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
             .all(&tx)
@@ -161,12 +186,13 @@ impl SpotRepository for SeaOrm {
 
     async fn get_bonus_state(
         &self,
+        tx: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
     ) -> Result<bool, Self::Error> {
         events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
-            .all(self.con())
+            .all(tx)
             .await?
             .into_iter()
             .map(|(_, s)| s)
@@ -182,12 +208,12 @@ impl SpotRepository for SeaOrm {
 
     async fn set_bonus_state(
         &self,
+        txn: &DatabaseTransaction,
         event_id: i32,
         spot_id: Id<EventSpot>,
         is_bonus: bool,
     ) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
-
+        let tx = txn.begin().await?;
         let mut spot: event_spots::ActiveModel = events::Entity::find_by_id(event_id)
             .find_with_related(event_spots::Entity)
             .all(&tx)
@@ -210,11 +236,12 @@ impl SpotRepository for SeaOrm {
 
     async fn scanned(
         &self,
+        txn: &DatabaseTransaction,
         visitor_id: i32,
         spot_id: i32,
         now: NaiveDateTime,
     ) -> Result<IsUpdated, Self::Error> {
-        let tx = self.con().begin().await?;
+        let tx = txn.begin().await?;
         let visitor_spot = visitors::Entity::find_by_id(visitor_id)
             .find_also_related(visitor_spots::Entity)
             .filter(visitor_spots::Column::SpotId.eq(spot_id))
@@ -249,6 +276,7 @@ impl SpotRepository for SeaOrm {
 #[cfg(test)]
 mod test {
     use pretty_assertions::*;
+    use repaint_server_usecase::infra::repo::TransactionRepository;
 
     use crate::TestingSeaOrm;
 
@@ -283,7 +311,6 @@ mod test {
             for _ in 0..q {
                 spots.push(orm.make_test_spot(event.id).await);
             }
-
             let res = SpotRepository::list(orm.orm(), event.id).await.unwrap();
 
             self::assert_eq!(res, spots);
@@ -297,13 +324,16 @@ mod test {
     #[test_log::test(tokio::test)]
     async fn test_get_by_beacon() {
         let orm = TestingSeaOrm::new().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let event = orm.make_test_event().await;
         let spot = orm.make_test_spot(event.id).await;
-
-        let res = SpotRepository::get_by_beacon(orm.orm(), event.id, spot.hw_id.clone())
+        let res = SpotRepository::get_by_beacon(orm.orm(), &tx, event.id, spot.hw_id.clone())
             .await
             .unwrap()
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, spot);
     }
@@ -313,11 +343,14 @@ mod test {
         let orm = TestingSeaOrm::new().await;
         let event = orm.make_test_event().await;
         let spot = orm.make_test_spot(event.id).await;
-
-        let res = SpotRepository::get_by_qr(orm.orm(), event.id, spot.spot_id)
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
+        let res = SpotRepository::get_by_qr(orm.orm(), &tx, event.id, spot.spot_id)
             .await
             .unwrap()
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, spot);
     }
@@ -325,12 +358,16 @@ mod test {
     #[test_log::test(tokio::test)]
     async fn test_update() {
         let orm = TestingSeaOrm::new().await;
-        let event = orm.make_test_event().await;
-        let spot = orm.make_test_spot(event.id).await;
-
-        let res = SpotRepository::update(orm.orm(), event.id, spot.spot_id, "test2".into(), true)
+        let tx = TransactionRepository::begin_transaction(orm.orm())
             .await
             .unwrap();
+        let event = orm.make_test_event().await;
+        let spot = orm.make_test_spot(event.id).await;
+        let res =
+            SpotRepository::update(orm.orm(), &tx, event.id, spot.spot_id, "test2".into(), true)
+                .await
+                .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(
             res,
@@ -349,15 +386,18 @@ mod test {
     #[test_log::test(tokio::test)]
     async fn test_set_get_bonus() {
         let orm = TestingSeaOrm::new().await;
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let event = orm.make_test_event().await;
         let spot = orm.make_test_spot(event.id).await;
-
-        let _ = SpotRepository::set_bonus_state(orm.orm(), event.id, spot.spot_id, true)
+        let _ = SpotRepository::set_bonus_state(orm.orm(), &tx, event.id, spot.spot_id, true)
             .await
             .unwrap();
-        let res = SpotRepository::get_bonus_state(orm.orm(), event.id, spot.spot_id)
+        let res = SpotRepository::get_bonus_state(orm.orm(), &tx, event.id, spot.spot_id)
             .await
             .unwrap();
+        let _ = tx.commit().await.unwrap();
 
         self::assert_eq!(res, true);
     }

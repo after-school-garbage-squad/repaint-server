@@ -9,6 +9,7 @@ pub mod image;
 pub mod palette;
 pub mod spot;
 pub mod traffic;
+pub mod transaction;
 pub mod visitor;
 
 trait IsUpdatedExt {
