@@ -7,7 +7,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-async-trait = "0.1.73"
+async-trait = "0.1.74"
 chrono = "0.4.31"
 firestore = "0.37.2"
 futures = "0.3.28"

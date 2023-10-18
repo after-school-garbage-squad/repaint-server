@@ -7,7 +7,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-async-trait = "0.1.73"
+async-trait = "0.1.74"
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
 teloc = "0.2.0"

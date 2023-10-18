@@ -7,7 +7,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-async-trait = "0.1.73"
+async-trait = "0.1.74"
 google-cloud-gax = "0.15.0"
 google-cloud-googleapis = "0.11.0"
 repaint-server-model = { path = "../model" }
