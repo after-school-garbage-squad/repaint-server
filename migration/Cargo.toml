@@ -7,7 +7,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-async-trait = "0.1.73"
+async-trait = "0.1.74"
 tokio = { version = "1.33.0", features = ["full"] }
 
 [dependencies.sea-orm-migration]

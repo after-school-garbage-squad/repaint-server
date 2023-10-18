@@ -7,7 +7,7 @@ authors.workspace = true
 license.workspace = true
 
 [dependencies]
-async-trait = "0.1.73"
+async-trait = "0.1.74"
 cfg-if = "1.0.0"
 chrono = "0.4.31"
 email_address = "0.2.4"
