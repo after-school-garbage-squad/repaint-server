@@ -1119,7 +1119,29 @@ checksum = "931bedb2264cb00f914b0a6a5c304e34865c34306632d3932e0951a073e4a67d"
 dependencies = [
  "async-trait",
  "base64 0.21.4",
- "google-cloud-metadata",
+ "google-cloud-metadata 0.3.2",
+ "google-cloud-token",
+ "home",
+ "jsonwebtoken 8.3.0",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror",
+ "time",
+ "tokio",
+ "tracing",
+ "urlencoding",
+]
+
+[[package]]
+name = "google-cloud-auth"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "af1087f1fbd2dd3f58c17c7574ddd99cd61cbbbc2c4dc81114b8687209b196cb"
+dependencies = [
+ "async-trait",
+ "base64 0.21.4",
+ "google-cloud-metadata 0.4.0",
  "google-cloud-token",
  "home",
  "jsonwebtoken 8.3.0",
@@ -1172,6 +1194,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "google-cloud-metadata"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cc279bfb50487d7bcd900e8688406475fc750fe474a835b2ab9ade9eb1fc90e2"
+dependencies = [
+ "reqwest",
+ "thiserror",
+ "tokio",
+]
+
+[[package]]
 name = "google-cloud-pubsub"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1179,7 +1212,7 @@ checksum = "fc1f6c87f794b93fbb253f4983c19cd8a810b7fa067a1401ce4cf91ede758b34"
 dependencies = [
  "async-channel",
  "async-stream",
- "google-cloud-auth",
+ "google-cloud-auth 0.12.0",
  "google-cloud-gax",
  "google-cloud-googleapis",
  "google-cloud-token",
@@ -1192,16 +1225,16 @@ dependencies = [
 
 [[package]]
 name = "google-cloud-storage"
-version = "0.13.1"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "22c57ca1d971d7c6f852c02eda4e87e88b1247b6ed8be9fa5b2768c68b0f2ca5"
+checksum = "bea96059b656bc5f3332865c02cadc532238b269bd29b2fde64d8ecb878d1b13"
 dependencies = [
  "async-stream",
  "base64 0.21.4",
  "bytes",
  "futures-util",
- "google-cloud-auth",
- "google-cloud-metadata",
+ "google-cloud-auth 0.13.0",
+ "google-cloud-metadata 0.4.0",
  "google-cloud-token",
  "hex",
  "once_cell",
