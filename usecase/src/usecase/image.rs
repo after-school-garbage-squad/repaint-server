@@ -225,7 +225,8 @@ where
             .pubsub
             .publish_clustering_visitor_image(event.event_id, visitor.visitor_id, image_id)
             .await?;
-        let _ = ImageRepository::upload_visitor_image(&self.repo, &tx, visitor.id, image_id).await?;
+        let _ =
+            ImageRepository::upload_visitor_image(&self.repo, &tx, visitor.id, image_id).await?;
         let _ = tx.commit().await?;
 
         Ok(())
