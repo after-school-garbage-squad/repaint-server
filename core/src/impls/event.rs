@@ -94,7 +94,6 @@ impl EventRepository for SeaOrm {
     ) -> Result<Vec<Event>, Self::Error> {
         admins::Entity::find()
             .filter(admins::Column::Subject.eq(subject.dty()))
-            .limit(1)
             .find_with_related(events::Entity)
             .all(tx)
             .await?
@@ -213,23 +212,22 @@ pub(crate) mod test {
         async fn test(q: u8) {
             let orm = TestingSeaOrm::new().await;
             let admin = orm.make_test_admin().await;
-            let tx = TransactionRepository::begin_transaction(orm.orm())
-                .await
-                .unwrap();
             let mut events = Vec::new();
             for _ in 0..q {
                 let e = orm.make_test_event().await;
-                let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
-                    orm.orm(),
-                    &tx,
-                    admin.id,
-                    e.id,
-                )
+                let _ = events_admins::ActiveModel {
+                    event_id: Set(e.id),
+                    admin_id: Set(admin.id),
+                    ..Default::default()
+                }
+                .insert(orm.orm().con())
                 .await
                 .unwrap();
                 events.push(e);
             }
-
+            let tx = TransactionRepository::begin_transaction(orm.orm())
+                .await
+                .unwrap();
             let res = EventRepository::list(orm.orm(), &tx, admin.subject.clone())
                 .await
                 .unwrap();
@@ -248,21 +246,21 @@ pub(crate) mod test {
         let orm = TestingSeaOrm::new().await;
         let admin = orm.make_test_admin().await;
         let mut events = Vec::new();
-        let tx = TransactionRepository::begin_transaction(orm.orm())
-            .await
-            .unwrap();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
-            let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
-                orm.orm(),
-                &tx,
-                admin.id,
-                e.id,
-            )
+            let _ = events_admins::ActiveModel {
+                event_id: Set(e.id),
+                admin_id: Set(admin.id),
+                ..Default::default()
+            }
+            .insert(orm.orm().con())
             .await
             .unwrap();
             events.push(e);
         }
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let res = EventRepository::get(orm.orm(), &tx, events[1].event_id)
             .await
             .unwrap()
@@ -327,34 +325,34 @@ pub(crate) mod test {
         let event = orm.make_test_event().await;
         let mut events = Vec::new();
         let mut admins = Vec::new();
-        let tx = TransactionRepository::begin_transaction(orm.orm())
-            .await
-            .unwrap();
         for _ in 0..3 {
             let e = orm.make_test_event().await;
-            let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
-                orm.orm(),
-                &tx,
-                admin.id,
-                e.id,
-            )
+            let _ = events_admins::ActiveModel {
+                event_id: Set(e.id),
+                admin_id: Set(admin.id),
+                ..Default::default()
+            }
+            .insert(orm.orm().con())
             .await
             .unwrap();
             events.push(e);
         }
         for _ in 0..3 {
             let a = orm.make_test_admin().await;
-            let _ = repaint_server_usecase::infra::repo::AdminRepository::update(
-                orm.orm(),
-                &tx,
-                a.id,
-                event.id,
-            )
+            let _ = events_admins::ActiveModel {
+                event_id: Set(event.id),
+                admin_id: Set(a.id),
+                ..Default::default()
+            }
+            .insert(orm.orm().con())
             .await
             .unwrap();
             admins.push(a);
         }
         events.push(event.clone());
+        let tx = TransactionRepository::begin_transaction(orm.orm())
+            .await
+            .unwrap();
         let _ = EventRepository::delete(orm.orm(), &tx, events[1].id)
             .await
             .unwrap();
