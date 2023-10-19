@@ -68,7 +68,7 @@ jobs:
         with:
           toolchain: "nightly-2023-07-15"
       - name: Setup | Just
-        uses: taiki-e/install-action@v2.20.9
+        uses: taiki-e/install-action@v2.20.10
         with:
           tool: just@1.14.0
       - name: Setup | Cache
