@@ -1,5 +1,29 @@
 # Changelog
 
+## [3.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.6.0) (2023-10-19)
+
+
+### Features
+
+* add reset spot palettes ([#376](https://github.com/after-school-garbage-squad/repaint-server/issues/376)) ([1e93108](https://github.com/after-school-garbage-squad/repaint-server/commit/1e93108f0714aab1a7dccb53e58194dea5611372))
+* add uard for pick before scan ([#398](https://github.com/after-school-garbage-squad/repaint-server/issues/398)) ([ccce7a6](https://github.com/after-school-garbage-squad/repaint-server/commit/ccce7a65db0dd76b2aca09a6c00760457ea6c4ed))
+* impl check palettes are completed endpoint ([#370](https://github.com/after-school-garbage-squad/repaint-server/issues/370)) ([d188437](https://github.com/after-school-garbage-squad/repaint-server/commit/d188437ddf19739ec2322c62da56960f97bae9b1))
+* impl sending pick notification ([#379](https://github.com/after-school-garbage-squad/repaint-server/issues/379)) ([0dea0f7](https://github.com/after-school-garbage-squad/repaint-server/commit/0dea0f7e58d52eab82de6d491a4ade01c019576e))
+* impl transaction to all usecase ([#393](https://github.com/after-school-garbage-squad/repaint-server/issues/393)) ([f5b748c](https://github.com/after-school-garbage-squad/repaint-server/commit/f5b748cb73b1e51d1952ad58c6873da4f3b73d4a))
+* update palette structure ([#368](https://github.com/after-school-garbage-squad/repaint-server/issues/368)) ([0ecde29](https://github.com/after-school-garbage-squad/repaint-server/commit/0ecde297ff8aa35682a9245d35c6bb8b817c0e29))
+* update visitors in from logic ([#377](https://github.com/after-school-garbage-squad/repaint-server/issues/377)) ([fa71e3b](https://github.com/after-school-garbage-squad/repaint-server/commit/fa71e3bfb40c604746213a130242f2ffccf8e648))
+
+
+### Bug Fixes
+
+* add auto fill flow to drop logic ([#387](https://github.com/after-school-garbage-squad/repaint-server/issues/387)) ([4093ed9](https://github.com/after-school-garbage-squad/repaint-server/commit/4093ed951220937e9c74f6a3cf208cf4c00774d4))
+* **deps:** update rust crate async-trait to 0.1.74 ([#382](https://github.com/after-school-garbage-squad/repaint-server/issues/382)) ([e30f502](https://github.com/after-school-garbage-squad/repaint-server/commit/e30f50216ce72d836180146895ab72d42253e641))
+* **deps:** update rust crate serde to 1.0.189 ([#371](https://github.com/after-school-garbage-squad/repaint-server/issues/371)) ([a4b6a23](https://github.com/after-school-garbage-squad/repaint-server/commit/a4b6a2310f37c10094af8b51ce56a8af48b53c26))
+* fix core drop logic ([#374](https://github.com/after-school-garbage-squad/repaint-server/issues/374)) ([f22fe41](https://github.com/after-school-garbage-squad/repaint-server/commit/f22fe416410b22c19c61fcafc2b34bc172346e71))
+* fix logic of is_pick ([#380](https://github.com/after-school-garbage-squad/repaint-server/issues/380)) ([cc033f6](https://github.com/after-school-garbage-squad/repaint-server/commit/cc033f61509d06ba7996418e7cbb12672d0d9a84))
+* remove join_all for BUG ([#375](https://github.com/after-school-garbage-squad/repaint-server/issues/375)) ([6829e77](https://github.com/after-school-garbage-squad/repaint-server/commit/6829e77cbf829398c32e61a90dec93e2437e08b8))
+* remove missed updated setter ([#390](https://github.com/after-school-garbage-squad/repaint-server/issues/390)) ([775becb](https://github.com/after-school-garbage-squad/repaint-server/commit/775becb90f1d07147a8a17e27818902263e19442))
+
 ## [3.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.5.0) (2023-10-12)
 
 

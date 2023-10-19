@@ -1,6 +1,6 @@
 [package]
 name = "repaint-server-gcs"
-version = "3.5.0"
+version = "3.5.1"
 edition.workspace = true
 publish.workspace = true
 authors.workspace = true
