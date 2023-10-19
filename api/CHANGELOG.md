@@ -44,6 +44,24 @@
 
 
 
+## [3.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.6.0) (2023-10-19)
+
+
+### Features
+
+* impl check palettes are completed endpoint ([#370](https://github.com/after-school-garbage-squad/repaint-server/issues/370)) ([d188437](https://github.com/after-school-garbage-squad/repaint-server/commit/d188437ddf19739ec2322c62da56960f97bae9b1))
+* impl sending pick notification ([#379](https://github.com/after-school-garbage-squad/repaint-server/issues/379)) ([0dea0f7](https://github.com/after-school-garbage-squad/repaint-server/commit/0dea0f7e58d52eab82de6d491a4ade01c019576e))
+
+
+### Bug Fixes
+
+* add auto fill flow to drop logic ([#387](https://github.com/after-school-garbage-squad/repaint-server/issues/387)) ([4093ed9](https://github.com/after-school-garbage-squad/repaint-server/commit/4093ed951220937e9c74f6a3cf208cf4c00774d4))
+* **deps:** update rust crate jsonwebtoken to v9 ([#388](https://github.com/after-school-garbage-squad/repaint-server/issues/388)) ([4b6f24c](https://github.com/after-school-garbage-squad/repaint-server/commit/4b6f24cacddf32d1fb4e04936bcada3d242ca638))
+* **deps:** update rust crate serde to 1.0.189 ([#371](https://github.com/after-school-garbage-squad/repaint-server/issues/371)) ([a4b6a23](https://github.com/after-school-garbage-squad/repaint-server/commit/a4b6a2310f37c10094af8b51ce56a8af48b53c26))
+* **deps:** update rust crate tracing to 0.1.39 ([#381](https://github.com/after-school-garbage-squad/repaint-server/issues/381)) ([68a0bf7](https://github.com/after-school-garbage-squad/repaint-server/commit/68a0bf7490185b539658ec2392373f2691e61d13))
+* **deps:** update rust crate tracing to 0.1.40 ([#397](https://github.com/after-school-garbage-squad/repaint-server/issues/397)) ([2f96d92](https://github.com/after-school-garbage-squad/repaint-server/commit/2f96d9284cd400d436dc9f1d8510e07f0f720fdc))
+* revert jwk crate ([#396](https://github.com/after-school-garbage-squad/repaint-server/issues/396)) ([4cbefd8](https://github.com/after-school-garbage-squad/repaint-server/commit/4cbefd86d7cc94a4835be54a6186e8525af60c93))
+
 ## [3.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.0...repaint-server-v3.5.0) (2023-10-12)
 
 

@@ -36,6 +36,21 @@
 
 
 
+## [3.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.6.0) (2023-10-19)
+
+
+### Features
+
+* impl transaction to all usecase ([#393](https://github.com/after-school-garbage-squad/repaint-server/issues/393)) ([f5b748c](https://github.com/after-school-garbage-squad/repaint-server/commit/f5b748cb73b1e51d1952ad58c6873da4f3b73d4a))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate async-trait to 0.1.74 ([#382](https://github.com/after-school-garbage-squad/repaint-server/issues/382)) ([e30f502](https://github.com/after-school-garbage-squad/repaint-server/commit/e30f50216ce72d836180146895ab72d42253e641))
+* **deps:** update rust crate serde to 1.0.189 ([#371](https://github.com/after-school-garbage-squad/repaint-server/issues/371)) ([a4b6a23](https://github.com/after-school-garbage-squad/repaint-server/commit/a4b6a2310f37c10094af8b51ce56a8af48b53c26))
+* **deps:** update rust crate tracing to 0.1.39 ([#381](https://github.com/after-school-garbage-squad/repaint-server/issues/381)) ([68a0bf7](https://github.com/after-school-garbage-squad/repaint-server/commit/68a0bf7490185b539658ec2392373f2691e61d13))
+* **deps:** update rust crate tracing to 0.1.40 ([#397](https://github.com/after-school-garbage-squad/repaint-server/issues/397)) ([2f96d92](https://github.com/after-school-garbage-squad/repaint-server/commit/2f96d9284cd400d436dc9f1d8510e07f0f720fdc))
+
 ## [3.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.4.1...repaint-server-v3.5.0) (2023-10-12)
 
 

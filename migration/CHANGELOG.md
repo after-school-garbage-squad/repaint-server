@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.5.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.5.1) (2023-10-19)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate async-trait to 0.1.74 ([#382](https://github.com/after-school-garbage-squad/repaint-server/issues/382)) ([e30f502](https://github.com/after-school-garbage-squad/repaint-server/commit/e30f50216ce72d836180146895ab72d42253e641))
+
 ## [3.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.0...repaint-server-v3.5.0) (2023-10-12)
 
 

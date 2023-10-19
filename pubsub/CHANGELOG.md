@@ -44,6 +44,23 @@
 
 
 
+## [3.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.6.0) (2023-10-19)
+
+
+### Features
+
+* impl sending pick notification ([#379](https://github.com/after-school-garbage-squad/repaint-server/issues/379)) ([0dea0f7](https://github.com/after-school-garbage-squad/repaint-server/commit/0dea0f7e58d52eab82de6d491a4ade01c019576e))
+
+
+### Bug Fixes
+
+* **deps:** update rust crate async-trait to 0.1.74 ([#382](https://github.com/after-school-garbage-squad/repaint-server/issues/382)) ([e30f502](https://github.com/after-school-garbage-squad/repaint-server/commit/e30f50216ce72d836180146895ab72d42253e641))
+* **deps:** update rust crate google-cloud-gax to 0.16.0 ([#383](https://github.com/after-school-garbage-squad/repaint-server/issues/383)) ([377424e](https://github.com/after-school-garbage-squad/repaint-server/commit/377424e83e47aeb9a2f7498e2edecdf6a009bc01))
+* **deps:** update rust crate google-cloud-pubsub to 0.21.0 ([#384](https://github.com/after-school-garbage-squad/repaint-server/issues/384)) ([a0afc90](https://github.com/after-school-garbage-squad/repaint-server/commit/a0afc90838657cb5456b63fc8a8ab9e0edd7a850))
+* **deps:** update rust crate tracing to 0.1.39 ([#381](https://github.com/after-school-garbage-squad/repaint-server/issues/381)) ([68a0bf7](https://github.com/after-school-garbage-squad/repaint-server/commit/68a0bf7490185b539658ec2392373f2691e61d13))
+* **deps:** update rust crate tracing to 0.1.40 ([#397](https://github.com/after-school-garbage-squad/repaint-server/issues/397)) ([2f96d92](https://github.com/after-school-garbage-squad/repaint-server/commit/2f96d9284cd400d436dc9f1d8510e07f0f720fdc))
+* remove new line ([#378](https://github.com/after-school-garbage-squad/repaint-server/issues/378)) ([a1c823b](https://github.com/after-school-garbage-squad/repaint-server/commit/a1c823bfd4c45be7ff5671273eb682b11449dc17))
+
 ## [3.5.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.3.0...repaint-server-v3.5.0) (2023-10-12)
 
 
