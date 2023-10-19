@@ -1,5 +1,7 @@
 # Changelog
 
+
+
 ## [3.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.6.0) (2023-10-19)
 
 
