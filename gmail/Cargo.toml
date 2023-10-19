@@ -11,7 +11,7 @@ async-trait = "0.1.74"
 email_address = "0.2.4"
 repaint-server-usecase = { path = "../usecase" }
 teloc = "0.2.0"
-tracing = "0.1.39"
+tracing = "0.1.40"
 
 [dependencies.lettre]
 version = "0.11.0"
