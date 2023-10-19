@@ -89,6 +89,13 @@ where
             .ok_or(Error::BadRequest {
                 message: format!("{} is invalid id", spot_id),
             })?;
+        let Some(last_scaned) =
+            VisitorRepository::get_last_scanned_at(&self.repo, &tx, visitor.id, spot.id).await?
+        else {
+            return Err(Error::BadRequest {
+                message: "you should scan before pick some palette.".to_string(),
+            });
+        };
         let visitor_palettes = PaletteRepository::get(&self.repo, &tx, visitor.id)
             .await?
             .into_iter()
@@ -98,12 +105,9 @@ where
         }
         let last_picked =
             VisitorRepository::get_last_picked_at(&self.repo, &tx, visitor.id, spot.id).await?;
-        let last_scaned =
-            VisitorRepository::get_last_scanned_at(&self.repo, &tx, visitor.id, spot.id).await?;
         let is_bonus =
             SpotRepository::get_bonus_state(&self.repo, &tx, event.id, spot.spot_id).await?;
-        if (last_scaned.is_some()
-            && now - last_scaned.unwrap() >= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
+        if (now - last_scaned >= Duration::seconds(envvar("VISITOR_SPOT_TIMEOUT", 300)))
             || (last_picked.is_some()
                 && now - last_picked.unwrap()
                     <= Duration::seconds(if is_bonus {
