@@ -14,6 +14,6 @@ teloc = "0.2.0"
 tracing = "0.1.40"
 
 [dependencies.lettre]
-version = "0.11.0"
+version = "0.11.1"
 default-features = false
 features = ["smtp-transport", "pool", "rustls-tls", "hostname", "builder"]
