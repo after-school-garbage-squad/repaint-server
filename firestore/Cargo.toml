@@ -10,7 +10,7 @@ license.workspace = true
 async-trait = "0.1.74"
 chrono = "0.4.31"
 firestore = "0.37.2"
-futures = "0.3.28"
+futures = "0.3.29"
 rand = "0.8.5"
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
