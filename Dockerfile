@@ -1,5 +1,5 @@
 # bullseye is the codename for Debian 11
-FROM rust:1.73-slim-bullseye as base
+FROM rust:1.74-slim-bullseye as base
 
 ENV CARGO_TERM_PROGRESS_WHEN="always" \
     CARGO_TERM_PROGRESS_WIDTH="80"
