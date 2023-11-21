@@ -1,4 +1,4 @@
-FROM grafana/grafana:10.2.1
+FROM grafana/grafana:10.2.2
 USER grafana
 
 ARG POSTGRES_USER="postgres"
