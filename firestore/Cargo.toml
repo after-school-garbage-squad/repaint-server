@@ -14,7 +14,7 @@ futures = "0.3.29"
 rand = "0.8.5"
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
-serde = "1.0.190"
+serde = "1.0.193"
 teloc = "0.2.0"
 tokio-stream = "0.1.14"
 tracing = "0.1.40"
