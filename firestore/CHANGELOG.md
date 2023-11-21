@@ -44,6 +44,14 @@
 
 
 
+## [3.6.1](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.6.0...repaint-server-v3.6.1) (2023-11-21)
+
+
+### Bug Fixes
+
+* **deps:** update rust crate futures to 0.3.29 ([#417](https://github.com/after-school-garbage-squad/repaint-server/issues/417)) ([fbe4009](https://github.com/after-school-garbage-squad/repaint-server/commit/fbe4009f20fd152a6f88bb904b2d27659078fa7c))
+* **deps:** update rust crate serde to 1.0.190 ([#416](https://github.com/after-school-garbage-squad/repaint-server/issues/416)) ([b54b562](https://github.com/after-school-garbage-squad/repaint-server/commit/b54b5629987d467078561a1c761e1a9eb3978f41))
+
 ## [3.6.0](https://github.com/after-school-garbage-squad/repaint-server/compare/repaint-server-v3.5.0...repaint-server-v3.6.0) (2023-10-19)
 
 
