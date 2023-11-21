@@ -17,6 +17,6 @@ rand = "0.8.5"
 repaint-server-model = { path = "../model" }
 repaint-server-util = { path = "../util" }
 sea-orm = "0.12.4"
-serde = { version = "1.0.190", features = ["derive"] }
+serde = { version = "1.0.193", features = ["derive"] }
 teloc = "0.2.0"
 thiserror = "1.0.50"
