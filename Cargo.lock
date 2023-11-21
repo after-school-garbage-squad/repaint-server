@@ -1151,9 +1151,9 @@ dependencies = [
 
 [[package]]
 name = "google-cloud-googleapis"
-version = "0.11.0"
+version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5453af21ac0cc1f3b2cfb5b687c174e701c10ec2d5c286aff7ca8cbbf08d31b4"
+checksum = "04799536fa663ab9ab6cc4898085a143d180082cc5848e0425b154fcfddf2efd"
 dependencies = [
  "prost 0.11.9",
  "prost-types 0.11.9",

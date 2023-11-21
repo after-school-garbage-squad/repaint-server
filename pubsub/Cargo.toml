@@ -9,7 +9,7 @@ license.workspace = true
 [dependencies]
 async-trait = "0.1.74"
 google-cloud-gax = "0.16.0"
-google-cloud-googleapis = "0.11.0"
+google-cloud-googleapis = "0.11.1"
 repaint-server-model = { path = "../model" }
 repaint-server-usecase = { path = "../usecase" }
 serde_json = "1.0.107"
