@@ -21,7 +21,7 @@ thiserror = "1.0.50"
 tracing = "0.1.40"
 
 [dependencies.sea-orm]
-version = "0.12.4"
+version = "0.12.10"
 features = ["runtime-tokio-rustls", "sqlx-postgres", "postgres-array"]
 
 [dev-dependencies]
