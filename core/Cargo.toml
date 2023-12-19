@@ -32,6 +32,6 @@ sqlx = { version = "0.7.2", features = ["runtime-tokio-rustls", "postgres"] }
 test-log = { version = "0.2.13", default-features = false, features = [
   "trace",
 ] }
-tokio = { version = "1.33.0", features = ["macros"] }
+tokio = { version = "1.35.1", features = ["macros"] }
 tracing-subscriber = "0.3.17"
 ulid = "1.1.0"
